@@ -198,25 +198,104 @@ function run() {
 
   }
 
-  // ── Build weeks.json (scheduled weeks only — CricHeroes sync fills completed matches) ──
-  const MATCH_FEE = 500
-  const weeks = weekColumns
-    .filter(({ dateStr }) => new Date(dateStr) > new Date())  // only future/scheduled weeks
-    .map(({ dateStr, label }) => ({
-      week_id: `W_${dateStr.replace(/-/g, '_')}`,
+  // ── Parse match costs + attendance from Weekly Tracker ───────────────────
+  const costRow    = rows[52] ?? []   // "Match Cost (₹)" row
+  const noteRow    = rows[53] ?? []   // Notes row
+  const totalRow   = rows[50] ?? []   // Total Present
+  const corpusRow  = rows[51] ?? []   // Corpus Present
+
+  const attendance = []
+  const weeks      = []
+  const today      = new Date()
+
+  for (const { col, dateStr, label } of weekColumns) {
+    const weekId  = `W_${dateStr.replace(/-/g, '_')}`
+    const isPast  = new Date(dateStr) <= today
+    const cost    = typeof costRow[col] === 'number' ? Math.round(costRow[col]) : 0
+    const present = typeof totalRow[col] === 'number' ? totalRow[col] : 0
+    const note    = noteRow[col]?.toString().trim() ?? ''
+
+    weeks.push({
+      week_id: weekId,
       tournament_id: 'TRN_001',
       match_date: dateStr,
       label,
       venue: 'Machaxi J Sports, Bengaluru',
-      match_fee: MATCH_FEE,
-      status: 'scheduled',
+      match_fee: present > 0 ? Math.round(cost / present) : 0,
+      total_cost: cost,
+      status: isPast && cost > 0 ? 'completed' : isPast ? 'completed' : 'scheduled',
       cricheroes_match_id: null,
       team_a: 'Royal Cricket Blasters (RCB)',
       team_b: 'Weekend Warriors (WW)',
       result: '',
-      players_count: 0,
-      notes: '',
-    }))
+      players_count: present,
+      notes: note,
+    })
+
+    // Import attendance only for completed weeks with actual data
+    if (isPast && cost > 0) {
+      for (const player of players) {
+        const pIdx = players.indexOf(player)
+        const playerRow = rows[5 + pIdx]
+        if (!playerRow) continue
+        const cell   = playerRow[col]
+        const val    = cell?.toString().trim().toUpperCase()
+        const played = val === 'P' || val === '1' || val === 'TRUE'
+        attendance.push({
+          id: `ATT_${player.id}_${weekId}`,
+          player_id: player.id,
+          week_id: weekId,
+          tournament_id: 'TRN_001',
+          status: played ? 'played' : 'absent',
+          source: 'excel_import',
+          fee_deducted: played,
+        })
+      }
+    }
+  }
+
+  // ── Import expenses from Expenses Log ────────────────────────────────────
+  const expSheet = wb.Sheets['Expenses Log']
+  const expRows  = utils.sheet_to_json(expSheet, { header: 1, defval: null })
+  const expenses = []
+  for (const row of expRows.slice(4)) {
+    if (!row || !row[3]) continue
+    const amount = typeof row[3] === 'number' ? row[3] : null
+    if (!amount) continue
+    const dateVal = row[0]
+    const dateStr = typeof dateVal === 'number'
+      ? new Date(Math.round((dateVal - 25569) * 86400 * 1000)).toISOString().slice(0, 10)
+      : new Date().toISOString().slice(0, 10)
+    expenses.push({
+      id: `EXP_${expenses.length + 1}`,
+      tournament_id: 'TRN_001',
+      date: dateStr,
+      category: row[1]?.toString().replace(/[🏏💰📌]/g, '').trim() ?? 'Other',
+      amount: Math.round(amount * 100) / 100,
+      description: row[4]?.toString().trim() ?? '',
+      paid_by: row[5]?.toString().trim() ?? '',
+      share_per_player: typeof row[6] === 'number' ? Math.round(row[6] * 100) / 100 : 0,
+      distribution: 'all_corpus',
+      recorded_by: 'excel_import',
+    })
+  }
+
+  // ── Also add per-week match costs as expenses ─────────────────────────────
+  for (const wk of weeks.filter(w => w.status === 'completed' && w.total_cost > 0)) {
+    expenses.push({
+      id: `EXP_WK_${wk.week_id}`,
+      tournament_id: 'TRN_001',
+      date: wk.match_date,
+      category: 'Match Cost',
+      amount: wk.total_cost,
+      description: `Weekly match cost (${wk.notes || wk.label})`,
+      paid_by: '',
+      share_per_player: wk.players_count > 0 ? Math.round(wk.total_cost / wk.players_count * 100) / 100 : 0,
+      distribution: 'week_present',
+      week_id: wk.week_id,
+      recorded_by: 'excel_import',
+    })
+  }
 
   // ── Summary ───────────────────────────────────────────────────────────────
   console.log('\nPlayer summary:')
@@ -240,14 +319,17 @@ function run() {
   saveJson('attendance.json', {
     schema_version: 1,
     last_updated: new Date().toISOString(),
-    records: [],
+    records: attendance,
   })
   saveJson('transactions.json', { schema_version: 1, transactions })
+  saveJson('expenses.json', { schema_version: 1, expenses })
 
   console.log('\n✅ Migration complete!')
   console.log(`   Players:      ${players.length}`)
-  console.log(`   Scheduled weeks: ${weeks.length} (past matches will be synced from CricHeroes)`)
-  console.log(`   Transactions: ${transactions.length} (corpus payments only)`)
+  console.log(`   Weeks:        ${weeks.length} (${weeks.filter(w=>w.status==='completed').length} completed, ${weeks.filter(w=>w.status==='scheduled').length} scheduled)`)
+  console.log(`   Attendance:   ${attendance.length}`)
+  console.log(`   Transactions: ${transactions.length}`)
+  console.log(`   Expenses:     ${expenses.length} (${expenses.filter(e=>e.category==='Match Cost').length} weekly + ${expenses.filter(e=>e.category!=='Match Cost').length} shared)`)
 }
 
 run()

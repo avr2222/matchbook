@@ -1,293 +1,725 @@
 {
   "schema_version": 1,
-  "last_updated": "2026-04-09T05:10:52.837110+00:00",
+  "last_updated": "2026-04-09T11:37:22.115602+00:00",
   "records": [
     {
-      "id": "ATT_PLY_037_W_2026_03_08",
-      "player_id": "PLY_037",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_017_W_2026_03_08",
-      "player_id": "PLY_017",
-      "week_id": "W_2026_03_08",
+      "id": "ATT_PLY_001_W_2026_02_22",
+      "player_id": "PLY_001",
+      "week_id": "W_2026_02_22",
       "tournament_id": "TRN_001",
       "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
+      "source": "excel_import",
+      "fee_deducted": true
     },
     {
-      "id": "ATT_PLY_034_W_2026_03_08",
-      "player_id": "PLY_034",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_026_W_2026_03_08",
-      "player_id": "PLY_026",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_027_W_2026_03_08",
-      "player_id": "PLY_027",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_018_W_2026_03_08",
-      "player_id": "PLY_018",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_024_W_2026_03_08",
-      "player_id": "PLY_024",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_006_W_2026_03_08",
-      "player_id": "PLY_006",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_040_W_2026_03_08",
-      "player_id": "PLY_040",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_031_W_2026_03_08",
-      "player_id": "PLY_031",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_009_W_2026_03_08",
-      "player_id": "PLY_009",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_025_W_2026_03_08",
-      "player_id": "PLY_025",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_005_W_2026_03_08",
-      "player_id": "PLY_005",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_011_W_2026_03_08",
-      "player_id": "PLY_011",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_032_W_2026_03_08",
-      "player_id": "PLY_032",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_020_W_2026_03_08",
-      "player_id": "PLY_020",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_012_W_2026_03_08",
-      "player_id": "PLY_012",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_022_W_2026_03_08",
-      "player_id": "PLY_022",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_007_W_2026_03_08",
-      "player_id": "PLY_007",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_036_W_2026_03_08",
-      "player_id": "PLY_036",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_033_W_2026_03_08",
-      "player_id": "PLY_033",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_008_W_2026_03_08",
-      "player_id": "PLY_008",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_023_W_2026_03_08",
-      "player_id": "PLY_023",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_003_W_2026_03_08",
-      "player_id": "PLY_003",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_038_W_2026_03_08",
-      "player_id": "PLY_038",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_039_W_2026_03_08",
-      "player_id": "PLY_039",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_016_W_2026_03_08",
-      "player_id": "PLY_016",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_015_W_2026_03_08",
-      "player_id": "PLY_015",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_004_W_2026_03_08",
-      "player_id": "PLY_004",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_019_W_2026_03_08",
-      "player_id": "PLY_019",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_010_W_2026_03_08",
-      "player_id": "PLY_010",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_002_W_2026_03_08",
+      "id": "ATT_PLY_002_W_2026_02_22",
       "player_id": "PLY_002",
-      "week_id": "W_2026_03_08",
+      "week_id": "W_2026_02_22",
       "tournament_id": "TRN_001",
       "status": "played",
-      "source": "cricheroes_sync",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_003_W_2026_02_22",
+      "player_id": "PLY_003",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_004_W_2026_02_22",
+      "player_id": "PLY_004",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_005_W_2026_02_22",
+      "player_id": "PLY_005",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_006_W_2026_02_22",
+      "player_id": "PLY_006",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_007_W_2026_02_22",
+      "player_id": "PLY_007",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_008_W_2026_02_22",
+      "player_id": "PLY_008",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_009_W_2026_02_22",
+      "player_id": "PLY_009",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_010_W_2026_02_22",
+      "player_id": "PLY_010",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_011_W_2026_02_22",
+      "player_id": "PLY_011",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_012_W_2026_02_22",
+      "player_id": "PLY_012",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_013_W_2026_02_22",
+      "player_id": "PLY_013",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_014_W_2026_02_22",
+      "player_id": "PLY_014",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_015_W_2026_02_22",
+      "player_id": "PLY_015",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_016_W_2026_02_22",
+      "player_id": "PLY_016",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_017_W_2026_02_22",
+      "player_id": "PLY_017",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_018_W_2026_02_22",
+      "player_id": "PLY_018",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_019_W_2026_02_22",
+      "player_id": "PLY_019",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_020_W_2026_02_22",
+      "player_id": "PLY_020",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_021_W_2026_02_22",
+      "player_id": "PLY_021",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_022_W_2026_02_22",
+      "player_id": "PLY_022",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_023_W_2026_02_22",
+      "player_id": "PLY_023",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_024_W_2026_02_22",
+      "player_id": "PLY_024",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_025_W_2026_02_22",
+      "player_id": "PLY_025",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_026_W_2026_02_22",
+      "player_id": "PLY_026",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_027_W_2026_02_22",
+      "player_id": "PLY_027",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_028_W_2026_02_22",
+      "player_id": "PLY_028",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_029_W_2026_02_22",
+      "player_id": "PLY_029",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_030_W_2026_02_22",
+      "player_id": "PLY_030",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_031_W_2026_02_22",
+      "player_id": "PLY_031",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_032_W_2026_02_22",
+      "player_id": "PLY_032",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_033_W_2026_02_22",
+      "player_id": "PLY_033",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_034_W_2026_02_22",
+      "player_id": "PLY_034",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_035_W_2026_02_22",
+      "player_id": "PLY_035",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_036_W_2026_02_22",
+      "player_id": "PLY_036",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_037_W_2026_02_22",
+      "player_id": "PLY_037",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_038_W_2026_02_22",
+      "player_id": "PLY_038",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_039_W_2026_02_22",
+      "player_id": "PLY_039",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_040_W_2026_02_22",
+      "player_id": "PLY_040",
+      "week_id": "W_2026_02_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_001_W_2026_03_01",
+      "player_id": "PLY_001",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_002_W_2026_03_01",
+      "player_id": "PLY_002",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_003_W_2026_03_01",
+      "player_id": "PLY_003",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_004_W_2026_03_01",
+      "player_id": "PLY_004",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_005_W_2026_03_01",
+      "player_id": "PLY_005",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_006_W_2026_03_01",
+      "player_id": "PLY_006",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_007_W_2026_03_01",
+      "player_id": "PLY_007",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_008_W_2026_03_01",
+      "player_id": "PLY_008",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_009_W_2026_03_01",
+      "player_id": "PLY_009",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_010_W_2026_03_01",
+      "player_id": "PLY_010",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_011_W_2026_03_01",
+      "player_id": "PLY_011",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_012_W_2026_03_01",
+      "player_id": "PLY_012",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_013_W_2026_03_01",
+      "player_id": "PLY_013",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_014_W_2026_03_01",
+      "player_id": "PLY_014",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_015_W_2026_03_01",
+      "player_id": "PLY_015",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_016_W_2026_03_01",
+      "player_id": "PLY_016",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_017_W_2026_03_01",
+      "player_id": "PLY_017",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_018_W_2026_03_01",
+      "player_id": "PLY_018",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_019_W_2026_03_01",
+      "player_id": "PLY_019",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_020_W_2026_03_01",
+      "player_id": "PLY_020",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_021_W_2026_03_01",
+      "player_id": "PLY_021",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_022_W_2026_03_01",
+      "player_id": "PLY_022",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_023_W_2026_03_01",
+      "player_id": "PLY_023",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_024_W_2026_03_01",
+      "player_id": "PLY_024",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_025_W_2026_03_01",
+      "player_id": "PLY_025",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_026_W_2026_03_01",
+      "player_id": "PLY_026",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_027_W_2026_03_01",
+      "player_id": "PLY_027",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_028_W_2026_03_01",
+      "player_id": "PLY_028",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_029_W_2026_03_01",
+      "player_id": "PLY_029",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_030_W_2026_03_01",
+      "player_id": "PLY_030",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_031_W_2026_03_01",
+      "player_id": "PLY_031",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_032_W_2026_03_01",
+      "player_id": "PLY_032",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_033_W_2026_03_01",
+      "player_id": "PLY_033",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_034_W_2026_03_01",
+      "player_id": "PLY_034",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_035_W_2026_03_01",
+      "player_id": "PLY_035",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_036_W_2026_03_01",
+      "player_id": "PLY_036",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_037_W_2026_03_01",
+      "player_id": "PLY_037",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_038_W_2026_03_01",
+      "player_id": "PLY_038",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_039_W_2026_03_01",
+      "player_id": "PLY_039",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_040_W_2026_03_01",
+      "player_id": "PLY_040",
+      "week_id": "W_2026_03_01",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
       "fee_deducted": false
     },
     {
@@ -296,7 +728,250 @@
       "week_id": "W_2026_03_08",
       "tournament_id": "TRN_001",
       "status": "absent",
-      "source": "cricheroes_sync",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_002_W_2026_03_08",
+      "player_id": "PLY_002",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_003_W_2026_03_08",
+      "player_id": "PLY_003",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_004_W_2026_03_08",
+      "player_id": "PLY_004",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_005_W_2026_03_08",
+      "player_id": "PLY_005",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_006_W_2026_03_08",
+      "player_id": "PLY_006",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_007_W_2026_03_08",
+      "player_id": "PLY_007",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_008_W_2026_03_08",
+      "player_id": "PLY_008",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_009_W_2026_03_08",
+      "player_id": "PLY_009",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_010_W_2026_03_08",
+      "player_id": "PLY_010",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_011_W_2026_03_08",
+      "player_id": "PLY_011",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_012_W_2026_03_08",
+      "player_id": "PLY_012",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_013_W_2026_03_08",
+      "player_id": "PLY_013",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_014_W_2026_03_08",
+      "player_id": "PLY_014",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_015_W_2026_03_08",
+      "player_id": "PLY_015",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_016_W_2026_03_08",
+      "player_id": "PLY_016",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_017_W_2026_03_08",
+      "player_id": "PLY_017",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_018_W_2026_03_08",
+      "player_id": "PLY_018",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_019_W_2026_03_08",
+      "player_id": "PLY_019",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_020_W_2026_03_08",
+      "player_id": "PLY_020",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_021_W_2026_03_08",
+      "player_id": "PLY_021",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_022_W_2026_03_08",
+      "player_id": "PLY_022",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_023_W_2026_03_08",
+      "player_id": "PLY_023",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_024_W_2026_03_08",
+      "player_id": "PLY_024",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_025_W_2026_03_08",
+      "player_id": "PLY_025",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_026_W_2026_03_08",
+      "player_id": "PLY_026",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_027_W_2026_03_08",
+      "player_id": "PLY_027",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_028_W_2026_03_08",
+      "player_id": "PLY_028",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
       "fee_deducted": false
     },
     {
@@ -305,17 +980,8 @@
       "week_id": "W_2026_03_08",
       "tournament_id": "TRN_001",
       "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_028_W_2026_03_08",
-      "player_id": "PLY_028",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
+      "source": "excel_import",
+      "fee_deducted": true
     },
     {
       "id": "ATT_PLY_030_W_2026_03_08",
@@ -323,8 +989,44 @@
       "week_id": "W_2026_03_08",
       "tournament_id": "TRN_001",
       "status": "absent",
-      "source": "cricheroes_sync",
+      "source": "excel_import",
       "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_031_W_2026_03_08",
+      "player_id": "PLY_031",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_032_W_2026_03_08",
+      "player_id": "PLY_032",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_033_W_2026_03_08",
+      "player_id": "PLY_033",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_034_W_2026_03_08",
+      "player_id": "PLY_034",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
     },
     {
       "id": "ATT_PLY_035_W_2026_03_08",
@@ -332,84 +1034,1497 @@
       "week_id": "W_2026_03_08",
       "tournament_id": "TRN_001",
       "status": "absent",
-      "source": "cricheroes_sync",
+      "source": "excel_import",
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_013_W_2026_03_08",
-      "player_id": "PLY_013",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_021_W_2026_03_08",
-      "player_id": "PLY_021",
-      "week_id": "W_2026_03_08",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_014_W_2026_03_08",
-      "player_id": "PLY_014",
+      "id": "ATT_PLY_036_W_2026_03_08",
+      "player_id": "PLY_036",
       "week_id": "W_2026_03_08",
       "tournament_id": "TRN_001",
       "status": "absent",
-      "source": "cricheroes_sync",
+      "source": "excel_import",
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_037_W_2026_03_14",
+      "id": "ATT_PLY_037_W_2026_03_08",
       "player_id": "PLY_037",
-      "week_id": "W_2026_03_14",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_038_W_2026_03_08",
+      "player_id": "PLY_038",
+      "week_id": "W_2026_03_08",
       "tournament_id": "TRN_001",
       "status": "absent",
-      "source": "cricheroes_sync",
+      "source": "excel_import",
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_017_W_2026_03_14",
+      "id": "ATT_PLY_039_W_2026_03_08",
+      "player_id": "PLY_039",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_040_W_2026_03_08",
+      "player_id": "PLY_040",
+      "week_id": "W_2026_03_08",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_001_W_2026_03_15",
+      "player_id": "PLY_001",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_002_W_2026_03_15",
+      "player_id": "PLY_002",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_003_W_2026_03_15",
+      "player_id": "PLY_003",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_004_W_2026_03_15",
+      "player_id": "PLY_004",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_005_W_2026_03_15",
+      "player_id": "PLY_005",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_006_W_2026_03_15",
+      "player_id": "PLY_006",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_007_W_2026_03_15",
+      "player_id": "PLY_007",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_008_W_2026_03_15",
+      "player_id": "PLY_008",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_009_W_2026_03_15",
+      "player_id": "PLY_009",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_010_W_2026_03_15",
+      "player_id": "PLY_010",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_011_W_2026_03_15",
+      "player_id": "PLY_011",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_012_W_2026_03_15",
+      "player_id": "PLY_012",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_013_W_2026_03_15",
+      "player_id": "PLY_013",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_014_W_2026_03_15",
+      "player_id": "PLY_014",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_015_W_2026_03_15",
+      "player_id": "PLY_015",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_016_W_2026_03_15",
+      "player_id": "PLY_016",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_017_W_2026_03_15",
       "player_id": "PLY_017",
-      "week_id": "W_2026_03_14",
+      "week_id": "W_2026_03_15",
       "tournament_id": "TRN_001",
       "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
+      "source": "excel_import",
+      "fee_deducted": true
     },
     {
-      "id": "ATT_PLY_034_W_2026_03_14",
-      "player_id": "PLY_034",
-      "week_id": "W_2026_03_14",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_026_W_2026_03_14",
-      "player_id": "PLY_026",
-      "week_id": "W_2026_03_14",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_027_W_2026_03_14",
-      "player_id": "PLY_027",
-      "week_id": "W_2026_03_14",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_018_W_2026_03_14",
+      "id": "ATT_PLY_018_W_2026_03_15",
       "player_id": "PLY_018",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_019_W_2026_03_15",
+      "player_id": "PLY_019",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_020_W_2026_03_15",
+      "player_id": "PLY_020",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_021_W_2026_03_15",
+      "player_id": "PLY_021",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_022_W_2026_03_15",
+      "player_id": "PLY_022",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_023_W_2026_03_15",
+      "player_id": "PLY_023",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_024_W_2026_03_15",
+      "player_id": "PLY_024",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_025_W_2026_03_15",
+      "player_id": "PLY_025",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_026_W_2026_03_15",
+      "player_id": "PLY_026",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_027_W_2026_03_15",
+      "player_id": "PLY_027",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_028_W_2026_03_15",
+      "player_id": "PLY_028",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_029_W_2026_03_15",
+      "player_id": "PLY_029",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_030_W_2026_03_15",
+      "player_id": "PLY_030",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_031_W_2026_03_15",
+      "player_id": "PLY_031",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_032_W_2026_03_15",
+      "player_id": "PLY_032",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_033_W_2026_03_15",
+      "player_id": "PLY_033",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_034_W_2026_03_15",
+      "player_id": "PLY_034",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_035_W_2026_03_15",
+      "player_id": "PLY_035",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_036_W_2026_03_15",
+      "player_id": "PLY_036",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_037_W_2026_03_15",
+      "player_id": "PLY_037",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_038_W_2026_03_15",
+      "player_id": "PLY_038",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_039_W_2026_03_15",
+      "player_id": "PLY_039",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_040_W_2026_03_15",
+      "player_id": "PLY_040",
+      "week_id": "W_2026_03_15",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_001_W_2026_03_22",
+      "player_id": "PLY_001",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_002_W_2026_03_22",
+      "player_id": "PLY_002",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_003_W_2026_03_22",
+      "player_id": "PLY_003",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_004_W_2026_03_22",
+      "player_id": "PLY_004",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_005_W_2026_03_22",
+      "player_id": "PLY_005",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_006_W_2026_03_22",
+      "player_id": "PLY_006",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_007_W_2026_03_22",
+      "player_id": "PLY_007",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_008_W_2026_03_22",
+      "player_id": "PLY_008",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_009_W_2026_03_22",
+      "player_id": "PLY_009",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_010_W_2026_03_22",
+      "player_id": "PLY_010",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_011_W_2026_03_22",
+      "player_id": "PLY_011",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_012_W_2026_03_22",
+      "player_id": "PLY_012",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_013_W_2026_03_22",
+      "player_id": "PLY_013",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_014_W_2026_03_22",
+      "player_id": "PLY_014",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_015_W_2026_03_22",
+      "player_id": "PLY_015",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_016_W_2026_03_22",
+      "player_id": "PLY_016",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_017_W_2026_03_22",
+      "player_id": "PLY_017",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_018_W_2026_03_22",
+      "player_id": "PLY_018",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_019_W_2026_03_22",
+      "player_id": "PLY_019",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_020_W_2026_03_22",
+      "player_id": "PLY_020",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_021_W_2026_03_22",
+      "player_id": "PLY_021",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_022_W_2026_03_22",
+      "player_id": "PLY_022",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_023_W_2026_03_22",
+      "player_id": "PLY_023",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_024_W_2026_03_22",
+      "player_id": "PLY_024",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_025_W_2026_03_22",
+      "player_id": "PLY_025",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_026_W_2026_03_22",
+      "player_id": "PLY_026",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_027_W_2026_03_22",
+      "player_id": "PLY_027",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_028_W_2026_03_22",
+      "player_id": "PLY_028",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_029_W_2026_03_22",
+      "player_id": "PLY_029",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_030_W_2026_03_22",
+      "player_id": "PLY_030",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_031_W_2026_03_22",
+      "player_id": "PLY_031",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_032_W_2026_03_22",
+      "player_id": "PLY_032",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_033_W_2026_03_22",
+      "player_id": "PLY_033",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_034_W_2026_03_22",
+      "player_id": "PLY_034",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_035_W_2026_03_22",
+      "player_id": "PLY_035",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_036_W_2026_03_22",
+      "player_id": "PLY_036",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_037_W_2026_03_22",
+      "player_id": "PLY_037",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_038_W_2026_03_22",
+      "player_id": "PLY_038",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_039_W_2026_03_22",
+      "player_id": "PLY_039",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_040_W_2026_03_22",
+      "player_id": "PLY_040",
+      "week_id": "W_2026_03_22",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_001_W_2026_03_29",
+      "player_id": "PLY_001",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_002_W_2026_03_29",
+      "player_id": "PLY_002",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_003_W_2026_03_29",
+      "player_id": "PLY_003",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_004_W_2026_03_29",
+      "player_id": "PLY_004",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_005_W_2026_03_29",
+      "player_id": "PLY_005",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_006_W_2026_03_29",
+      "player_id": "PLY_006",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_007_W_2026_03_29",
+      "player_id": "PLY_007",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_008_W_2026_03_29",
+      "player_id": "PLY_008",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_009_W_2026_03_29",
+      "player_id": "PLY_009",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_010_W_2026_03_29",
+      "player_id": "PLY_010",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_011_W_2026_03_29",
+      "player_id": "PLY_011",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_012_W_2026_03_29",
+      "player_id": "PLY_012",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_013_W_2026_03_29",
+      "player_id": "PLY_013",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_014_W_2026_03_29",
+      "player_id": "PLY_014",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_015_W_2026_03_29",
+      "player_id": "PLY_015",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_016_W_2026_03_29",
+      "player_id": "PLY_016",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_017_W_2026_03_29",
+      "player_id": "PLY_017",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_018_W_2026_03_29",
+      "player_id": "PLY_018",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_019_W_2026_03_29",
+      "player_id": "PLY_019",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_020_W_2026_03_29",
+      "player_id": "PLY_020",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_021_W_2026_03_29",
+      "player_id": "PLY_021",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_022_W_2026_03_29",
+      "player_id": "PLY_022",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_023_W_2026_03_29",
+      "player_id": "PLY_023",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_024_W_2026_03_29",
+      "player_id": "PLY_024",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_025_W_2026_03_29",
+      "player_id": "PLY_025",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_026_W_2026_03_29",
+      "player_id": "PLY_026",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_027_W_2026_03_29",
+      "player_id": "PLY_027",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_028_W_2026_03_29",
+      "player_id": "PLY_028",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_029_W_2026_03_29",
+      "player_id": "PLY_029",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_030_W_2026_03_29",
+      "player_id": "PLY_030",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_031_W_2026_03_29",
+      "player_id": "PLY_031",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_032_W_2026_03_29",
+      "player_id": "PLY_032",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_033_W_2026_03_29",
+      "player_id": "PLY_033",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_034_W_2026_03_29",
+      "player_id": "PLY_034",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_035_W_2026_03_29",
+      "player_id": "PLY_035",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_036_W_2026_03_29",
+      "player_id": "PLY_036",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_037_W_2026_03_29",
+      "player_id": "PLY_037",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_038_W_2026_03_29",
+      "player_id": "PLY_038",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_039_W_2026_03_29",
+      "player_id": "PLY_039",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_040_W_2026_03_29",
+      "player_id": "PLY_040",
+      "week_id": "W_2026_03_29",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_001_W_2026_04_05",
+      "player_id": "PLY_001",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_002_W_2026_04_05",
+      "player_id": "PLY_002",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_003_W_2026_04_05",
+      "player_id": "PLY_003",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_004_W_2026_04_05",
+      "player_id": "PLY_004",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_005_W_2026_04_05",
+      "player_id": "PLY_005",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_006_W_2026_04_05",
+      "player_id": "PLY_006",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_007_W_2026_04_05",
+      "player_id": "PLY_007",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_008_W_2026_04_05",
+      "player_id": "PLY_008",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_009_W_2026_04_05",
+      "player_id": "PLY_009",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_010_W_2026_04_05",
+      "player_id": "PLY_010",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_011_W_2026_04_05",
+      "player_id": "PLY_011",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_012_W_2026_04_05",
+      "player_id": "PLY_012",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_013_W_2026_04_05",
+      "player_id": "PLY_013",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_014_W_2026_04_05",
+      "player_id": "PLY_014",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_015_W_2026_04_05",
+      "player_id": "PLY_015",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_016_W_2026_04_05",
+      "player_id": "PLY_016",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_017_W_2026_04_05",
+      "player_id": "PLY_017",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_018_W_2026_04_05",
+      "player_id": "PLY_018",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_019_W_2026_04_05",
+      "player_id": "PLY_019",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_020_W_2026_04_05",
+      "player_id": "PLY_020",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_021_W_2026_04_05",
+      "player_id": "PLY_021",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_022_W_2026_04_05",
+      "player_id": "PLY_022",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_023_W_2026_04_05",
+      "player_id": "PLY_023",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_024_W_2026_04_05",
+      "player_id": "PLY_024",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_025_W_2026_04_05",
+      "player_id": "PLY_025",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_026_W_2026_04_05",
+      "player_id": "PLY_026",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_027_W_2026_04_05",
+      "player_id": "PLY_027",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_028_W_2026_04_05",
+      "player_id": "PLY_028",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_029_W_2026_04_05",
+      "player_id": "PLY_029",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_030_W_2026_04_05",
+      "player_id": "PLY_030",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_031_W_2026_04_05",
+      "player_id": "PLY_031",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_032_W_2026_04_05",
+      "player_id": "PLY_032",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_033_W_2026_04_05",
+      "player_id": "PLY_033",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_034_W_2026_04_05",
+      "player_id": "PLY_034",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_035_W_2026_04_05",
+      "player_id": "PLY_035",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "excel_import",
+      "fee_deducted": true
+    },
+    {
+      "id": "ATT_PLY_036_W_2026_04_05",
+      "player_id": "PLY_036",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_037_W_2026_04_05",
+      "player_id": "PLY_037",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_038_W_2026_04_05",
+      "player_id": "PLY_038",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_039_W_2026_04_05",
+      "player_id": "PLY_039",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_040_W_2026_04_05",
+      "player_id": "PLY_040",
+      "week_id": "W_2026_04_05",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "excel_import",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_001_W_2026_03_14",
+      "player_id": "PLY_001",
       "week_id": "W_2026_03_14",
       "tournament_id": "TRN_001",
       "status": "absent",
@@ -417,11 +2532,20 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_024_W_2026_03_14",
-      "player_id": "PLY_024",
+      "id": "ATT_PLY_003_W_2026_03_14",
+      "player_id": "PLY_003",
       "week_id": "W_2026_03_14",
       "tournament_id": "TRN_001",
       "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_010_W_2026_03_14",
+      "player_id": "PLY_010",
+      "week_id": "W_2026_03_14",
+      "tournament_id": "TRN_001",
+      "status": "absent",
       "source": "cricheroes_sync",
       "fee_deducted": false
     },
@@ -435,8 +2559,8 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_040_W_2026_03_14",
-      "player_id": "PLY_040",
+      "id": "ATT_PLY_002_W_2026_03_14",
+      "player_id": "PLY_002",
       "week_id": "W_2026_03_14",
       "tournament_id": "TRN_001",
       "status": "played",
@@ -444,8 +2568,8 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_031_W_2026_03_14",
-      "player_id": "PLY_031",
+      "id": "ATT_PLY_004_W_2026_03_14",
+      "player_id": "PLY_004",
       "week_id": "W_2026_03_14",
       "tournament_id": "TRN_001",
       "status": "played",
@@ -453,8 +2577,8 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_009_W_2026_03_14",
-      "player_id": "PLY_009",
+      "id": "ATT_PLY_030_W_2026_03_14",
+      "player_id": "PLY_030",
       "week_id": "W_2026_03_14",
       "tournament_id": "TRN_001",
       "status": "played",
@@ -462,26 +2586,8 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_025_W_2026_03_14",
-      "player_id": "PLY_025",
-      "week_id": "W_2026_03_14",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_005_W_2026_03_14",
-      "player_id": "PLY_005",
-      "week_id": "W_2026_03_14",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_011_W_2026_03_14",
-      "player_id": "PLY_011",
+      "id": "ATT_PLY_033_W_2026_03_14",
+      "player_id": "PLY_033",
       "week_id": "W_2026_03_14",
       "tournament_id": "TRN_001",
       "status": "played",
@@ -489,17 +2595,8 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_032_W_2026_03_14",
-      "player_id": "PLY_032",
-      "week_id": "W_2026_03_14",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_020_W_2026_03_14",
-      "player_id": "PLY_020",
+      "id": "ATT_PLY_013_W_2026_03_14",
+      "player_id": "PLY_013",
       "week_id": "W_2026_03_14",
       "tournament_id": "TRN_001",
       "status": "played",
@@ -516,38 +2613,11 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_022_W_2026_03_14",
-      "player_id": "PLY_022",
+      "id": "ATT_PLY_018_W_2026_03_14",
+      "player_id": "PLY_018",
       "week_id": "W_2026_03_14",
       "tournament_id": "TRN_001",
       "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_007_W_2026_03_14",
-      "player_id": "PLY_007",
-      "week_id": "W_2026_03_14",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_036_W_2026_03_14",
-      "player_id": "PLY_036",
-      "week_id": "W_2026_03_14",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_033_W_2026_03_14",
-      "player_id": "PLY_033",
-      "week_id": "W_2026_03_14",
-      "tournament_id": "TRN_001",
-      "status": "played",
       "source": "cricheroes_sync",
       "fee_deducted": false
     },
@@ -570,98 +2640,8 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_003_W_2026_03_14",
-      "player_id": "PLY_003",
-      "week_id": "W_2026_03_14",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_038_W_2026_03_14",
-      "player_id": "PLY_038",
-      "week_id": "W_2026_03_14",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_039_W_2026_03_14",
-      "player_id": "PLY_039",
-      "week_id": "W_2026_03_14",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_016_W_2026_03_14",
-      "player_id": "PLY_016",
-      "week_id": "W_2026_03_14",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_015_W_2026_03_14",
-      "player_id": "PLY_015",
-      "week_id": "W_2026_03_14",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_004_W_2026_03_14",
-      "player_id": "PLY_004",
-      "week_id": "W_2026_03_14",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_019_W_2026_03_14",
-      "player_id": "PLY_019",
-      "week_id": "W_2026_03_14",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_010_W_2026_03_14",
-      "player_id": "PLY_010",
-      "week_id": "W_2026_03_14",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_002_W_2026_03_14",
-      "player_id": "PLY_002",
-      "week_id": "W_2026_03_14",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_001_W_2026_03_14",
-      "player_id": "PLY_001",
-      "week_id": "W_2026_03_14",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_029_W_2026_03_14",
-      "player_id": "PLY_029",
+      "id": "ATT_PLY_025_W_2026_03_14",
+      "player_id": "PLY_025",
       "week_id": "W_2026_03_14",
       "tournament_id": "TRN_001",
       "status": "absent",
@@ -678,8 +2658,44 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_030_W_2026_03_14",
-      "player_id": "PLY_030",
+      "id": "ATT_PLY_022_W_2026_03_14",
+      "player_id": "PLY_022",
+      "week_id": "W_2026_03_14",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_014_W_2026_03_14",
+      "player_id": "PLY_014",
+      "week_id": "W_2026_03_14",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_011_W_2026_03_14",
+      "player_id": "PLY_011",
+      "week_id": "W_2026_03_14",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_029_W_2026_03_14",
+      "player_id": "PLY_029",
+      "week_id": "W_2026_03_14",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_031_W_2026_03_14",
+      "player_id": "PLY_031",
       "week_id": "W_2026_03_14",
       "tournament_id": "TRN_001",
       "status": "played",
@@ -696,11 +2712,29 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_013_W_2026_03_14",
-      "player_id": "PLY_013",
+      "id": "ATT_PLY_015_W_2026_03_14",
+      "player_id": "PLY_015",
       "week_id": "W_2026_03_14",
       "tournament_id": "TRN_001",
       "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_017_W_2026_03_14",
+      "player_id": "PLY_017",
+      "week_id": "W_2026_03_14",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_039_W_2026_03_14",
+      "player_id": "PLY_039",
+      "week_id": "W_2026_03_14",
+      "tournament_id": "TRN_001",
+      "status": "absent",
       "source": "cricheroes_sync",
       "fee_deducted": false
     },
@@ -714,8 +2748,8 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_014_W_2026_03_14",
-      "player_id": "PLY_014",
+      "id": "ATT_PLY_016_W_2026_03_14",
+      "player_id": "PLY_016",
       "week_id": "W_2026_03_14",
       "tournament_id": "TRN_001",
       "status": "played",
@@ -723,65 +2757,155 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_037_W_2026_03_21",
-      "player_id": "PLY_037",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_017_W_2026_03_21",
-      "player_id": "PLY_017",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_034_W_2026_03_21",
-      "player_id": "PLY_034",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_026_W_2026_03_21",
-      "player_id": "PLY_026",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_027_W_2026_03_21",
+      "id": "ATT_PLY_027_W_2026_03_14",
       "player_id": "PLY_027",
-      "week_id": "W_2026_03_21",
+      "week_id": "W_2026_03_14",
       "tournament_id": "TRN_001",
       "status": "played",
       "source": "cricheroes_sync",
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_018_W_2026_03_21",
-      "player_id": "PLY_018",
-      "week_id": "W_2026_03_21",
+      "id": "ATT_PLY_040_W_2026_03_14",
+      "player_id": "PLY_040",
+      "week_id": "W_2026_03_14",
       "tournament_id": "TRN_001",
       "status": "played",
       "source": "cricheroes_sync",
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_024_W_2026_03_21",
+      "id": "ATT_PLY_034_W_2026_03_14",
+      "player_id": "PLY_034",
+      "week_id": "W_2026_03_14",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_007_W_2026_03_14",
+      "player_id": "PLY_007",
+      "week_id": "W_2026_03_14",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_019_W_2026_03_14",
+      "player_id": "PLY_019",
+      "week_id": "W_2026_03_14",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_009_W_2026_03_14",
+      "player_id": "PLY_009",
+      "week_id": "W_2026_03_14",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_038_W_2026_03_14",
+      "player_id": "PLY_038",
+      "week_id": "W_2026_03_14",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_020_W_2026_03_14",
+      "player_id": "PLY_020",
+      "week_id": "W_2026_03_14",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_032_W_2026_03_14",
+      "player_id": "PLY_032",
+      "week_id": "W_2026_03_14",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_036_W_2026_03_14",
+      "player_id": "PLY_036",
+      "week_id": "W_2026_03_14",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_037_W_2026_03_14",
+      "player_id": "PLY_037",
+      "week_id": "W_2026_03_14",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_005_W_2026_03_14",
+      "player_id": "PLY_005",
+      "week_id": "W_2026_03_14",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_026_W_2026_03_14",
+      "player_id": "PLY_026",
+      "week_id": "W_2026_03_14",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_024_W_2026_03_14",
       "player_id": "PLY_024",
+      "week_id": "W_2026_03_14",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_001_W_2026_03_21",
+      "player_id": "PLY_001",
       "week_id": "W_2026_03_21",
       "tournament_id": "TRN_001",
       "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_003_W_2026_03_21",
+      "player_id": "PLY_003",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_010_W_2026_03_21",
+      "player_id": "PLY_010",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "absent",
       "source": "cricheroes_sync",
       "fee_deducted": false
     },
@@ -795,74 +2919,47 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_040_W_2026_03_21",
-      "player_id": "PLY_040",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_031_W_2026_03_21",
-      "player_id": "PLY_031",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_009_W_2026_03_21",
-      "player_id": "PLY_009",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_025_W_2026_03_21",
-      "player_id": "PLY_025",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_005_W_2026_03_21",
-      "player_id": "PLY_005",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_011_W_2026_03_21",
-      "player_id": "PLY_011",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_032_W_2026_03_21",
-      "player_id": "PLY_032",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_020_W_2026_03_21",
-      "player_id": "PLY_020",
+      "id": "ATT_PLY_002_W_2026_03_21",
+      "player_id": "PLY_002",
       "week_id": "W_2026_03_21",
       "tournament_id": "TRN_001",
       "status": "absent",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_004_W_2026_03_21",
+      "player_id": "PLY_004",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_030_W_2026_03_21",
+      "player_id": "PLY_030",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_033_W_2026_03_21",
+      "player_id": "PLY_033",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_013_W_2026_03_21",
+      "player_id": "PLY_013",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "played",
       "source": "cricheroes_sync",
       "fee_deducted": false
     },
@@ -876,35 +2973,8 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_022_W_2026_03_21",
-      "player_id": "PLY_022",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_007_W_2026_03_21",
-      "player_id": "PLY_007",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_036_W_2026_03_21",
-      "player_id": "PLY_036",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_033_W_2026_03_21",
-      "player_id": "PLY_033",
+      "id": "ATT_PLY_018_W_2026_03_21",
+      "player_id": "PLY_018",
       "week_id": "W_2026_03_21",
       "tournament_id": "TRN_001",
       "status": "played",
@@ -930,101 +3000,11 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_003_W_2026_03_21",
-      "player_id": "PLY_003",
+      "id": "ATT_PLY_025_W_2026_03_21",
+      "player_id": "PLY_025",
       "week_id": "W_2026_03_21",
       "tournament_id": "TRN_001",
       "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_038_W_2026_03_21",
-      "player_id": "PLY_038",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_039_W_2026_03_21",
-      "player_id": "PLY_039",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_016_W_2026_03_21",
-      "player_id": "PLY_016",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_015_W_2026_03_21",
-      "player_id": "PLY_015",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_004_W_2026_03_21",
-      "player_id": "PLY_004",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_019_W_2026_03_21",
-      "player_id": "PLY_019",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_010_W_2026_03_21",
-      "player_id": "PLY_010",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_002_W_2026_03_21",
-      "player_id": "PLY_002",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_001_W_2026_03_21",
-      "player_id": "PLY_001",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_029_W_2026_03_21",
-      "player_id": "PLY_029",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "absent",
       "source": "cricheroes_sync",
       "fee_deducted": false
     },
@@ -1038,35 +3018,8 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_030_W_2026_03_21",
-      "player_id": "PLY_030",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_035_W_2026_03_21",
-      "player_id": "PLY_035",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_013_W_2026_03_21",
-      "player_id": "PLY_013",
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_021_W_2026_03_21",
-      "player_id": "PLY_021",
+      "id": "ATT_PLY_022_W_2026_03_21",
+      "player_id": "PLY_022",
       "week_id": "W_2026_03_21",
       "tournament_id": "TRN_001",
       "status": "absent",
@@ -1083,65 +3036,236 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_037_W_2026_03_28",
-      "player_id": "PLY_037",
-      "week_id": "W_2026_03_28",
+      "id": "ATT_PLY_011_W_2026_03_21",
+      "player_id": "PLY_011",
+      "week_id": "W_2026_03_21",
       "tournament_id": "TRN_001",
       "status": "played",
       "source": "cricheroes_sync",
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_017_W_2026_03_28",
-      "player_id": "PLY_017",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_034_W_2026_03_28",
-      "player_id": "PLY_034",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_026_W_2026_03_28",
-      "player_id": "PLY_026",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_027_W_2026_03_28",
-      "player_id": "PLY_027",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_018_W_2026_03_28",
-      "player_id": "PLY_018",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_024_W_2026_03_28",
-      "player_id": "PLY_024",
-      "week_id": "W_2026_03_28",
+      "id": "ATT_PLY_029_W_2026_03_21",
+      "player_id": "PLY_029",
+      "week_id": "W_2026_03_21",
       "tournament_id": "TRN_001",
       "status": "absent",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_031_W_2026_03_21",
+      "player_id": "PLY_031",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_035_W_2026_03_21",
+      "player_id": "PLY_035",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_015_W_2026_03_21",
+      "player_id": "PLY_015",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_017_W_2026_03_21",
+      "player_id": "PLY_017",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_039_W_2026_03_21",
+      "player_id": "PLY_039",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_021_W_2026_03_21",
+      "player_id": "PLY_021",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_016_W_2026_03_21",
+      "player_id": "PLY_016",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_027_W_2026_03_21",
+      "player_id": "PLY_027",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_040_W_2026_03_21",
+      "player_id": "PLY_040",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_034_W_2026_03_21",
+      "player_id": "PLY_034",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_007_W_2026_03_21",
+      "player_id": "PLY_007",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_019_W_2026_03_21",
+      "player_id": "PLY_019",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_009_W_2026_03_21",
+      "player_id": "PLY_009",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_038_W_2026_03_21",
+      "player_id": "PLY_038",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_020_W_2026_03_21",
+      "player_id": "PLY_020",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_032_W_2026_03_21",
+      "player_id": "PLY_032",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_036_W_2026_03_21",
+      "player_id": "PLY_036",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_037_W_2026_03_21",
+      "player_id": "PLY_037",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_005_W_2026_03_21",
+      "player_id": "PLY_005",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_026_W_2026_03_21",
+      "player_id": "PLY_026",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_024_W_2026_03_21",
+      "player_id": "PLY_024",
+      "week_id": "W_2026_03_21",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_001_W_2026_03_28",
+      "player_id": "PLY_001",
+      "week_id": "W_2026_03_28",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_003_W_2026_03_28",
+      "player_id": "PLY_003",
+      "week_id": "W_2026_03_28",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_010_W_2026_03_28",
+      "player_id": "PLY_010",
+      "week_id": "W_2026_03_28",
+      "tournament_id": "TRN_001",
+      "status": "played",
       "source": "cricheroes_sync",
       "fee_deducted": false
     },
@@ -1155,8 +3279,8 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_040_W_2026_03_28",
-      "player_id": "PLY_040",
+      "id": "ATT_PLY_002_W_2026_03_28",
+      "player_id": "PLY_002",
       "week_id": "W_2026_03_28",
       "tournament_id": "TRN_001",
       "status": "played",
@@ -1164,8 +3288,8 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_031_W_2026_03_28",
-      "player_id": "PLY_031",
+      "id": "ATT_PLY_004_W_2026_03_28",
+      "player_id": "PLY_004",
       "week_id": "W_2026_03_28",
       "tournament_id": "TRN_001",
       "status": "played",
@@ -1173,8 +3297,8 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_009_W_2026_03_28",
-      "player_id": "PLY_009",
+      "id": "ATT_PLY_030_W_2026_03_28",
+      "player_id": "PLY_030",
       "week_id": "W_2026_03_28",
       "tournament_id": "TRN_001",
       "status": "played",
@@ -1182,44 +3306,17 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_025_W_2026_03_28",
-      "player_id": "PLY_025",
+      "id": "ATT_PLY_033_W_2026_03_28",
+      "player_id": "PLY_033",
       "week_id": "W_2026_03_28",
       "tournament_id": "TRN_001",
-      "status": "played",
+      "status": "absent",
       "source": "cricheroes_sync",
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_005_W_2026_03_28",
-      "player_id": "PLY_005",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_011_W_2026_03_28",
-      "player_id": "PLY_011",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_032_W_2026_03_28",
-      "player_id": "PLY_032",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_020_W_2026_03_28",
-      "player_id": "PLY_020",
+      "id": "ATT_PLY_013_W_2026_03_28",
+      "player_id": "PLY_013",
       "week_id": "W_2026_03_28",
       "tournament_id": "TRN_001",
       "status": "played",
@@ -1236,38 +3333,11 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_022_W_2026_03_28",
-      "player_id": "PLY_022",
+      "id": "ATT_PLY_018_W_2026_03_28",
+      "player_id": "PLY_018",
       "week_id": "W_2026_03_28",
       "tournament_id": "TRN_001",
       "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_007_W_2026_03_28",
-      "player_id": "PLY_007",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_036_W_2026_03_28",
-      "player_id": "PLY_036",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_033_W_2026_03_28",
-      "player_id": "PLY_033",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "absent",
       "source": "cricheroes_sync",
       "fee_deducted": false
     },
@@ -1290,98 +3360,8 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_003_W_2026_03_28",
-      "player_id": "PLY_003",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_038_W_2026_03_28",
-      "player_id": "PLY_038",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_039_W_2026_03_28",
-      "player_id": "PLY_039",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_016_W_2026_03_28",
-      "player_id": "PLY_016",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_015_W_2026_03_28",
-      "player_id": "PLY_015",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_004_W_2026_03_28",
-      "player_id": "PLY_004",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_019_W_2026_03_28",
-      "player_id": "PLY_019",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_010_W_2026_03_28",
-      "player_id": "PLY_010",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_002_W_2026_03_28",
-      "player_id": "PLY_002",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_001_W_2026_03_28",
-      "player_id": "PLY_001",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_029_W_2026_03_28",
-      "player_id": "PLY_029",
+      "id": "ATT_PLY_025_W_2026_03_28",
+      "player_id": "PLY_025",
       "week_id": "W_2026_03_28",
       "tournament_id": "TRN_001",
       "status": "played",
@@ -1398,35 +3378,8 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_030_W_2026_03_28",
-      "player_id": "PLY_030",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_035_W_2026_03_28",
-      "player_id": "PLY_035",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_013_W_2026_03_28",
-      "player_id": "PLY_013",
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_021_W_2026_03_28",
-      "player_id": "PLY_021",
+      "id": "ATT_PLY_022_W_2026_03_28",
+      "player_id": "PLY_022",
       "week_id": "W_2026_03_28",
       "tournament_id": "TRN_001",
       "status": "played",
@@ -1443,360 +3396,207 @@
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_037_W_2026_04_05",
-      "player_id": "PLY_037",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_017_W_2026_04_05",
-      "player_id": "PLY_017",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_034_W_2026_04_05",
-      "player_id": "PLY_034",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_026_W_2026_04_05",
-      "player_id": "PLY_026",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_027_W_2026_04_05",
-      "player_id": "PLY_027",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_018_W_2026_04_05",
-      "player_id": "PLY_018",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_024_W_2026_04_05",
-      "player_id": "PLY_024",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_006_W_2026_04_05",
-      "player_id": "PLY_006",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_040_W_2026_04_05",
-      "player_id": "PLY_040",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_031_W_2026_04_05",
-      "player_id": "PLY_031",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_009_W_2026_04_05",
-      "player_id": "PLY_009",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_025_W_2026_04_05",
-      "player_id": "PLY_025",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_005_W_2026_04_05",
-      "player_id": "PLY_005",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_011_W_2026_04_05",
+      "id": "ATT_PLY_011_W_2026_03_28",
       "player_id": "PLY_011",
-      "week_id": "W_2026_04_05",
+      "week_id": "W_2026_03_28",
       "tournament_id": "TRN_001",
       "status": "played",
       "source": "cricheroes_sync",
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_032_W_2026_04_05",
-      "player_id": "PLY_032",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_020_W_2026_04_05",
-      "player_id": "PLY_020",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_012_W_2026_04_05",
-      "player_id": "PLY_012",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_022_W_2026_04_05",
-      "player_id": "PLY_022",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_007_W_2026_04_05",
-      "player_id": "PLY_007",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_036_W_2026_04_05",
-      "player_id": "PLY_036",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_033_W_2026_04_05",
-      "player_id": "PLY_033",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_008_W_2026_04_05",
-      "player_id": "PLY_008",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_023_W_2026_04_05",
-      "player_id": "PLY_023",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_003_W_2026_04_05",
-      "player_id": "PLY_003",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_038_W_2026_04_05",
-      "player_id": "PLY_038",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_039_W_2026_04_05",
-      "player_id": "PLY_039",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_016_W_2026_04_05",
-      "player_id": "PLY_016",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_015_W_2026_04_05",
-      "player_id": "PLY_015",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_004_W_2026_04_05",
-      "player_id": "PLY_004",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_019_W_2026_04_05",
-      "player_id": "PLY_019",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_010_W_2026_04_05",
-      "player_id": "PLY_010",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "absent",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_002_W_2026_04_05",
-      "player_id": "PLY_002",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_001_W_2026_04_05",
-      "player_id": "PLY_001",
-      "week_id": "W_2026_04_05",
-      "tournament_id": "TRN_001",
-      "status": "played",
-      "source": "cricheroes_sync",
-      "fee_deducted": false
-    },
-    {
-      "id": "ATT_PLY_029_W_2026_04_05",
+      "id": "ATT_PLY_029_W_2026_03_28",
       "player_id": "PLY_029",
-      "week_id": "W_2026_04_05",
+      "week_id": "W_2026_03_28",
       "tournament_id": "TRN_001",
       "status": "played",
       "source": "cricheroes_sync",
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_028_W_2026_04_05",
-      "player_id": "PLY_028",
-      "week_id": "W_2026_04_05",
+      "id": "ATT_PLY_031_W_2026_03_28",
+      "player_id": "PLY_031",
+      "week_id": "W_2026_03_28",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_035_W_2026_03_28",
+      "player_id": "PLY_035",
+      "week_id": "W_2026_03_28",
       "tournament_id": "TRN_001",
       "status": "absent",
       "source": "cricheroes_sync",
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_030_W_2026_04_05",
-      "player_id": "PLY_030",
-      "week_id": "W_2026_04_05",
+      "id": "ATT_PLY_015_W_2026_03_28",
+      "player_id": "PLY_015",
+      "week_id": "W_2026_03_28",
       "tournament_id": "TRN_001",
       "status": "played",
       "source": "cricheroes_sync",
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_035_W_2026_04_05",
-      "player_id": "PLY_035",
-      "week_id": "W_2026_04_05",
+      "id": "ATT_PLY_017_W_2026_03_28",
+      "player_id": "PLY_017",
+      "week_id": "W_2026_03_28",
       "tournament_id": "TRN_001",
       "status": "played",
       "source": "cricheroes_sync",
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_013_W_2026_04_05",
-      "player_id": "PLY_013",
-      "week_id": "W_2026_04_05",
+      "id": "ATT_PLY_039_W_2026_03_28",
+      "player_id": "PLY_039",
+      "week_id": "W_2026_03_28",
       "tournament_id": "TRN_001",
-      "status": "played",
+      "status": "absent",
       "source": "cricheroes_sync",
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_021_W_2026_04_05",
+      "id": "ATT_PLY_021_W_2026_03_28",
       "player_id": "PLY_021",
-      "week_id": "W_2026_04_05",
+      "week_id": "W_2026_03_28",
       "tournament_id": "TRN_001",
       "status": "played",
       "source": "cricheroes_sync",
       "fee_deducted": false
     },
     {
-      "id": "ATT_PLY_014_W_2026_04_05",
-      "player_id": "PLY_014",
-      "week_id": "W_2026_04_05",
+      "id": "ATT_PLY_016_W_2026_03_28",
+      "player_id": "PLY_016",
+      "week_id": "W_2026_03_28",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_027_W_2026_03_28",
+      "player_id": "PLY_027",
+      "week_id": "W_2026_03_28",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_040_W_2026_03_28",
+      "player_id": "PLY_040",
+      "week_id": "W_2026_03_28",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_034_W_2026_03_28",
+      "player_id": "PLY_034",
+      "week_id": "W_2026_03_28",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_007_W_2026_03_28",
+      "player_id": "PLY_007",
+      "week_id": "W_2026_03_28",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_019_W_2026_03_28",
+      "player_id": "PLY_019",
+      "week_id": "W_2026_03_28",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_009_W_2026_03_28",
+      "player_id": "PLY_009",
+      "week_id": "W_2026_03_28",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_038_W_2026_03_28",
+      "player_id": "PLY_038",
+      "week_id": "W_2026_03_28",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_020_W_2026_03_28",
+      "player_id": "PLY_020",
+      "week_id": "W_2026_03_28",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_032_W_2026_03_28",
+      "player_id": "PLY_032",
+      "week_id": "W_2026_03_28",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_036_W_2026_03_28",
+      "player_id": "PLY_036",
+      "week_id": "W_2026_03_28",
+      "tournament_id": "TRN_001",
+      "status": "absent",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_037_W_2026_03_28",
+      "player_id": "PLY_037",
+      "week_id": "W_2026_03_28",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_005_W_2026_03_28",
+      "player_id": "PLY_005",
+      "week_id": "W_2026_03_28",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_026_W_2026_03_28",
+      "player_id": "PLY_026",
+      "week_id": "W_2026_03_28",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_024_W_2026_03_28",
+      "player_id": "PLY_024",
+      "week_id": "W_2026_03_28",
       "tournament_id": "TRN_001",
       "status": "absent",
       "source": "cricheroes_sync",
