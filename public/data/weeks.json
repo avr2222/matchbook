@@ -52,7 +52,7 @@
     {
       "week_id": "W_2026_03_15",
       "tournament_id": "TRN_001",
-      "match_date": "2026-03-15",
+      "match_date": "2026-03-14",
       "label": "15-Mar-2026",
       "venue": "Machaxi J Sports, Bengaluru",
       "match_fee": 249,
@@ -68,7 +68,7 @@
     {
       "week_id": "W_2026_03_22",
       "tournament_id": "TRN_001",
-      "match_date": "2026-03-22",
+      "match_date": "2026-03-21",
       "label": "22-Mar-2026",
       "venue": "Machaxi J Sports, Bengaluru",
       "match_fee": 204,
@@ -84,7 +84,7 @@
     {
       "week_id": "W_2026_03_29",
       "tournament_id": "TRN_001",
-      "match_date": "2026-03-29",
+      "match_date": "2026-03-28",
       "label": "29-Mar-2026",
       "venue": "Machaxi J Sports, Bengaluru",
       "match_fee": 298,
@@ -320,65 +320,6 @@
       "result": "",
       "players_count": 0,
       "notes": ""
-    },
-    {
-      "week_id": "W_2026_03_14",
-      "tournament_id": "TRN_001",
-      "match_date": "2026-03-14",
-      "label": "Mar 14",
-      "venue": "Machaxi J Sports, Bengaluru",
-      "match_fee": 500,
-      "status": "completed",
-      "cricheroes_match_id": "23110064",
-      "cricheroes_match_ids": [
-        "23110064",
-        "23064208",
-        "23064193"
-      ],
-      "team_a": "Weekend Warriors (WW)",
-      "team_b": "Royal Cricket Blasters (RCB)",
-      "result": "",
-      "players_count": 26,
-      "notes": "3 game(s)"
-    },
-    {
-      "week_id": "W_2026_03_21",
-      "tournament_id": "TRN_001",
-      "match_date": "2026-03-21",
-      "label": "Mar 21",
-      "venue": "Machaxi J Sports, Bengaluru",
-      "match_fee": 500,
-      "status": "completed",
-      "cricheroes_match_id": "23247987",
-      "cricheroes_match_ids": [
-        "23247987",
-        "23247977",
-        "23247962"
-      ],
-      "team_a": "Weekend Warriors (WW)",
-      "team_b": "Royal Cricket Blasters (RCB)",
-      "result": "",
-      "players_count": 23,
-      "notes": "3 game(s)"
-    },
-    {
-      "week_id": "W_2026_03_28",
-      "tournament_id": "TRN_001",
-      "match_date": "2026-03-28",
-      "label": "Mar 28",
-      "venue": "Machaxi J Sports, Bengaluru",
-      "match_fee": 500,
-      "status": "completed",
-      "cricheroes_match_id": "23454111",
-      "cricheroes_match_ids": [
-        "23454111",
-        "23454074"
-      ],
-      "team_a": "Weekend Warriors (WW)",
-      "team_b": "Royal Cricket Blasters (RCB)",
-      "result": "",
-      "players_count": 27,
-      "notes": "2 game(s)"
     }
   ]
 }

@@ -179,6 +179,20 @@ def sync():
     existing_week_ids    = {w["week_id"] for w in weeks}
     existing_session_dates = {w["match_date"] for w in weeks if w.get("status") == "completed"}
 
+    def date_already_covered(d):
+        """Return True if d or d±1 day is already in existing_session_dates."""
+        from datetime import date as dt_date
+        try:
+            parsed = dt_date.fromisoformat(d)
+        except Exception:
+            return False
+        for delta in (-1, 0, 1):
+            candidate = (parsed + timedelta(days=delta)).isoformat()
+            if candidate in existing_session_dates:
+                print(f"  Skipping already-synced session {d} (matched {candidate})")
+                return True
+        return False
+
     # Fetch match list
     all_matches = get_tournament_matches(tournament_url)
 
@@ -190,8 +204,7 @@ def sync():
         match_date = m.get("match_start_time", "")[:10]
         if not match_date:
             continue
-        if match_date in existing_session_dates:
-            print(f"  Skipping already-synced session {match_date}")
+        if date_already_covered(match_date):
             continue
         sessions.setdefault(match_date, []).append(m)
 
