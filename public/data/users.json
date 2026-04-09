@@ -2,10 +2,10 @@
   "schema_version": 1,
   "users": [
     {
-      "player_id": null,
-      "github_username": "YOUR_ADMIN_GITHUB_USERNAME",
+      "player_id": "PLY_003",
+      "github_username": "avr2222",
       "role": "admin",
-      "display_name": "Admin",
+      "display_name": "Venkat",
       "is_active": true
     }
   ]
