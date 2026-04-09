@@ -8,14 +8,31 @@ const DEVICE_AUTH_URL = 'https://github.com/login/device/code'
 const TOKEN_URL       = 'https://github.com/login/oauth/access_token'
 const USER_API        = 'https://api.github.com/user'
 
+function proxyFetch(proxyUrl, targetUrl, body) {
+  if (proxyUrl) {
+    return fetch(proxyUrl, {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded', 'X-Target-URL': targetUrl },
+      body,
+    })
+  }
+  return fetch(targetUrl, {
+    method: 'POST',
+    headers: { 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
+    body,
+  })
+}
+
 export default function DeviceFlowLogin() {
   const [stage, setStage] = useState('idle')   // idle | waiting | error
   const [userCode, setUserCode]   = useState('')
   const [verifyUrl, setVerifyUrl] = useState('')
   const [secondsLeft, setSecondsLeft] = useState(0)
   const [errorMsg, setErrorMsg]   = useState('')
-  const pollRef  = useRef(null)
-  const timerRef = useRef(null)
+  const pollRef   = useRef(null)
+  const timerRef  = useRef(null)
+  const proxyRef  = useRef('')
+  const clientRef = useRef('')
   const navigate = useNavigate()
   const login    = useAuthStore(s => s.login)
 
@@ -30,17 +47,18 @@ export default function DeviceFlowLogin() {
     try {
       const config = await fetchConfig()
       const clientId = config.github_oauth_client_id
+      const proxyUrl = config.github_oauth_proxy_url || ''
+      proxyRef.current  = proxyUrl
+      clientRef.current = clientId
 
       if (!clientId || clientId === 'YOUR_OAUTH_CLIENT_ID') {
         setErrorMsg('GitHub OAuth client_id not configured in config.json.')
         return
       }
 
-      const res = await fetch(DEVICE_AUTH_URL, {
-        method: 'POST',
-        headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ client_id: clientId, scope: 'repo read:user' }),
-      })
+      const res = await proxyFetch(proxyUrl, DEVICE_AUTH_URL,
+        new URLSearchParams({ client_id: clientId, scope: 'repo read:user' })
+      )
       const data = await res.json()
       if (data.error) { setErrorMsg(data.error_description); return }
 
@@ -56,15 +74,13 @@ export default function DeviceFlowLogin() {
       const interval = (data.interval ?? 5) * 1000
       pollRef.current = setInterval(async () => {
         try {
-          const tr = await fetch(TOKEN_URL, {
-            method: 'POST',
-            headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
+          const tr = await proxyFetch(proxyRef.current, TOKEN_URL,
+            new URLSearchParams({
               client_id: clientId,
               device_code: data.device_code,
               grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
-            }),
-          })
+            })
+          )
           const td = await tr.json()
           if (td.error === 'authorization_pending') return
           if (td.error === 'slow_down') return
