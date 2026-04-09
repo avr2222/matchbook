@@ -1,0 +1,46 @@
+name: Sync CricHeroes
+
+on:
+  schedule:
+    # Every Sunday at 9 PM IST (3:30 PM UTC)
+    - cron: '30 15 * * 0'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force re-sync all matches (ignores already-synced)'
+        required: false
+        default: 'false'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run CricHeroes sync
+        run: python scripts/sync_cricheroes.py
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit updated data files
+        run: |
+          git config user.name  "CricHeroes Bot"
+          git config user.email "bot@github.com"
+          git add public/data/
+          if git diff --staged --quiet; then
+            echo "No data changes to commit."
+          else
+            git commit -m "sync: cricheroes auto-sync $(date -u '+%Y-%m-%d %H:%M UTC')"
+            git push
+          fi

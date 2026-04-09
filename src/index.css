@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+  }
+}
+
+@layer components {
+  .badge-good      { @apply bg-green-100 text-green-800 border border-green-200; }
+  .badge-collect   { @apply bg-yellow-100 text-yellow-800 border border-yellow-200; }
+  .badge-urgent    { @apply bg-orange-100 text-orange-800 border border-orange-200; }
+  .badge-overdue   { @apply bg-red-100 text-red-800 border border-red-200; }
+  .btn-primary     { @apply bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-lg transition-colors; }
+  .btn-secondary   { @apply bg-white hover:bg-gray-50 text-gray-700 font-medium px-4 py-2 rounded-lg border border-gray-300 transition-colors; }
+  .btn-danger      { @apply bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-lg transition-colors; }
+  .card            { @apply bg-white rounded-xl shadow-sm border border-gray-200 p-5; }
+  .input           { @apply w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent; }
+  .label           { @apply block text-sm font-medium text-gray-700 mb-1; }
+}

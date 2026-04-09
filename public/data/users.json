@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "users": [
+    {
+      "player_id": null,
+      "github_username": "YOUR_ADMIN_GITHUB_USERNAME",
+      "role": "admin",
+      "display_name": "Admin",
+      "is_active": true
+    }
+  ]
+}

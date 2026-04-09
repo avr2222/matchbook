@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.xlsx
+*.gsheet
+*.gs
+CricketTools_AppScript.js
+Setup_RunOnce.gs
