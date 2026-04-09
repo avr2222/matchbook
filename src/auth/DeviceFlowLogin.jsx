@@ -38,8 +38,8 @@ export default function DeviceFlowLogin() {
 
       const res = await fetch(DEVICE_AUTH_URL, {
         method: 'POST',
-        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-        body: JSON.stringify({ client_id: clientId, scope: 'repo read:user' }),
+        headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ client_id: clientId, scope: 'repo read:user' }),
       })
       const data = await res.json()
       if (data.error) { setErrorMsg(data.error_description); return }
@@ -58,8 +58,8 @@ export default function DeviceFlowLogin() {
         try {
           const tr = await fetch(TOKEN_URL, {
             method: 'POST',
-            headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+            headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
               client_id: clientId,
               device_code: data.device_code,
               grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
