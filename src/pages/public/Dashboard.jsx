@@ -44,7 +44,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: 'Active Players', value: players.length,        icon: '👥' },
-          { label: 'Matches Played', value: completed.length,      icon: '🏟' },
+          { label: 'Weeks Played',   value: completed.length,      icon: '🏟' },
           { label: 'Corpus Pool',    value: `₹${totalCorpus.toLocaleString('en-IN')}`, icon: '💰' },
           { label: 'This Season',    value: tData?.tournaments?.find(t => t.id === activeTournamentId)?.short_name ?? 'Season', icon: '📅' },
         ].map(({ label, value, icon }) => (
