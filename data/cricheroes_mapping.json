@@ -1,0 +1,304 @@
+{
+  "schema_version": 1,
+  "tournament_id": "1874258",
+  "last_sync": "2026-04-09T11:37:22.121811+00:00",
+  "player_mappings": [
+    {
+      "cricheroes_player_id": "5945797",
+      "cricheroes_name": "Venkat A",
+      "player_id": "PLY_003",
+      "match_confidence": 0.857,
+      "match_method": "auto_fuzzy",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "7577506",
+      "cricheroes_name": "Leel",
+      "player_id": "PLY_004",
+      "match_confidence": 1,
+      "match_method": "auto_fuzzy",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "15990447",
+      "cricheroes_name": "Srikanta Maddara",
+      "player_id": "PLY_011",
+      "match_confidence": 0.667,
+      "match_method": "manual",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "23317824",
+      "cricheroes_name": "Ashok",
+      "player_id": "PLY_021",
+      "match_confidence": 1,
+      "match_method": "auto_fuzzy",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "23317827",
+      "cricheroes_name": "Balaji Balaraju",
+      "player_id": "PLY_015",
+      "match_confidence": 0.571,
+      "match_method": "manual",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "23317841",
+      "cricheroes_name": "Lokesh kumar YC  (c)",
+      "player_id": "PLY_026",
+      "match_confidence": 1,
+      "match_method": "manual",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "23317861",
+      "cricheroes_name": "seenu",
+      "player_id": "PLY_014",
+      "match_confidence": 0.909,
+      "match_method": "auto_fuzzy",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "23611429",
+      "cricheroes_name": "Sarat Kumar",
+      "player_id": "PLY_037",
+      "match_confidence": 0.556,
+      "match_method": "manual",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "24133065",
+      "cricheroes_name": "Ashik Jain",
+      "player_id": "PLY_025",
+      "match_confidence": 0.556,
+      "match_method": "manual",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "24500548",
+      "cricheroes_name": "Mahesh",
+      "player_id": "PLY_019",
+      "match_confidence": 0.667,
+      "match_method": "manual",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "24920096",
+      "cricheroes_name": "Jithin Tj",
+      "player_id": "PLY_007",
+      "match_confidence": 0.8,
+      "match_method": "manual",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "27687690",
+      "cricheroes_name": "Mahesh",
+      "player_id": "PLY_003",
+      "match_confidence": 1,
+      "match_method": "auto_fuzzy",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "28100363",
+      "cricheroes_name": "RK",
+      "player_id": "PLY_034",
+      "match_confidence": 1,
+      "match_method": "auto_fuzzy",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "32252331",
+      "cricheroes_name": "Rajkumar Muddasu",
+      "player_id": "PLY_034",
+      "match_confidence": 1,
+      "match_method": "manual",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "32475183",
+      "cricheroes_name": "shaik azeed",
+      "player_id": "PLY_010",
+      "match_confidence": 0.625,
+      "match_method": "manual",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "34607385",
+      "cricheroes_name": "Gopi",
+      "player_id": "PLY_031",
+      "match_confidence": 1,
+      "match_method": "auto_fuzzy",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "35651267",
+      "cricheroes_name": "Ashok adapala",
+      "player_id": "PLY_033",
+      "match_confidence": 0.64,
+      "match_method": "manual",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "36266644",
+      "cricheroes_name": "Karthik Reddy",
+      "player_id": "PLY_040",
+      "match_confidence": 1,
+      "match_method": "auto_fuzzy",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "36272025",
+      "cricheroes_name": "Srinivas Vemulapalli  (c)",
+      "player_id": "PLY_027",
+      "match_confidence": 1,
+      "match_method": "manual",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "36284615",
+      "cricheroes_name": "Vinay KS",
+      "player_id": "PLY_013",
+      "match_confidence": 0.769,
+      "match_method": "manual",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "36285740",
+      "cricheroes_name": "Pabitra",
+      "player_id": "PLY_024",
+      "match_confidence": 1,
+      "match_method": "auto_fuzzy",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "36285741",
+      "cricheroes_name": "Vinod Reddy",
+      "player_id": "PLY_001",
+      "match_confidence": 1,
+      "match_method": "auto_fuzzy",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "36285742",
+      "cricheroes_name": "Manjunath H",
+      "player_id": "PLY_032",
+      "match_confidence": 0.9,
+      "match_method": "auto_fuzzy",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "36285780",
+      "cricheroes_name": "Deepak Kumar",
+      "player_id": "PLY_006",
+      "match_confidence": 1,
+      "match_method": "auto_fuzzy",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "36566491",
+      "cricheroes_name": "Sudhir Midtown",
+      "player_id": "PLY_005",
+      "match_confidence": 1,
+      "match_method": "manual",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "37092656",
+      "cricheroes_name": "Vijay 208",
+      "player_id": "PLY_035",
+      "match_confidence": 0.714,
+      "match_method": "manual",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "39978351",
+      "cricheroes_name": "Mithun",
+      "player_id": "PLY_005",
+      "match_confidence": 1,
+      "match_method": "auto_fuzzy",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "42545298",
+      "cricheroes_name": "Arun 102.raaga",
+      "player_id": "PLY_016",
+      "match_confidence": 0.72,
+      "match_method": "manual",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "42607076",
+      "cricheroes_name": "Sudheer Nidiginti",
+      "player_id": "PLY_030",
+      "match_confidence": 0.583,
+      "match_method": "manual",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "42607170",
+      "cricheroes_name": "Murali Cn Cricket",
+      "player_id": "PLY_020",
+      "match_confidence": 0.522,
+      "match_method": "manual",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "43156222",
+      "cricheroes_name": "GIRISH G",
+      "player_id": "PLY_036",
+      "match_confidence": 0.857,
+      "match_method": "auto_fuzzy",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "43156255",
+      "cricheroes_name": "Arun",
+      "player_id": "PLY_002",
+      "match_confidence": 1,
+      "match_method": "auto_fuzzy",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "43374562",
+      "cricheroes_name": "Subbu",
+      "player_id": "PLY_017",
+      "match_confidence": 1,
+      "match_method": "auto_fuzzy",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "45730696",
+      "cricheroes_name": "Firoz",
+      "player_id": "PLY_029",
+      "match_confidence": 1,
+      "match_method": "auto_fuzzy",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "46521634",
+      "cricheroes_name": "Satyam Goyal",
+      "player_id": "PLY_018",
+      "match_confidence": 0.667,
+      "match_method": "manual",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "48022578",
+      "cricheroes_name": "Vishwanath Cricket",
+      "player_id": "PLY_022",
+      "match_confidence": 0.5,
+      "match_method": "manual",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "48699330",
+      "cricheroes_name": "Kranthi 202 Midtown Raaga",
+      "player_id": "PLY_009",
+      "match_confidence": 1,
+      "match_method": "manual",
+      "confirmed": true
+    }
+  ],
+  "unmatched": []
+}

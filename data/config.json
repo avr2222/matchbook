@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "team_name": "Machaxi Box Cricket",
+  "currency": "INR",
+  "currency_symbol": "₹",
+  "default_match_fee": 500,
+  "default_ppm_rate": 300,
+  "default_guest_fee": 300,
+  "corpus_low_threshold": 1000,
+  "corpus_urgent_threshold": 500,
+  "corpus_overdue_threshold": 0,
+  "active_tournament_id": "TRN_001",
+  "repo_owner": "avr2222",
+  "repo_name": "matchbook",
+  "data_branch": "main",
+  "github_oauth_client_id": "Ov23liuN6BYCrAtlh9dQ",
+  "github_oauth_proxy_url": "https://matchbook-proxy.adapala-venkateswararao.workers.dev",
+  "cricheroes_tournament_id": "1874258",
+  "cricheroes_tournament_url": "https://cricheroes.com/tournament/1874258/machaxi-box-cricket-season-2",
+  "auto_deduct_on_sync": true
+}
