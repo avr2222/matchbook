@@ -40,7 +40,7 @@
     {
       "id": "EXP_4",
       "tournament_id": "TRN_001",
-      "date": "2026-04-09",
+      "date": "2026-04-10",
       "category": "Other",
       "amount": 1585,
       "description": "",
@@ -52,7 +52,7 @@
     {
       "id": "EXP_5",
       "tournament_id": "TRN_001",
-      "date": "2026-04-09",
+      "date": "2026-04-10",
       "category": "445",
       "amount": 12.71,
       "description": "0.2807570978",
@@ -64,7 +64,7 @@
     {
       "id": "EXP_6",
       "tournament_id": "TRN_001",
-      "date": "2026-04-09",
+      "date": "2026-04-10",
       "category": "445",
       "amount": 12.71,
       "description": "100%",
@@ -94,7 +94,7 @@
       "amount": 4746,
       "description": "Weekly match cost (Snacks:358 paid to Srikanta)",
       "paid_by": "",
-      "share_per_player": 226,
+      "share_per_player": 237.3,
       "distribution": "week_present",
       "week_id": "W_2026_03_01",
       "recorded_by": "excel_import"
@@ -107,7 +107,7 @@
       "amount": 4688,
       "description": "Weekly match cost (Snacks 300 Paid to Srikanta)",
       "paid_by": "",
-      "share_per_player": 223.24,
+      "share_per_player": 234.4,
       "distribution": "week_present",
       "week_id": "W_2026_03_08",
       "recorded_by": "excel_import"
@@ -120,7 +120,7 @@
       "amount": 6461,
       "description": "Weekly match cost (Snacks 300 for Srikanta and Breakfast Vinay-1300 and 1BFC Cancellation Fee 473)",
       "paid_by": "",
-      "share_per_player": 248.5,
+      "share_per_player": 269.21,
       "distribution": "week_present",
       "week_id": "W_2026_03_15",
       "recorded_by": "excel_import"
@@ -133,7 +133,7 @@
       "amount": 4688,
       "description": "Weekly match cost (Snacks amount 300 Added to Corpus)",
       "paid_by": "",
-      "share_per_player": 203.83,
+      "share_per_player": 213.09,
       "distribution": "week_present",
       "week_id": "W_2026_03_22",
       "recorded_by": "excel_import"
@@ -146,7 +146,7 @@
       "amount": 8050,
       "description": "Weekly match cost (Breakfast-1550 To Vinay Corpus)",
       "paid_by": "",
-      "share_per_player": 298.15,
+      "share_per_player": 350,
       "distribution": "week_present",
       "week_id": "W_2026_03_29",
       "recorded_by": "excel_import"

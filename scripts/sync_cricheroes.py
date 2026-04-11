@@ -291,8 +291,41 @@ def sync():
                     })
                     changed = True
                 else:
-                    print(f"  Unmatched: '{ch_name}' (CH:{ch_pid})")
-                    newly_unmatched[ch_pid] = ch_name
+                    # Auto-create as guest player (free, not charged expenses)
+                    existing_ids = {p["id"] for p in players}
+                    guest_id = f"PLY_G_{ch_pid}"
+                    if guest_id not in existing_ids:
+                        print(f"  Auto-creating guest: '{ch_name}' (CH:{ch_pid}) -> {guest_id}")
+                        players.append({
+                            "id": guest_id,
+                            "display_name": ch_name,
+                            "type": "guest",
+                            "status": "active",
+                            "joined_date": match_date,
+                            "phone": "",
+                            "corpus_balance": 0,
+                            "total_paid": 0,
+                            "total_deducted": 0,
+                            "balance_status": "good",
+                            "github_username": "",
+                            "cricheroes_player_id": ch_pid,
+                            "cricheroes_name": ch_name,
+                            "guest_fee_mode": "free",
+                            "sponsored_by_player_id": None,
+                            "notes": "Auto-created from CricHeroes",
+                        })
+                        # Add to confirmed mappings
+                        mappings.append({
+                            "cricheroes_player_id": ch_pid,
+                            "cricheroes_name": ch_name,
+                            "player_id": guest_id,
+                            "match_confidence": 1.0,
+                            "match_method": "auto_guest",
+                            "confirmed": True,
+                        })
+                        ch_to_internal[ch_pid] = guest_id
+                        changed = True
+                    played_internal_ids.add(ch_to_internal.get(ch_pid, guest_id))
 
         # Create attendance records
         existing_att_ids = {r["id"] for r in attendance}

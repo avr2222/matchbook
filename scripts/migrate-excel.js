@@ -211,9 +211,12 @@ function run() {
   for (const { col, dateStr, label } of weekColumns) {
     const weekId  = `W_${dateStr.replace(/-/g, '_')}`
     const isPast  = new Date(dateStr) <= today
-    const cost    = typeof costRow[col] === 'number' ? Math.round(costRow[col]) : 0
-    const present = typeof totalRow[col] === 'number' ? totalRow[col] : 0
-    const note    = noteRow[col]?.toString().trim() ?? ''
+    const cost          = typeof costRow[col] === 'number' ? Math.round(costRow[col]) : 0
+    const totalPresent  = typeof totalRow[col]  === 'number' ? totalRow[col]  : 0
+    const corpusPresent = typeof corpusRow[col] === 'number' ? corpusRow[col] : 0
+    const note          = noteRow[col]?.toString().trim() ?? ''
+    // Expenses split only among corpus+PPM (not guests)
+    const payingPresent = corpusPresent > 0 ? corpusPresent : totalPresent
 
     weeks.push({
       week_id: weekId,
@@ -221,14 +224,16 @@ function run() {
       match_date: dateStr,
       label,
       venue: 'Machaxi J Sports, Bengaluru',
-      match_fee: present > 0 ? Math.round(cost / present) : 0,
+      match_fee: payingPresent > 0 ? Math.round(cost / payingPresent) : 0,
       total_cost: cost,
+      corpus_present: corpusPresent,
+      total_present: totalPresent,
       status: isPast && cost > 0 ? 'completed' : isPast ? 'completed' : 'scheduled',
       cricheroes_match_id: null,
       team_a: 'Royal Cricket Blasters (RCB)',
       team_b: 'Weekend Warriors (WW)',
       result: '',
-      players_count: present,
+      players_count: totalPresent,
       notes: note,
     })
 
@@ -290,7 +295,7 @@ function run() {
       amount: wk.total_cost,
       description: `Weekly match cost (${wk.notes || wk.label})`,
       paid_by: '',
-      share_per_player: wk.players_count > 0 ? Math.round(wk.total_cost / wk.players_count * 100) / 100 : 0,
+      share_per_player: (wk.corpus_present || wk.players_count) > 0 ? Math.round(wk.total_cost / (wk.corpus_present || wk.players_count) * 100) / 100 : 0,
       distribution: 'week_present',
       week_id: wk.week_id,
       recorded_by: 'excel_import',
