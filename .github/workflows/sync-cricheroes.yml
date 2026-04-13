@@ -32,6 +32,7 @@ jobs:
         run: python scripts/sync_cricheroes.py
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CRICHEROES_PROXY_URL: https://matchbook-proxy.adapala-venkateswararao.workers.dev
 
       - name: Commit updated data files
         run: |

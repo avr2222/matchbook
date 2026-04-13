@@ -12,16 +12,22 @@ Environment variables:
 """
 
 import json
+import os
 import re
 import sys
 import time
 import difflib
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+import urllib.parse
 import urllib.request
 import urllib.error
 
 DATA_DIR = Path(__file__).parent.parent / "public" / "data"
+
+# When set, CricHeroes URLs are fetched via this Cloudflare Worker proxy
+# instead of directly — needed in GitHub Actions where CricHeroes blocks cloud IPs.
+CRICHEROES_PROXY_URL = os.environ.get("CRICHEROES_PROXY_URL", "").rstrip("/")
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -46,9 +52,17 @@ def save_json(filename, data):
 
 
 def fetch_url(url, retries=3):
+    # Route CricHeroes requests through the Cloudflare Worker proxy when configured.
+    # The worker fetches from Cloudflare edge IPs, which are not blocked by CricHeroes.
+    if CRICHEROES_PROXY_URL and "cricheroes.com" in url:
+        actual_url = f"{CRICHEROES_PROXY_URL}/cricheroes?url={urllib.parse.quote(url, safe='')}"
+        print(f"  (via proxy) {url}")
+    else:
+        actual_url = url
+
     for attempt in range(1, retries + 1):
         try:
-            req = urllib.request.Request(url, headers=HEADERS)
+            req = urllib.request.Request(actual_url, headers=HEADERS)
             with urllib.request.urlopen(req, timeout=20) as resp:
                 return resp.read().decode("utf-8")
         except Exception as e:
