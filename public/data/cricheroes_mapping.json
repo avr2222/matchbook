@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "tournament_id": "1874258",
-  "last_sync": "2026-04-09T11:37:22.121811+00:00",
+  "last_sync": "2026-04-27T07:07:30.537684+00:00",
   "player_mappings": [
     {
       "cricheroes_player_id": "5945797",
@@ -297,6 +297,30 @@
       "player_id": "PLY_009",
       "match_confidence": 1,
       "match_method": "manual",
+      "confirmed": true
+    },
+    {
+      "cricheroes_player_id": "50217816",
+      "cricheroes_name": "Abhishikth Reddy",
+      "player_id": "PLY_019",
+      "match_confidence": 0.714,
+      "match_method": "auto_fuzzy",
+      "confirmed": false
+    },
+    {
+      "cricheroes_player_id": "24879142",
+      "cricheroes_name": "Phanindra Y",
+      "player_id": "PLY_024",
+      "match_confidence": 0.556,
+      "match_method": "auto_fuzzy",
+      "confirmed": false
+    },
+    {
+      "cricheroes_player_id": "22711554",
+      "cricheroes_name": "Pavan",
+      "player_id": "PLY_002",
+      "match_confidence": 1.0,
+      "match_method": "auto_fuzzy",
       "confirmed": true
     }
   ],
