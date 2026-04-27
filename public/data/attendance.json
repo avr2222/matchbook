@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "last_updated": "2026-04-27T08:14:38.232495+00:00",
+  "last_updated": "2026-04-27T11:23:58.455673+00:00",
   "records": [
     {
       "id": "ATT_PLY_001_W_2026_02_22",
@@ -2554,7 +2554,7 @@
       "player_id": "PLY_012",
       "week_id": "W_2026_04_25",
       "tournament_id": "TRN_001",
-      "status": "absent",
+      "status": "played",
       "source": "cricheroes_sync",
       "fee_deducted": false
     },
@@ -2599,7 +2599,7 @@
       "player_id": "PLY_023",
       "week_id": "W_2026_04_25",
       "tournament_id": "TRN_001",
-      "status": "absent",
+      "status": "played",
       "source": "cricheroes_sync",
       "fee_deducted": false
     },
@@ -2879,6 +2879,24 @@
       "week_id": "W_2026_04_25",
       "tournament_id": "TRN_001",
       "status": "absent",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_G_ABHISHIKTH_W_2026_04_25",
+      "player_id": "PLY_G_ABHISHIKTH",
+      "week_id": "W_2026_04_25",
+      "tournament_id": "TRN_001",
+      "status": "played",
+      "source": "cricheroes_sync",
+      "fee_deducted": false
+    },
+    {
+      "id": "ATT_PLY_G_PHANINDRA_W_2026_04_25",
+      "player_id": "PLY_G_PHANINDRA",
+      "week_id": "W_2026_04_25",
+      "tournament_id": "TRN_001",
+      "status": "played",
       "source": "cricheroes_sync",
       "fee_deducted": false
     }

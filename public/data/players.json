@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "last_updated": "2026-04-27T07:07:30.533756+00:00",
+  "last_updated": "2026-04-27T11:23:58.455673+00:00",
   "players": [
     {
       "id": "PLY_001",
@@ -721,6 +721,42 @@
       "guest_fee_mode": null,
       "sponsored_by_player_id": null,
       "notes": ""
+    },
+    {
+      "id": "PLY_G_ABHISHIKTH",
+      "display_name": "Abhishikth Reddy",
+      "type": "guest",
+      "status": "active",
+      "joined_date": "2026-04-25",
+      "phone": "",
+      "corpus_balance": 0,
+      "total_paid": 0,
+      "total_deducted": 0,
+      "balance_status": "good",
+      "github_username": "",
+      "cricheroes_player_id": "",
+      "cricheroes_name": "Abhishikth Reddy",
+      "guest_fee_mode": "free",
+      "sponsored_by_player_id": null,
+      "notes": "Manually added — played Apr 25"
+    },
+    {
+      "id": "PLY_G_PHANINDRA",
+      "display_name": "Phanindra Y",
+      "type": "guest",
+      "status": "active",
+      "joined_date": "2026-04-25",
+      "phone": "",
+      "corpus_balance": 0,
+      "total_paid": 0,
+      "total_deducted": 0,
+      "balance_status": "good",
+      "github_username": "",
+      "cricheroes_player_id": "",
+      "cricheroes_name": "Phanindra Y",
+      "guest_fee_mode": "free",
+      "sponsored_by_player_id": null,
+      "notes": "Manually added — played Apr 25"
     }
   ]
 }

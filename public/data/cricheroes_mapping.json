@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "tournament_id": "1874258",
-  "last_sync": "2026-04-27T07:07:30.537684+00:00",
+  "last_sync": "2026-04-27T11:23:58.455673+00:00",
   "player_mappings": [
     {
       "cricheroes_player_id": "5945797",
@@ -254,9 +254,9 @@
     {
       "cricheroes_player_id": "43156255",
       "cricheroes_name": "Arun",
-      "player_id": "PLY_002",
+      "player_id": "PLY_012",
       "match_confidence": 1,
-      "match_method": "auto_fuzzy",
+      "match_method": "manual",
       "confirmed": true
     },
     {
