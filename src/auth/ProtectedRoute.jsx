@@ -5,6 +5,7 @@ export default function ProtectedRoute({ children, requiredRole }) {
   const { isAuthenticated, role } = useAuthStore()
 
   if (!isAuthenticated) return <Navigate to="/login" replace />
+  if (requiredRole === 'player' && role === 'admin') return <Navigate to="/admin" replace />
   if (requiredRole && role !== requiredRole) return <Navigate to="/unauthorized" replace />
   return children
 }

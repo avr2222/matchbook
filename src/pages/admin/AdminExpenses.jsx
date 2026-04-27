@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useExpenses, useWeeks, useConfig } from '../../hooks/useData'
 import { writeExpenses } from '../../api/dataWriter'
@@ -26,6 +27,7 @@ export default function AdminExpenses() {
   const { data: eData, isLoading } = useExpenses()
   const { data: wData } = useWeeks()
   const { data: cfg }   = useConfig()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving]     = useState(false)
   const [form, setForm] = useState({
@@ -36,6 +38,13 @@ export default function AdminExpenses() {
     description: '',
     split_among: 'all_played',
   })
+
+  useEffect(() => {
+    if (searchParams.get('new') === '1') {
+      setShowForm(true)
+      setSearchParams({}, { replace: true })
+    }
+  }, [])
 
   if (isLoading) return <PageSpinner />
 

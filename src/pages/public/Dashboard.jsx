@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { usePlayers, useWeeks, useAttendance, useTournaments, useConfig } from '../../hooks/useData'
 import BalanceBadge from '../../components/ui/BalanceBadge'
 import { PageSpinner } from '../../components/ui/Spinner'
-import { STATUS_DOT } from '../../utils/balanceCalculator'
 import MatchPlayersModal from '../../components/ui/MatchPlayersModal'
 import { format, parseISO } from 'date-fns'
 

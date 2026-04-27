@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTransactions, usePlayers, useWeeks, useConfig } from '../../hooks/useData'
 import { writeTransactions, writePlayers } from '../../api/dataWriter'
@@ -22,12 +23,20 @@ export default function AdminTransactions() {
   const { data: pData } = usePlayers()
   const { data: wData } = useWeeks()
   const { data: cfg }   = useConfig()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
     player_id: '', type: 'corpus_payment', amount: '', date: new Date().toISOString().slice(0,10),
     week_id: '', description: '', receipt_ref: '',
   })
+
+  useEffect(() => {
+    if (searchParams.get('new') === '1') {
+      setShowForm(true)
+      setSearchParams({}, { replace: true })
+    }
+  }, [])
 
   if (isLoading) return <PageSpinner />
 
