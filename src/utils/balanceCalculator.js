@@ -44,9 +44,9 @@ export function typeLabel(type) {
 }
 
 export function generateId(prefix, existingIds) {
+  const pattern = new RegExp(`^${prefix}_(\\d+)$`)
   const nums = existingIds
-    .filter(id => id.startsWith(prefix + '_'))
-    .map(id => parseInt(id.split('_').pop(), 10))
+    .map(id => { const m = id.match(pattern); return m ? parseInt(m[1], 10) : NaN })
     .filter(n => !isNaN(n))
   const max = nums.length ? Math.max(...nums) : 0
   return `${prefix}_${String(max + 1).padStart(3, '0')}`

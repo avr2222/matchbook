@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { usePlayers, useConfig } from '../../hooks/useData'
 import BalanceBadge from '../../components/ui/BalanceBadge'
@@ -16,11 +17,20 @@ const EMPTY = {
 
 export default function AdminPlayers() {
   const qc = useQueryClient()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { data, isLoading } = usePlayers()
   const { data: cfg } = useConfig()
   const [editing, setEditing] = useState(null)  // null | player object
   const [saving, setSaving] = useState(false)
   const [search, setSearch] = useState('')
+
+  useEffect(() => {
+    if (searchParams.get('new') === '1' && data) {
+      const players = data?.players ?? []
+      setEditing({ ...EMPTY, id: generateId('PLY', players.map(p => p.id)) })
+      setSearchParams({}, { replace: true })
+    }
+  }, [data])
 
   if (isLoading) return <PageSpinner />
 
@@ -161,9 +171,10 @@ export default function AdminPlayers() {
               {editing.type === 'guest' && (
                 <div>
                   <label className="label">Guest Fee Mode</label>
-                  <select className="input" value={editing.guest_fee_mode ?? 'direct'} onChange={e => setEditing(p => ({ ...p, guest_fee_mode: e.target.value }))}>
-                    <option value="direct">Direct (guest pays)</option>
-                    <option value="sponsored">Sponsored (deduct from sponsor)</option>
+                  <select className="input" value={editing.guest_fee_mode ?? 'free'} onChange={e => setEditing(p => ({ ...p, guest_fee_mode: e.target.value }))}>
+                    <option value="free">Free — fee waived</option>
+                    <option value="pay_self">Pay Self — guest pays directly</option>
+                    <option value="sponsored">Sponsored — deduct from inviter's corpus</option>
                   </select>
                 </div>
               )}

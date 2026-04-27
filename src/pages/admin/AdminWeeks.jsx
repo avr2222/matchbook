@@ -131,7 +131,7 @@ export default function AdminWeeks() {
             {weeks.map(w => {
               const played = records.filter(r => r.week_id === w.week_id && r.status === 'played').length
               return (
-                <tr key={w.week_id} className="hover:bg-gray-50 cursor-pointer" onClick={() => w.status === 'completed' && setDetail(w.week_id)}>
+                <tr key={w.week_id} className={`hover:bg-gray-50 ${w.status === 'completed' ? 'cursor-pointer' : 'cursor-default'}`} onClick={() => w.status === 'completed' && setDetail(w.week_id)}>
                   <td className="px-4 py-3 font-medium text-gray-800">{format(parseISO(w.match_date), 'MMM d, yyyy')}</td>
                   <td className="px-4 py-3 text-gray-500 text-xs">{w.venue?.split(',')[0] || '—'}</td>
                   <td className="px-4 py-3 text-center text-gray-600">

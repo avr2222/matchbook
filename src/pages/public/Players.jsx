@@ -4,7 +4,7 @@ import BalanceBadge from '../../components/ui/BalanceBadge'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { typeEmoji, typeLabel } from '../../utils/balanceCalculator'
 
-const TYPES = ['all', 'corpus', 'ppm', 'new', 'guest']
+const TYPES = ['all', 'corpus', 'ppm', 'new']
 
 export default function Players() {
   const { data, isLoading } = usePlayers()
@@ -13,7 +13,8 @@ export default function Players() {
 
   if (isLoading) return <PageSpinner />
 
-  const players = (data?.players ?? []).filter(p => p.status === 'active')
+  // Guests are transient/auto-created — exclude from the public roster
+  const players = (data?.players ?? []).filter(p => p.status === 'active' && p.type !== 'guest')
   const visible = players.filter(p => {
     const matchType   = filter === 'all' || p.type === filter
     const matchSearch = p.display_name.toLowerCase().includes(search.toLowerCase())
