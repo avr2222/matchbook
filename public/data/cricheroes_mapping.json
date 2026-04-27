@@ -110,9 +110,9 @@
     {
       "cricheroes_player_id": "32252331",
       "cricheroes_name": "Rajkumar Muddasu",
-      "player_id": "PLY_034",
+      "player_id": "PLY_023",
       "match_confidence": 1,
-      "match_method": "manual",
+      "match_method": "manual_remap",
       "confirmed": true
     },
     {
@@ -319,7 +319,7 @@
       "cricheroes_player_id": "22711554",
       "cricheroes_name": "Pavan",
       "player_id": "PLY_002",
-      "match_confidence": 1.0,
+      "match_confidence": 1,
       "match_method": "auto_fuzzy",
       "confirmed": true
     }
