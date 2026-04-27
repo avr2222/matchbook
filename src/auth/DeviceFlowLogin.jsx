@@ -29,15 +29,16 @@ export default function DeviceFlowLogin() {
   const [verifyUrl, setVerifyUrl] = useState('')
   const [secondsLeft, setSecondsLeft] = useState(0)
   const [errorMsg, setErrorMsg]   = useState('')
-  const pollRef   = useRef(null)
-  const timerRef  = useRef(null)
-  const proxyRef  = useRef('')
-  const clientRef = useRef('')
+  const pollRef      = useRef(null)
+  const timerRef     = useRef(null)
+  const intervalRef  = useRef(5000)
+  const proxyRef     = useRef('')
+  const clientRef    = useRef('')
   const navigate = useNavigate()
   const login    = useAuthStore(s => s.login)
 
   useEffect(() => () => {
-    clearInterval(pollRef.current)
+    clearTimeout(pollRef.current)
     clearInterval(timerRef.current)
   }, [])
 
@@ -70,9 +71,9 @@ export default function DeviceFlowLogin() {
       // countdown
       timerRef.current = setInterval(() => setSecondsLeft(s => Math.max(0, s - 1)), 1000)
 
-      // poll for token
-      const interval = (data.interval ?? 5) * 1000
-      pollRef.current = setInterval(async () => {
+      // poll for token — uses setTimeout so interval can grow on slow_down
+      intervalRef.current = (data.interval ?? 5) * 1000
+      const poll = async () => {
         try {
           const tr = await proxyFetch(proxyRef.current, TOKEN_URL,
             new URLSearchParams({
@@ -82,22 +83,30 @@ export default function DeviceFlowLogin() {
             })
           )
           const td = await tr.json()
-          if (td.error === 'authorization_pending') return
-          if (td.error === 'slow_down') return
+          if (td.error === 'authorization_pending') {
+            pollRef.current = setTimeout(poll, intervalRef.current)
+            return
+          }
+          if (td.error === 'slow_down') {
+            intervalRef.current += 5000
+            pollRef.current = setTimeout(poll, intervalRef.current)
+            return
+          }
           if (td.error) {
-            clearInterval(pollRef.current)
             clearInterval(timerRef.current)
             setErrorMsg(td.error_description || td.error)
             setStage('idle')
             return
           }
           if (td.access_token) {
-            clearInterval(pollRef.current)
             clearInterval(timerRef.current)
             await finalizeLogin(td.access_token)
           }
-        } catch { /* network glitch, keep polling */ }
-      }, interval)
+        } catch {
+          pollRef.current = setTimeout(poll, intervalRef.current)
+        }
+      }
+      pollRef.current = setTimeout(poll, intervalRef.current)
     } catch (e) {
       setErrorMsg(e.message)
     }
