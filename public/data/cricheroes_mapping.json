@@ -94,9 +94,9 @@
     {
       "cricheroes_player_id": "27687690",
       "cricheroes_name": "Mahesh",
-      "player_id": "PLY_003",
-      "match_confidence": 1,
-      "match_method": "auto_fuzzy",
+      "player_id": "PLY_006",
+      "match_confidence": 0.667,
+      "match_method": "manual",
       "confirmed": true
     },
     {
@@ -214,9 +214,9 @@
     {
       "cricheroes_player_id": "39978351",
       "cricheroes_name": "Mithun",
-      "player_id": "PLY_005",
+      "player_id": "PLY_008",
       "match_confidence": 1,
-      "match_method": "auto_fuzzy",
+      "match_method": "manual",
       "confirmed": true
     },
     {
