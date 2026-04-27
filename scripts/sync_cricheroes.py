@@ -402,4 +402,11 @@ def sync():
 
 
 if __name__ == "__main__":
-    sync()
+    try:
+        sync()
+    except RuntimeError as e:
+        if "cricheroes.com" in str(e):
+            print(f"\nWARNING: CricHeroes is unreachable — {e}")
+            print("CricHeroes is blocking the request IP. Sync skipped (no data lost).")
+            sys.exit(0)
+        raise
