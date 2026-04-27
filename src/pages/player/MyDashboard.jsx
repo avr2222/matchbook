@@ -1,10 +1,13 @@
+import { useState } from 'react'
 import { usePlayers, useWeeks, useAttendance, useTransactions, useConfig } from '../../hooks/useData'
 import { useAuthStore } from '../../store/authStore'
 import BalanceBadge from '../../components/ui/BalanceBadge'
 import { PageSpinner } from '../../components/ui/Spinner'
+import MatchPlayersModal from '../../components/ui/MatchPlayersModal'
 import { format, parseISO } from 'date-fns'
 
 export default function MyDashboard() {
+  const [detail, setDetail] = useState(null)
   const { playerId } = useAuthStore()
   const { data: cfg }   = useConfig()
   const { data: pData, isLoading } = usePlayers()
@@ -18,7 +21,9 @@ export default function MyDashboard() {
   if (!player) return <div className="p-8 text-gray-500">Player profile not found.</div>
 
   const activeTournamentId = cfg?.active_tournament_id
-  const myAttendance = (aData?.records ?? []).filter(r => r.player_id === playerId && r.tournament_id === activeTournamentId)
+  const allPlayers   = pData?.players ?? []
+  const allRecords   = aData?.records ?? []
+  const myAttendance = allRecords.filter(r => r.player_id === playerId && r.tournament_id === activeTournamentId)
   const myTransactions = (tData?.transactions ?? [])
     .filter(t => t.player_id === playerId && t.tournament_id === activeTournamentId)
     .sort((a, b) => b.date.localeCompare(a.date))
@@ -29,10 +34,15 @@ export default function MyDashboard() {
 
   const activityFeed = myAttendance.map(r => {
     const week = weeks.find(w => w.week_id === r.week_id)
-    return { date: week?.match_date ?? '', label: week ? format(parseISO(week.match_date), 'MMM d') : r.week_id, type: 'attendance', status: r.status }
+    return {
+      date: week?.match_date ?? '', week_id: r.week_id,
+      label: week ? format(parseISO(week.match_date), 'MMM d, yyyy') : r.week_id,
+      type: 'attendance', status: r.status,
+    }
   }).concat(myTransactions.map(t => ({
-    date: t.date, label: format(parseISO(t.date), 'MMM d'), type: 'transaction',
-    direction: t.direction, amount: t.amount, description: t.description,
+    date: t.date, week_id: null,
+    label: format(parseISO(t.date), 'MMM d, yyyy'),
+    type: 'transaction', direction: t.direction, amount: t.amount, description: t.description,
   }))).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 15)
 
   return (
@@ -61,7 +71,11 @@ export default function MyDashboard() {
         ) : (
           <div className="divide-y divide-gray-100">
             {activityFeed.map((item, i) => (
-              <div key={i} className="py-3 flex items-center justify-between text-sm">
+              <div
+                key={i}
+                className={`py-3 flex items-center justify-between text-sm ${item.type === 'attendance' && item.status === 'played' ? 'cursor-pointer hover:bg-gray-50 -mx-4 px-4 rounded-lg' : ''}`}
+                onClick={() => item.type === 'attendance' && item.status === 'played' && item.week_id && setDetail(item.week_id)}
+              >
                 <div className="flex items-center gap-3">
                   <span className="text-lg">
                     {item.type === 'attendance'
@@ -72,7 +86,9 @@ export default function MyDashboard() {
                     <div className="font-medium text-gray-800">{item.label}</div>
                     {item.description && <div className="text-xs text-gray-500">{item.description}</div>}
                     {item.type === 'attendance' && (
-                      <div className="text-xs text-gray-500">{item.status === 'played' ? 'Played' : 'Absent'}</div>
+                      <div className="text-xs text-gray-500">
+                        {item.status === 'played' ? 'Played · tap to see teammates' : 'Absent'}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -81,11 +97,21 @@ export default function MyDashboard() {
                     {item.direction === 'credit' ? '+' : '-'}₹{item.amount.toLocaleString('en-IN')}
                   </span>
                 )}
+                {item.type === 'attendance' && item.status === 'played' && (
+                  <span className="text-xs text-gray-400">→</span>
+                )}
               </div>
             ))}
           </div>
         )}
       </div>
+
+      <MatchPlayersModal
+        week={weeks.find(w => w.week_id === detail)}
+        players={allPlayers.filter(p => p.status === 'active')}
+        records={allRecords}
+        onClose={() => setDetail(null)}
+      />
     </div>
   )
 }

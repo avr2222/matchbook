@@ -1,11 +1,14 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { usePlayers, useWeeks, useAttendance, useTournaments, useConfig } from '../../hooks/useData'
 import BalanceBadge from '../../components/ui/BalanceBadge'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { STATUS_DOT } from '../../utils/balanceCalculator'
+import MatchPlayersModal from '../../components/ui/MatchPlayersModal'
 import { format, parseISO } from 'date-fns'
 
 export default function Dashboard() {
+  const [detail, setDetail] = useState(null)
   const { data: cfg }     = useConfig()
   const { data: tData }   = useTournaments()
   const { data: pData, isLoading: pLoad } = usePlayers()
@@ -89,7 +92,10 @@ export default function Dashboard() {
             {recentWeeks.map(w => {
               const played = records.filter(r => r.week_id === w.week_id && r.status === 'played').length
               return (
-                <div key={w.week_id} className="py-3 flex items-center justify-between text-sm">
+                <div key={w.week_id}
+                  className="py-3 flex items-center justify-between text-sm cursor-pointer hover:bg-gray-50 -mx-4 px-4 rounded-lg transition-colors"
+                  onClick={() => setDetail(w.week_id)}
+                >
                   <div>
                     <span className="font-medium text-gray-800">
                       {format(parseISO(w.match_date), 'MMM d, yyyy')}
@@ -98,8 +104,8 @@ export default function Dashboard() {
                     <span className="text-gray-500">{w.venue?.split(',')[0]}</span>
                   </div>
                   <div className="flex items-center gap-3 text-gray-500">
-                    <span>👥 {played} played</span>
-                    <span className={`w-2 h-2 rounded-full ${w.status === 'completed' ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                    <span className="text-green-700 font-medium">👥 {played}</span>
+                    <span className="text-xs text-gray-400">View →</span>
                   </div>
                 </div>
               )
@@ -127,6 +133,13 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      <MatchPlayersModal
+        week={(wData?.weeks ?? []).find(w => w.week_id === detail)}
+        players={players}
+        records={records}
+        onClose={() => setDetail(null)}
+      />
     </div>
   )
 }

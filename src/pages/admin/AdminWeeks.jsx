@@ -7,6 +7,7 @@ import { PageSpinner } from '../../components/ui/Spinner'
 import { calcBalanceStatus, generateId, typeEmoji } from '../../utils/balanceCalculator'
 import { format, parseISO } from 'date-fns'
 import { useTransactions } from '../../hooks/useData'
+import MatchPlayersModal from '../../components/ui/MatchPlayersModal'
 
 export default function AdminWeeks() {
   const qc = useQueryClient()
@@ -15,7 +16,8 @@ export default function AdminWeeks() {
   const { data: aData } = useAttendance()
   const { data: tData } = useTransactions()
   const { data: cfg }   = useConfig()
-  const [selected, setSelected] = useState(null) // week_id being edited
+  const [selected, setSelected] = useState(null)   // week_id being edited
+  const [detail, setDetail]     = useState(null)   // week_id for players view
   const [showNew, setShowNew] = useState(false)
   const [newWeek, setNewWeek] = useState({ match_date: '', venue: '', match_fee: cfg?.default_match_fee ?? 500, notes: '' })
   const [saving, setSaving] = useState(false)
@@ -129,10 +131,14 @@ export default function AdminWeeks() {
             {weeks.map(w => {
               const played = records.filter(r => r.week_id === w.week_id && r.status === 'played').length
               return (
-                <tr key={w.week_id} className="hover:bg-gray-50">
+                <tr key={w.week_id} className="hover:bg-gray-50 cursor-pointer" onClick={() => w.status === 'completed' && setDetail(w.week_id)}>
                   <td className="px-4 py-3 font-medium text-gray-800">{format(parseISO(w.match_date), 'MMM d, yyyy')}</td>
                   <td className="px-4 py-3 text-gray-500 text-xs">{w.venue?.split(',')[0] || '—'}</td>
-                  <td className="px-4 py-3 text-center text-gray-600">{played}</td>
+                  <td className="px-4 py-3 text-center text-gray-600">
+                    {w.status === 'completed' ? (
+                      <span className="text-green-700 font-medium">{played}</span>
+                    ) : '—'}
+                  </td>
                   <td className="px-4 py-3 text-center">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                       w.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
@@ -141,7 +147,7 @@ export default function AdminWeeks() {
                   <td className="px-4 py-3 text-center text-xs text-gray-400">
                     {w.cricheroes_match_id ? '🔗 CricHeroes' : '✍️ Manual'}
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-4 py-3 text-center" onClick={e => e.stopPropagation()}>
                     <button onClick={() => setSelected(w.week_id)} className="text-blue-600 hover:underline text-xs">
                       Attendance
                     </button>
@@ -152,6 +158,14 @@ export default function AdminWeeks() {
           </tbody>
         </table>
       </div>
+
+      {/* Players who played modal */}
+      <MatchPlayersModal
+        week={weeks.find(w => w.week_id === detail)}
+        players={players}
+        records={records}
+        onClose={() => setDetail(null)}
+      />
 
       {/* Attendance editor */}
       {selected && selectedWeek && (
