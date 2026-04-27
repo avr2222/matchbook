@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "last_updated": "2026-04-27T07:07:30.534975+00:00",
+  "last_updated": "2026-04-27T08:14:38.232495+00:00",
   "records": [
     {
       "id": "ATT_PLY_001_W_2026_02_22",
@@ -2644,7 +2644,7 @@
       "player_id": "PLY_006",
       "week_id": "W_2026_04_25",
       "tournament_id": "TRN_001",
-      "status": "absent",
+      "status": "played",
       "source": "cricheroes_sync",
       "fee_deducted": false
     },
@@ -2761,7 +2761,7 @@
       "player_id": "PLY_003",
       "week_id": "W_2026_04_25",
       "tournament_id": "TRN_001",
-      "status": "played",
+      "status": "absent",
       "source": "cricheroes_sync",
       "fee_deducted": false
     },
