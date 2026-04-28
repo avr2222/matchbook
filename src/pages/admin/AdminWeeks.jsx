@@ -127,7 +127,8 @@ export default function AdminWeeks() {
           direction: 'debit', date: week.match_date, week_id: week.week_id,
           description: `Match fee - ${week.label}`, recorded_by: 'admin', receipt_ref: '',
         }))
-        const updatedPlayers = players.map(p => {
+        const allPlayers = pData?.players ?? []
+        const updatedPlayers = allPlayers.map(p => {
           if (attendanceMap[p.id] !== 'played' || p.type === 'ppm') return p
           const bal = (p.corpus_balance ?? 0) - week.match_fee
           return { ...p, corpus_balance: bal, balance_status: calcBalanceStatus(bal, cfg) }

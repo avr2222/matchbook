@@ -4,35 +4,60 @@ import { useAnnouncements } from '../../hooks/useData'
 import { writeAnnouncements } from '../../api/dataWriter'
 import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
+import { generateId } from '../../utils/balanceCalculator'
 import { format, parseISO } from 'date-fns'
-
-const today = () => new Date().toISOString().slice(0, 10)
 
 const EMPTY = { title: '', body: '', expires_on: '', pinned: false }
 
-let _idCounter = Date.now()
-function newId() { return `ANN_${++_idCounter}` }
+function AnnRow({ ann, todayStr, onEdit, onDelete, deletingId }) {
+  const isExpired = ann.expires_on && ann.expires_on < todayStr
+  return (
+    <div className={`py-3 flex items-start justify-between gap-4 ${isExpired ? 'opacity-50' : ''}`}>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          {ann.pinned && <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-medium">📌 Pinned</span>}
+          <span className="font-medium text-gray-900 text-sm">{ann.title}</span>
+        </div>
+        <p className="text-sm text-gray-600 mt-0.5 truncate">{ann.body}</p>
+        <p className="text-xs text-gray-400 mt-1">
+          Posted {format(parseISO(ann.posted_on), 'MMM d, yyyy')}
+          {ann.expires_on && ` · Expires ${format(parseISO(ann.expires_on), 'MMM d, yyyy')}`}
+        </p>
+      </div>
+      <div className="flex items-center gap-3 shrink-0">
+        <button onClick={() => onEdit(ann)} className="text-xs text-blue-600 hover:underline">Edit</button>
+        <button
+          onClick={() => onDelete(ann)}
+          disabled={deletingId === ann.id}
+          className="text-xs text-red-500 hover:underline disabled:opacity-50"
+        >
+          {deletingId === ann.id ? 'Deleting…' : 'Delete'}
+        </button>
+      </div>
+    </div>
+  )
+}
 
 export default function AdminAnnouncements() {
   const qc = useQueryClient()
   const { data, isLoading } = useAnnouncements()
-  const [editing, setEditing] = useState(null)
-  const [saving, setSaving]   = useState(false)
+  const [editing, setEditing]     = useState(null)
+  const [saving, setSaving]       = useState(false)
   const [deletingId, setDeletingId] = useState(null)
 
   if (isLoading) return <PageSpinner />
 
+  const todayStr      = new Date().toISOString().slice(0, 10)
   const announcements = (data?.announcements ?? []).sort((a, b) => b.posted_on.localeCompare(a.posted_on))
-  const todayStr = today()
-  const active = announcements.filter(a => !a.expires_on || a.expires_on >= todayStr)
+  const active  = announcements.filter(a => !a.expires_on || a.expires_on >= todayStr)
   const expired = announcements.filter(a => a.expires_on && a.expires_on < todayStr)
 
   function openNew() {
-    setEditing({ ...EMPTY, id: newId(), posted_on: todayStr })
+    setEditing({ ...EMPTY, id: generateId('ANN', announcements.map(a => a.id)), posted_on: todayStr })
   }
 
   function openEdit(a) {
-    setEditing({ ...a })
+    setEditing({ ...a, expires_on: a.expires_on ?? '' })
   }
 
   async function save() {
@@ -77,35 +102,6 @@ export default function AdminAnnouncements() {
     }
   }
 
-  function AnnRow({ ann }) {
-    const isExpired = ann.expires_on && ann.expires_on < todayStr
-    return (
-      <div className={`py-3 flex items-start justify-between gap-4 ${isExpired ? 'opacity-50' : ''}`}>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            {ann.pinned && <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-medium">📌 Pinned</span>}
-            <span className="font-medium text-gray-900 text-sm">{ann.title}</span>
-          </div>
-          <p className="text-sm text-gray-600 mt-0.5 truncate">{ann.body}</p>
-          <p className="text-xs text-gray-400 mt-1">
-            Posted {format(parseISO(ann.posted_on), 'MMM d, yyyy')}
-            {ann.expires_on && ` · Expires ${format(parseISO(ann.expires_on), 'MMM d, yyyy')}`}
-          </p>
-        </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <button onClick={() => openEdit(ann)} className="text-xs text-blue-600 hover:underline">Edit</button>
-          <button
-            onClick={() => deleteAnn(ann)}
-            disabled={deletingId === ann.id}
-            className="text-xs text-red-500 hover:underline disabled:opacity-50"
-          >
-            {deletingId === ann.id ? 'Deleting…' : 'Delete'}
-          </button>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -119,7 +115,9 @@ export default function AdminAnnouncements() {
           <p className="text-sm text-gray-400 py-4 text-center">No active announcements.</p>
         ) : (
           <div className="divide-y divide-gray-100">
-            {active.map(a => <AnnRow key={a.id} ann={a} />)}
+            {active.map(a => (
+              <AnnRow key={a.id} ann={a} todayStr={todayStr} onEdit={openEdit} onDelete={deleteAnn} deletingId={deletingId} />
+            ))}
           </div>
         )}
       </div>
@@ -128,7 +126,9 @@ export default function AdminAnnouncements() {
         <div className="card">
           <h2 className="font-semibold text-gray-400 mb-2 text-sm">Expired ({expired.length})</h2>
           <div className="divide-y divide-gray-100">
-            {expired.map(a => <AnnRow key={a.id} ann={a} />)}
+            {expired.map(a => (
+              <AnnRow key={a.id} ann={a} todayStr={todayStr} onEdit={openEdit} onDelete={deleteAnn} deletingId={deletingId} />
+            ))}
           </div>
         </div>
       )}

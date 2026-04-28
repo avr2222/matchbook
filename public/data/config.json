@@ -3,7 +3,7 @@
   "team_name": "Machaxi Box Cricket",
   "currency": "INR",
   "currency_symbol": "₹",
-  "default_match_fee": 500,
+  "default_match_fee": 4688,
   "default_ppm_rate": 300,
   "default_guest_fee": 300,
   "corpus_low_threshold": 1000,
@@ -18,6 +18,6 @@
   "cricheroes_tournament_id": "1874258",
   "cricheroes_tournament_url": "https://cricheroes.com/tournament/1874258/machaxi-box-cricket-season-2",
   "auto_deduct_on_sync": true,
-  "admin_upi_id": "",
+  "admin_upi_id": "avr7795@ybl",
   "season_budget": 0
 }
