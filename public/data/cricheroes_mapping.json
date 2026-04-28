@@ -302,18 +302,18 @@
     {
       "cricheroes_player_id": "50217816",
       "cricheroes_name": "Abhishikth Reddy",
-      "player_id": "PLY_019",
+      "player_id": "PLY_G_ABHISHIKTH",
       "match_confidence": 0.714,
-      "match_method": "auto_fuzzy",
-      "confirmed": false
+      "match_method": "manual_remap",
+      "confirmed": true
     },
     {
       "cricheroes_player_id": "24879142",
       "cricheroes_name": "Phanindra Y",
-      "player_id": "PLY_024",
+      "player_id": "PLY_G_PHANINDRA",
       "match_confidence": 0.556,
-      "match_method": "auto_fuzzy",
-      "confirmed": false
+      "match_method": "manual_remap",
+      "confirmed": true
     },
     {
       "cricheroes_player_id": "22711554",
