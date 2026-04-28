@@ -2,8 +2,19 @@
 // Handles SHA conflict retries and appends to audit_log on every write.
 
 import { Octokit } from '@octokit/rest'
-import { fetchConfig, fetchData } from './dataReader'
+import { fetchConfig, fetchAnnouncements } from './dataReader'
 import { useAuthStore } from '../store/authStore'
+
+// unescape() is deprecated — use TextEncoder for correct UTF-8 → base64 encoding.
+function toBase64(str) {
+  const bytes = new TextEncoder().encode(str)
+  const chunkSize = 8192
+  let binary = ''
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.slice(i, i + chunkSize))
+  }
+  return btoa(binary)
+}
 
 function getOctokit() {
   const token = useAuthStore.getState().token
@@ -25,7 +36,7 @@ async function writeFile(octokit, config, path, content, message, retries = 3) {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       const { sha } = await getFileSha(octokit, config, path)
-      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(content, null, 2))))
+      const encoded = toBase64(JSON.stringify(content, null, 2))
       await octokit.repos.createOrUpdateFileContents({
         owner: config.repo_owner,
         repo: config.repo_name,
@@ -47,21 +58,29 @@ async function writeFile(octokit, config, path, content, message, retries = 3) {
 }
 
 async function appendAuditEntry(octokit, config, entry) {
-  try {
-    const { sha, content: log } = await getFileSha(octokit, config, 'public/data/audit_log.json')
-    log.entries.unshift(entry) // newest first
-    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(log, null, 2))))
-    await octokit.repos.createOrUpdateFileContents({
-      owner: config.repo_owner,
-      repo: config.repo_name,
-      path: 'public/data/audit_log.json',
-      message: `audit: ${entry.action} by ${entry.actor}`,
-      content: encoded,
-      sha,
-      branch: config.data_branch,
-    })
-  } catch {
-    // audit log failure should not block the main write
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const { sha, content: log } = await getFileSha(octokit, config, 'public/data/audit_log.json')
+      log.entries.unshift(entry) // newest first
+      const encoded = toBase64(JSON.stringify(log, null, 2))
+      await octokit.repos.createOrUpdateFileContents({
+        owner: config.repo_owner,
+        repo: config.repo_name,
+        path: 'public/data/audit_log.json',
+        message: `audit: ${entry.action} by ${entry.actor}`,
+        content: encoded,
+        sha,
+        branch: config.data_branch,
+      })
+      return
+    } catch (err) {
+      if (err.status === 409 && attempt < 3) {
+        await new Promise(r => setTimeout(r, 500 * attempt))
+        continue
+      }
+      // audit log failure must not block the main write
+      return
+    }
   }
 }
 
@@ -142,6 +161,13 @@ export async function writeTournaments(data, auditAction, summary) {
   const octokit = getOctokit()
   await writeFile(octokit, config, 'public/data/tournaments.json', data, `tournament: ${summary}`)
   await appendAuditEntry(octokit, config, auditEntry(auditAction, 'tournament', null, summary, null, null))
+}
+
+export async function writeAnnouncements(data, summary) {
+  const config = await fetchConfig()
+  const octokit = getOctokit()
+  await writeFile(octokit, config, 'public/data/announcements.json', data, `announce: ${summary}`)
+  await appendAuditEntry(octokit, config, auditEntry('update_announcements', 'announcement', null, summary, null, null))
 }
 
 export async function triggerCricHeroesSync(config, token) {

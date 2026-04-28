@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { clearConfig } from '../api/dataReader'
 
 const SESSION_KEY = 'cricket_auth'
 
@@ -37,6 +38,7 @@ export const useAuthStore = create((set, get) => {
 
     logout() {
       clearSession()
+      clearConfig()
       set({ token: null, role: null, playerId: null, githubUsername: null, displayName: null, isAuthenticated: false })
     },
   }

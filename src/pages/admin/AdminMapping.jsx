@@ -95,7 +95,6 @@ export default function AdminMapping() {
                 >
                   <option value="">Assign to player…</option>
                   {players.filter(p=>p.status==='active').map(p => <option key={p.id} value={p.id}>{p.display_name}</option>)}
-                  <option value="__new_guest">+ Create as new guest</option>
                 </select>
               </div>
             ))}

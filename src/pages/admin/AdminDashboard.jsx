@@ -1,33 +1,50 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { usePlayers, useWeeks, useConfig, useAttendance, useMapping } from '../../hooks/useData'
+import { usePlayers, useWeeks, useConfig, useAttendance, useMapping, useExpenses } from '../../hooks/useData'
 import BalanceBadge from '../../components/ui/BalanceBadge'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { triggerCricHeroesSync } from '../../api/dataWriter'
 import { useAuthStore } from '../../store/authStore'
 import { showToast } from '../../components/ui/Toast'
-import { useState } from 'react'
 import { format, parseISO } from 'date-fns'
 
 export default function AdminDashboard() {
   const { token } = useAuthStore()
-  const { data: cfg }   = useConfig()
+  const { data: cfg }              = useConfig()
   const { data: pData, isLoading } = usePlayers()
-  const { data: wData } = useWeeks()
-  const { data: aData } = useAttendance()
-  const { data: mapData } = useMapping()
-  const [syncing, setSyncing] = useState(false)
+  const { data: wData }            = useWeeks()
+  const { data: aData }            = useAttendance()
+  const { data: mapData }          = useMapping()
+  const { data: eData }            = useExpenses()
+  const [syncing, setSyncing]      = useState(false)
 
   if (isLoading) return <PageSpinner />
 
-  const activeTId = cfg?.active_tournament_id
-  const players   = (pData?.players ?? []).filter(p => p.status === 'active')
-  const weeks     = (wData?.weeks ?? []).filter(w => w.tournament_id === activeTId)
-  const completed = weeks.filter(w => w.status === 'completed')
-  const atRisk    = players.filter(p => p.balance_status === 'urgent' || p.balance_status === 'overdue')
-  const records   = aData?.records ?? []
-  const unmatched = mapData?.unmatched ?? []
-
+  const activeTId   = cfg?.active_tournament_id
+  const players     = (pData?.players ?? []).filter(p => p.status === 'active')
+  const weeks       = (wData?.weeks ?? []).filter(w => w.tournament_id === activeTId)
+  const completed   = weeks.filter(w => w.status === 'completed')
+  const atRisk      = players.filter(p => p.balance_status === 'urgent' || p.balance_status === 'overdue')
+  const records     = aData?.records ?? []
+  const unmatched   = mapData?.unmatched ?? []
+  const staleMaps   = (mapData?.player_mappings ?? []).filter(m => !m.confirmed).length
+  const expenses    = eData?.expenses ?? []
   const recentWeeks = [...completed].sort((a, b) => b.match_date.localeCompare(a.match_date)).slice(0, 3)
+
+  // Corpus health — how many more matches the pool can cover per player
+  const corpusPlayers   = players.filter(p => p.type === 'corpus' || p.type === 'new')
+  const totalPool       = corpusPlayers.reduce((s, p) => s + (p.corpus_balance ?? 0), 0)
+  const avgMatchFee     = completed.length > 0
+    ? completed.reduce((s, w) => s + (w.match_fee ?? 0), 0) / completed.length
+    : cfg?.default_match_fee ?? 500
+  const matchesCovered  = avgMatchFee > 0 && corpusPlayers.length > 0
+    ? totalPool / avgMatchFee / corpusPlayers.length
+    : 0
+
+  // Season budget tracking
+  const budget     = cfg?.season_budget ?? 0
+  const totalSpent = expenses.reduce((s, e) => s + (e.amount ?? 0), 0)
+  const budgetPct  = budget > 0 ? Math.min(100, Math.round((totalSpent / budget) * 100)) : 0
 
   async function handleSync() {
     setSyncing(true)
@@ -57,14 +74,20 @@ export default function AdminDashboard() {
           <Link to="/admin/mapping" className="underline font-medium">Fix mapping →</Link>
         </div>
       )}
+      {staleMaps > 0 && (
+        <div className="bg-orange-50 border border-orange-300 rounded-lg p-4 text-sm text-orange-800 flex items-center justify-between">
+          <span>🟡 {staleMaps} CricHeroes mapping(s) flagged for manual review.</span>
+          <Link to="/admin/mapping" className="underline font-medium">Review →</Link>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: 'Active Players', value: players.length,    icon: '👥' },
-          { label: 'Matches',        value: completed.length,  icon: '🏟' },
-          { label: 'At Risk',        value: atRisk.length,     icon: '⚠️' },
-          { label: 'Corpus Pool',    value: `₹${players.filter(p=>p.type==='corpus').reduce((s,p)=>s+(p.corpus_balance??0),0).toLocaleString('en-IN')}`, icon: '💰' },
+          { label: 'Active Players', value: players.length,   icon: '👥' },
+          { label: 'Matches',        value: completed.length, icon: '🏟' },
+          { label: 'At Risk',        value: atRisk.length,    icon: '⚠️' },
+          { label: 'Corpus Pool',    value: `₹${totalPool.toLocaleString('en-IN')}`, icon: '💰' },
         ].map(({ label, value, icon }) => (
           <div key={label} className="card text-center">
             <div className="text-2xl mb-1">{icon}</div>
@@ -72,6 +95,51 @@ export default function AdminDashboard() {
             <div className="text-xs text-gray-500">{label}</div>
           </div>
         ))}
+      </div>
+
+      {/* Corpus health + season budget */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="card">
+          <h2 className="font-semibold text-gray-800 mb-2">Corpus Health</h2>
+          <p className="text-2xl font-bold text-gray-900">
+            {matchesCovered.toFixed(1)}
+            <span className="text-sm font-normal text-gray-500 ml-1">matches covered</span>
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            ₹{totalPool.toLocaleString('en-IN')} pool ÷ ₹{Math.round(avgMatchFee)} avg fee ÷ {corpusPlayers.length} players
+          </p>
+          <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all ${matchesCovered >= 3 ? 'bg-green-500' : matchesCovered >= 1 ? 'bg-yellow-400' : 'bg-red-500'}`}
+              style={{ width: `${Math.min(100, (matchesCovered / 5) * 100)}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="card">
+          <h2 className="font-semibold text-gray-800 mb-2">Season Budget</h2>
+          {budget > 0 ? (
+            <>
+              <p className="text-2xl font-bold text-gray-900">
+                ₹{totalSpent.toLocaleString('en-IN')}
+                <span className="text-sm font-normal text-gray-500 ml-1">of ₹{budget.toLocaleString('en-IN')}</span>
+              </p>
+              <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${budgetPct < 70 ? 'bg-green-500' : budgetPct < 90 ? 'bg-yellow-400' : 'bg-red-500'}`}
+                  style={{ width: `${budgetPct}%` }}
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {budgetPct}% spent · ₹{(budget - totalSpent).toLocaleString('en-IN')} remaining
+              </p>
+            </>
+          ) : (
+            <p className="text-sm text-gray-400">
+              Set <code className="bg-gray-100 px-1 rounded text-xs">season_budget</code> in config.json to enable tracking.
+            </p>
+          )}
+        </div>
       </div>
 
       {/* At-risk players */}
@@ -100,10 +168,10 @@ export default function AdminDashboard() {
         <h2 className="font-semibold text-gray-800 mb-3">Quick Actions</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { to: '/admin/transactions?new=1', label: '+ Record Payment',   icon: '💳' },
-            { to: '/admin/expenses?new=1',     label: '+ Add Expense',      icon: '🧾' },
-            { to: '/admin/players?new=1',      label: '+ Add Player',       icon: '👥' },
-            { to: '/admin/guests?new=1',       label: '+ Guest Visit',      icon: '👤' },
+            { to: '/admin/transactions?new=1', label: '+ Record Payment', icon: '💳' },
+            { to: '/admin/expenses?new=1',     label: '+ Add Expense',    icon: '🧾' },
+            { to: '/admin/players?new=1',      label: '+ Add Player',     icon: '👥' },
+            { to: '/admin/guests?new=1',       label: '+ Guest Visit',    icon: '👤' },
           ].map(({ to, label, icon }) => (
             <Link key={to} to={to} className="btn-secondary text-sm flex items-center gap-2 justify-center">
               <span>{icon}</span> {label}
@@ -128,11 +196,17 @@ export default function AdminDashboard() {
                 <div key={w.week_id} className="py-3 flex items-center justify-between text-sm">
                   <div>
                     <span className="font-medium text-gray-800">{format(parseISO(w.match_date), 'MMM d, yyyy')}</span>
+                    {w.team_a && w.team_b && (
+                      <span className="ml-2 text-xs text-gray-400">{w.team_a} vs {w.team_b}</span>
+                    )}
                     {w.cricheroes_match_id && (
                       <span className="ml-2 text-xs bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">🔗 CricHeroes</span>
                     )}
                   </div>
-                  <div className="text-gray-500">👥 {played} played</div>
+                  <div className="flex items-center gap-3 text-gray-500">
+                    {w.result && <span className="text-xs font-medium text-green-700">{w.result}</span>}
+                    <span>👥 {played} played</span>
+                  </div>
                 </div>
               )
             })}

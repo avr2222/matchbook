@@ -92,6 +92,18 @@ export default function DeviceFlowLogin() {
             pollRef.current = setTimeout(poll, intervalRef.current)
             return
           }
+          if (td.error === 'expired_token') {
+            clearInterval(timerRef.current)
+            setErrorMsg('The code has expired. Please try again.')
+            setStage('idle')
+            return
+          }
+          if (td.error === 'access_denied') {
+            clearInterval(timerRef.current)
+            setErrorMsg('Access was denied. Please try again.')
+            setStage('idle')
+            return
+          }
           if (td.error) {
             clearInterval(timerRef.current)
             setErrorMsg(td.error_description || td.error)

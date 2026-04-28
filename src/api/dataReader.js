@@ -17,6 +17,10 @@ export async function fetchConfig() {
   return _config
 }
 
+export function clearConfig() {
+  _config = null
+}
+
 function rawUrl(config, filename) {
   if (isLocal()) return `/matchbook/data/${filename}`
   return `https://raw.githubusercontent.com/${config.repo_owner}/${config.repo_name}/${config.data_branch}/public/data/${filename}`
@@ -40,3 +44,4 @@ export const fetchTournaments = () => fetchData('tournaments.json')
 export const fetchUsers       = () => fetchData('users.json')
 export const fetchAuditLog    = () => fetchData('audit_log.json')
 export const fetchCricHeroesMapping = () => fetchData('cricheroes_mapping.json')
+export const fetchAnnouncements    = () => fetchData('announcements.json')

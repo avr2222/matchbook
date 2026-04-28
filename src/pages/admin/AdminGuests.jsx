@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useGuestVisits, usePlayers, useWeeks, useConfig } from '../../hooks/useData'
-import { writeGuestVisits } from '../../api/dataWriter'
+import { writeGuestVisits, writePlayers } from '../../api/dataWriter'
 import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
-import { generateId } from '../../utils/balanceCalculator'
+import { generateId, calcBalanceStatus } from '../../utils/balanceCalculator'
 import { format, parseISO } from 'date-fns'
 
 export default function AdminGuests() {
@@ -15,12 +15,13 @@ export default function AdminGuests() {
   const { data: cfg }   = useConfig()
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving]     = useState(false)
+  const [converting, setConverting] = useState(null) // visit id being converted
   const [form, setForm] = useState({
     week_id: '',
     guest_name: '',
     invited_by_player_id: '',
     guest_fee: cfg?.default_guest_fee ?? 300,
-    fee_mode: 'direct',       // 'direct' | 'sponsored'
+    fee_mode: 'direct',
     payment_method: 'cash',
     notes: '',
   })
@@ -35,8 +36,19 @@ export default function AdminGuests() {
   const players = (pData?.players ?? []).filter(p => p.status === 'active')
   const weeks   = (wData?.weeks ?? []).filter(w => w.tournament_id === (cfg?.active_tournament_id ?? 'TRN_001'))
 
+  // Count visits per guest name (case-insensitive)
+  const visitCounts = {}
+  visits.forEach(v => {
+    const key = v.guest_name.toLowerCase().trim()
+    visitCounts[key] = (visitCounts[key] ?? 0) + 1
+  })
+
+  function isFrequent(guestName) {
+    return (visitCounts[guestName.toLowerCase().trim()] ?? 0) >= 3
+  }
+
   async function save() {
-    if (!form.week_id || !form.guest_name) { showToast('Match and guest name required', 'error'); return }
+    if (!form.week_id || !form.guest_name.trim()) { showToast('Match and guest name required', 'error'); return }
     setSaving(true)
     try {
       const id = generateId('GST', visits.map(v => v.id))
@@ -47,12 +59,12 @@ export default function AdminGuests() {
         invited_by_player_id: form.invited_by_player_id || null,
         guest_fee: parseFloat(form.guest_fee) || 0,
         fee_mode: form.fee_mode,
-        fee_paid: form.fee_mode === 'sponsored',
+        fee_paid: form.fee_mode === 'sponsored' || form.payment_method !== 'pending',
         payment_method: form.payment_method,
         notes: form.notes,
         converted_to_player_id: null,
       }
-      await writeGuestVisits([...visits, newVisit], `Guest ${form.guest_name} for ${weeks.find(w=>w.week_id===form.week_id)?.label}`)
+      await writeGuestVisits([...visits, newVisit], `Guest ${form.guest_name} for ${weeks.find(w => w.week_id === form.week_id)?.label ?? form.week_id}`)
       qc.invalidateQueries({ queryKey: ['guests'] })
       setShowForm(false)
       setForm({ week_id: '', guest_name: '', invited_by_player_id: '', guest_fee: cfg?.default_guest_fee ?? 300, fee_mode: 'direct', payment_method: 'cash', notes: '' })
@@ -64,6 +76,44 @@ export default function AdminGuests() {
     }
   }
 
+  async function convertToPlayer(visit) {
+    if (!confirm(`Convert ${visit.guest_name} to a permanent player?`)) return
+    setConverting(visit.id)
+    try {
+      const allPlayers = pData?.players ?? []
+      const newId = generateId('PLY', allPlayers.map(p => p.id))
+      const newPlayer = {
+        id: newId,
+        display_name: visit.guest_name,
+        type: 'corpus',
+        status: 'active',
+        joined_date: new Date().toISOString().slice(0, 10),
+        phone: '',
+        corpus_balance: 0,
+        total_paid: 0,
+        total_deducted: 0,
+        balance_status: calcBalanceStatus(0, cfg ?? { corpus_overdue_threshold: 0, corpus_urgent_threshold: 500, corpus_low_threshold: 1000 }),
+        github_username: '',
+        cricheroes_player_id: '',
+        cricheroes_name: '',
+        guest_fee_mode: null,
+        sponsored_by_player_id: null,
+        notes: `Converted from guest (${visit.guest_name})`,
+      }
+      await writePlayers([...allPlayers, newPlayer], 'add_player', newId, `Converted guest ${visit.guest_name} to player`, null, newPlayer)
+      // Mark the visit as converted
+      const updatedVisits = visits.map(v => v.id === visit.id ? { ...v, converted_to_player_id: newId } : v)
+      await writeGuestVisits(updatedVisits, `Marked ${visit.guest_name} as converted to player ${newId}`)
+      qc.invalidateQueries({ queryKey: ['players'] })
+      qc.invalidateQueries({ queryKey: ['guests'] })
+      showToast(`${visit.guest_name} added as a player`)
+    } catch (e) {
+      showToast(e.message, 'error')
+    } finally {
+      setConverting(null)
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -71,7 +121,7 @@ export default function AdminGuests() {
         <button onClick={() => setShowForm(true)} className="btn-primary text-sm">+ Add Guest Visit</button>
       </div>
 
-      <div className="card p-0 overflow-hidden">
+      <div className="card p-0 overflow-hidden overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
@@ -81,18 +131,31 @@ export default function AdminGuests() {
               <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Fee Mode</th>
               <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Fee</th>
               <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Paid?</th>
+              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {visits.length === 0 ? (
-              <tr><td colSpan={6} className="text-center py-10 text-gray-400">No guest visits recorded yet.</td></tr>
+              <tr><td colSpan={7} className="text-center py-10 text-gray-400">No guest visits recorded yet.</td></tr>
             ) : visits.map(v => {
               const week   = weeks.find(w => w.week_id === v.week_id)
               const invite = players.find(p => p.id === v.invited_by_player_id)
+              const frequent = isFrequent(v.guest_name)
+              const alreadyConverted = !!v.converted_to_player_id
               return (
                 <tr key={v.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-gray-700">{week ? format(parseISO(week.match_date), 'MMM d') : v.week_id}</td>
-                  <td className="px-4 py-3 font-medium text-gray-900">👤 {v.guest_name}</td>
+                  <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
+                    {week ? format(parseISO(week.match_date), 'MMM d') : v.week_id}
+                  </td>
+                  <td className="px-4 py-3 font-medium text-gray-900">
+                    <div>👤 {v.guest_name}</div>
+                    {frequent && (
+                      <div className="text-xs text-purple-600 mt-0.5">⭐ Frequent Guest</div>
+                    )}
+                    {alreadyConverted && (
+                      <div className="text-xs text-green-600 mt-0.5">✅ Converted to player</div>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-gray-500">{invite?.display_name ?? '—'}</td>
                   <td className="px-4 py-3 text-center">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
@@ -103,6 +166,17 @@ export default function AdminGuests() {
                   </td>
                   <td className="px-4 py-3 text-right font-mono text-gray-700">₹{(v.guest_fee ?? 0).toLocaleString('en-IN')}</td>
                   <td className="px-4 py-3 text-center">{v.fee_paid ? '✅' : '❌'}</td>
+                  <td className="px-4 py-3 text-center">
+                    {!alreadyConverted && (
+                      <button
+                        onClick={() => convertToPlayer(v)}
+                        disabled={converting === v.id}
+                        className="text-xs text-green-600 hover:underline disabled:opacity-50 whitespace-nowrap"
+                      >
+                        {converting === v.id ? 'Converting…' : '→ Make Player'}
+                      </button>
+                    )}
+                  </td>
                 </tr>
               )
             })}

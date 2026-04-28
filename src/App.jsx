@@ -16,8 +16,9 @@ import AdminTransactions from './pages/admin/AdminTransactions'
 import AdminAudit     from './pages/admin/AdminAudit'
 import AdminMapping   from './pages/admin/AdminMapping'
 import AdminSettings  from './pages/admin/AdminSettings'
-import AdminExpenses  from './pages/admin/AdminExpenses'
-import AdminGuests    from './pages/admin/AdminGuests'
+import AdminExpenses       from './pages/admin/AdminExpenses'
+import AdminGuests          from './pages/admin/AdminGuests'
+import AdminAnnouncements   from './pages/admin/AdminAnnouncements'
 
 const qc = new QueryClient()
 
@@ -91,8 +92,9 @@ export default function App() {
                   <AdminLayout><AdminSettings /></AdminLayout>
                 </ProtectedRoute>
               } />
-              <Route path="/admin/expenses"  element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminExpenses /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/guests"    element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminGuests /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/expenses"       element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminExpenses /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/guests"         element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminGuests /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/announcements"  element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminAnnouncements /></AdminLayout></ProtectedRoute>} />
 
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

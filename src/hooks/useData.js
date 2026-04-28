@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import {
   fetchPlayers, fetchWeeks, fetchAttendance, fetchTransactions,
   fetchExpenses, fetchGuestVisits, fetchTournaments, fetchUsers,
-  fetchAuditLog, fetchCricHeroesMapping, fetchConfig,
+  fetchAuditLog, fetchCricHeroesMapping, fetchConfig, fetchAnnouncements,
 } from '../api/dataReader'
 
 const STALE = 30_000 // 30s
@@ -17,4 +17,5 @@ export const useGuestVisits = () => useQuery({ queryKey: ['guests'],       query
 export const useTournaments = () => useQuery({ queryKey: ['tournaments'],  queryFn: fetchTournaments,        staleTime: STALE })
 export const useUsers       = () => useQuery({ queryKey: ['users'],        queryFn: fetchUsers,              staleTime: STALE })
 export const useAuditLog    = () => useQuery({ queryKey: ['audit_log'],    queryFn: fetchAuditLog,           staleTime: STALE })
-export const useMapping     = () => useQuery({ queryKey: ['ch_mapping'],   queryFn: fetchCricHeroesMapping,  staleTime: STALE })
+export const useMapping        = () => useQuery({ queryKey: ['ch_mapping'],      queryFn: fetchCricHeroesMapping, staleTime: STALE })
+export const useAnnouncements  = () => useQuery({ queryKey: ['announcements'],   queryFn: fetchAnnouncements,     staleTime: STALE })

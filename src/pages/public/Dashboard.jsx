@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { usePlayers, useWeeks, useAttendance, useTournaments, useConfig } from '../../hooks/useData'
+import { usePlayers, useWeeks, useAttendance, useTournaments, useConfig, useAnnouncements } from '../../hooks/useData'
 import BalanceBadge from '../../components/ui/BalanceBadge'
 import { PageSpinner } from '../../components/ui/Spinner'
 import MatchPlayersModal from '../../components/ui/MatchPlayersModal'
@@ -13,6 +13,7 @@ export default function Dashboard() {
   const { data: pData, isLoading: pLoad } = usePlayers()
   const { data: wData }   = useWeeks()
   const { data: aData }   = useAttendance()
+  const { data: annData } = useAnnouncements()
 
   if (pLoad) return <PageSpinner />
 
@@ -31,6 +32,11 @@ export default function Dashboard() {
 
   const recentWeeks = [...completed].sort((a, b) => b.match_date.localeCompare(a.match_date)).slice(0, 5)
 
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const activeAnnouncements = (annData?.announcements ?? [])
+    .filter(a => !a.expires_on || a.expires_on >= todayStr)
+    .sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.posted_on.localeCompare(a.posted_on))
+
   const statusBar = [
     { key: 'good',         label: 'Good',         color: 'bg-green-500'  },
     { key: 'collect_soon', label: 'Collect Soon',  color: 'bg-yellow-500' },
@@ -41,6 +47,20 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+
+      {/* Announcements */}
+      {activeAnnouncements.map(a => (
+        <div key={a.id} className="card bg-blue-50 border border-blue-200">
+          <div className="flex items-start gap-3">
+            <span className="text-xl shrink-0">{a.pinned ? '📌' : '📢'}</span>
+            <div>
+              <p className="font-semibold text-blue-900 text-sm">{a.title}</p>
+              <p className="text-blue-800 text-sm mt-0.5">{a.body}</p>
+              <p className="text-xs text-blue-400 mt-1">{format(parseISO(a.posted_on), 'MMM d, yyyy')}</p>
+            </div>
+          </div>
+        </div>
+      ))}
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -124,7 +144,7 @@ export default function Dashboard() {
                 <div key={p.id} className="py-2 flex items-center justify-between text-sm">
                   <span className="font-medium text-gray-800">{p.display_name}</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-600">₹{p.corpus_balance.toLocaleString('en-IN')}</span>
+                    <span className="text-gray-600">₹{(p.corpus_balance ?? 0).toLocaleString('en-IN')}</span>
                     <BalanceBadge status={p.balance_status} />
                   </div>
                 </div>
