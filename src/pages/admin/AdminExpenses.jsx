@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { useExpenses, useWeeks, useConfig, usePlayers, useAttendance } from '../../hooks/useData'
-import { writeExpenses } from '../../api/dataWriter'
+import { useExpenses, useWeeks, useConfig, usePlayers, useAttendance, useTransactions } from '../../hooks/useData'
+import { writeExpenses, writeTransactions, writePlayers } from '../../api/dataWriter'
 import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
-import { generateId } from '../../utils/balanceCalculator'
+import { generateId, calcBalanceStatus } from '../../utils/balanceCalculator'
 import { useIsAdmin } from '../../hooks/useIsAdmin'
 import { format, parseISO } from 'date-fns'
 
@@ -41,6 +41,7 @@ export default function AdminExpenses() {
   const { data: cfg }   = useConfig()
   const { data: pData } = usePlayers()
   const { data: aData } = useAttendance()
+  const { data: tData } = useTransactions()
   const [searchParams, setSearchParams] = useSearchParams()
   const isAdmin = useIsAdmin()
   const [showForm, setShowForm] = useState(false)
@@ -53,6 +54,8 @@ export default function AdminExpenses() {
     amount: '',
     description: '',
     split_among: 'all_played',
+    paid_by_player_id: '',
+    reimburse_corpus: false,
   })
 
   useEffect(() => {
@@ -89,7 +92,8 @@ export default function AdminExpenses() {
     if (!form.amount || parseFloat(form.amount) <= 0) { showToast('Valid amount required', 'error'); return }
     setSaving(true)
     try {
-      const id = generateId('EXP', expenses.map(e => e.id))
+      const payer  = players.find(p => p.id === form.paid_by_player_id) ?? null
+      const id     = generateId('EXP', expenses.map(e => e.id))
       const newExp = {
         id,
         date: form.date,
@@ -99,12 +103,46 @@ export default function AdminExpenses() {
         description: form.description || CATEGORIES.find(c => c.value === form.category)?.label,
         split_among: form.split_among,
         per_player_amount: null,
+        paid_by: payer?.display_name ?? '',
+        paid_by_player_id: form.paid_by_player_id || null,
         recorded_by: 'admin',
       }
       await writeExpenses([...expenses, newExp], 'add_expense', `Added expense: ${newExp.description} ₹${form.amount}`)
       qc.invalidateQueries({ queryKey: ['expenses'] })
+
+      if (form.reimburse_corpus && payer && (payer.type === 'corpus' || payer.type === 'new')) {
+        const allTxns = tData?.transactions ?? []
+        const txnId   = generateId('TXN', allTxns.map(t => t.id))
+        const newTxn  = {
+          id: txnId,
+          player_id: payer.id,
+          tournament_id: cfg?.active_tournament_id ?? null,
+          type: 'corpus_payment',
+          amount: parseFloat(form.amount),
+          direction: 'credit',
+          date: form.date,
+          week_id: form.week_id || null,
+          description: `Expense paid — ${newExp.description}`,
+          recorded_by: 'admin',
+          receipt_ref: '',
+        }
+        await writeTransactions(
+          [...allTxns, newTxn], 'add_transaction', txnId,
+          `Expense reimbursement for ${payer.display_name} ₹${form.amount}`, null, newTxn,
+        )
+        const newBal = (payer.corpus_balance ?? 0) + parseFloat(form.amount)
+        const updatedPlayers = (pData?.players ?? []).map(p =>
+          p.id !== payer.id ? p
+          : { ...p, corpus_balance: Math.round(newBal * 100) / 100, balance_status: calcBalanceStatus(newBal, cfg ?? {}) }
+        )
+        await writePlayers(updatedPlayers, 'edit_player', payer.id,
+          `Balance updated for ${payer.display_name} after expense reimbursement`, payer, null)
+        qc.invalidateQueries({ queryKey: ['transactions'] })
+        qc.invalidateQueries({ queryKey: ['players'] })
+      }
+
       setShowForm(false)
-      setForm({ date: new Date().toISOString().slice(0, 10), week_id: '', category: 'match_cost', amount: '', description: '', split_among: 'all_played' })
+      setForm({ date: new Date().toISOString().slice(0, 10), week_id: '', category: 'match_cost', amount: '', description: '', split_among: 'all_played', paid_by_player_id: '', reimburse_corpus: false })
       showToast('Expense recorded')
     } catch (e) {
       showToast(e.message, 'error')
@@ -160,7 +198,14 @@ export default function AdminExpenses() {
                 <tr key={e.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{format(parseISO(e.date), 'MMM d, yyyy')}</td>
                   <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{CATEGORIES.find(c => c.value === e.category)?.label ?? e.category}</td>
-                  <td className="px-4 py-3 text-gray-600">{e.description}</td>
+                  <td className="px-4 py-3 text-gray-600">
+                    <div>{e.description}</div>
+                    {(e.paid_by || e.paid_by_player_id) && (
+                      <div className="text-xs text-gray-400 mt-0.5">
+                        Paid by {e.paid_by || players.find(p => p.id === e.paid_by_player_id)?.display_name}
+                      </div>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
                     <div>{SPLIT_LABEL[e.split_among ?? e.distribution] ?? e.split_among ?? e.distribution ?? '—'}</div>
                     {(e.share_per_player ?? e.per_player_amount) ? (
@@ -238,6 +283,32 @@ export default function AdminExpenses() {
                 <label className="label">Description (optional)</label>
                 <input className="input" value={form.description} placeholder="e.g. DLF Ground booking" onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
               </div>
+              <div>
+                <label className="label">Who paid? (optional)</label>
+                <select className="input" value={form.paid_by_player_id}
+                  onChange={e => setForm(f => ({ ...f, paid_by_player_id: e.target.value, reimburse_corpus: false }))}>
+                  <option value="">— nobody / unknown —</option>
+                  {players.map(p => <option key={p.id} value={p.id}>{p.display_name}</option>)}
+                </select>
+              </div>
+              {form.paid_by_player_id && parseFloat(form.amount) > 0 && (() => {
+                const payer = players.find(p => p.id === form.paid_by_player_id)
+                if (!payer) return null
+                if (payer.type !== 'corpus' && payer.type !== 'new') {
+                  return <p className="text-xs text-gray-400">ℹ️ {payer.display_name} is PPM — no corpus balance to credit.</p>
+                }
+                return (
+                  <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.reimburse_corpus}
+                      onChange={e => setForm(f => ({ ...f, reimburse_corpus: e.target.checked }))}
+                      className="w-4 h-4 accent-green-600"
+                    />
+                    Add ₹{parseFloat(form.amount).toLocaleString('en-IN')} to their corpus balance
+                  </label>
+                )
+              })()}
             </div>
             <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
               <button onClick={() => setShowForm(false)} className="btn-secondary">Cancel</button>

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { useTransactions, usePlayers, useWeeks, useConfig } from '../../hooks/useData'
-import { writeTransactions, writePlayers } from '../../api/dataWriter'
+import { useTransactions, usePlayers, useWeeks, useConfig, usePaymentRequests } from '../../hooks/useData'
+import { writeTransactions, writePlayers, writePaymentRequests } from '../../api/dataWriter'
 import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { calcBalanceStatus, generateId } from '../../utils/balanceCalculator'
@@ -33,10 +33,12 @@ export default function AdminTransactions() {
   const { data: cfg }              = useConfig()
   const [searchParams, setSearchParams] = useSearchParams()
 
+  const { data: reqData }          = usePaymentRequests()
   const isAdmin                   = useIsAdmin()
   const [showForm, setShowForm]   = useState(false)
   const [showBulk, setShowBulk]   = useState(false)
   const [saving, setSaving]       = useState(false)
+  const [approvingId, setApprovingId] = useState(null)
   const [form, setForm]           = useState(EMPTY_FORM)
 
   // Filters
@@ -158,6 +160,62 @@ export default function AdminTransactions() {
     }
   }
 
+  async function approveRequest(req) {
+    const payer = players.find(p => p.id === req.player_id)
+    if (!payer) { showToast('Player not found', 'error'); return }
+    setApprovingId(req.id)
+    try {
+      const allReqs = reqData?.requests ?? []
+      const txnId   = generateId('TXN', allTxns.map(t => t.id))
+      const newTxn  = {
+        id: txnId, player_id: req.player_id, tournament_id: activeTId,
+        type: 'corpus_payment', amount: req.amount, direction: 'credit',
+        date: req.submitted_on, week_id: null,
+        description: `UPI payment — ref: ${req.upi_ref}`,
+        recorded_by: 'admin', receipt_ref: req.upi_ref,
+      }
+      await writeTransactions([...allTxns, newTxn], 'add_transaction', txnId,
+        `Approved payment from ${payer.display_name} ₹${req.amount}`, null, newTxn)
+      const newBal = (payer.corpus_balance ?? 0) + req.amount
+      const updatedPlayers = players.map(p =>
+        p.id !== req.player_id ? p
+        : { ...p, corpus_balance: Math.round(newBal * 100) / 100, balance_status: calcBalanceStatus(newBal, cfg ?? {}) }
+      )
+      await writePlayers(updatedPlayers, 'edit_player', payer.id,
+        `Balance updated for ${payer.display_name} from approved payment`, payer, null)
+      const updatedReqs = allReqs.map(r =>
+        r.id !== req.id ? r : { ...r, status: 'approved', reviewed_on: new Date().toISOString().slice(0, 10) }
+      )
+      await writePaymentRequests(updatedReqs, `Approved payment from ${payer.display_name}`)
+      qc.invalidateQueries({ queryKey: ['transactions'] })
+      qc.invalidateQueries({ queryKey: ['players'] })
+      qc.invalidateQueries({ queryKey: ['payment_requests'] })
+      showToast(`Approved — ₹${req.amount} credited to ${payer.display_name}`)
+    } catch (e) {
+      showToast(e.message, 'error')
+    } finally {
+      setApprovingId(null)
+    }
+  }
+
+  async function rejectRequest(req) {
+    if (!confirm(`Reject this payment reference from ${players.find(p => p.id === req.player_id)?.display_name ?? req.player_id}?`)) return
+    setApprovingId(req.id)
+    try {
+      const allReqs = reqData?.requests ?? []
+      const updatedReqs = allReqs.map(r =>
+        r.id !== req.id ? r : { ...r, status: 'rejected', reviewed_on: new Date().toISOString().slice(0, 10) }
+      )
+      await writePaymentRequests(updatedReqs, `Rejected payment request ${req.id}`)
+      qc.invalidateQueries({ queryKey: ['payment_requests'] })
+      showToast('Request rejected')
+    } catch (e) {
+      showToast(e.message, 'error')
+    } finally {
+      setApprovingId(null)
+    }
+  }
+
   async function saveBulk() {
     const validRows = bulkRows.filter(r => r.player_id && parseFloat(r.amount) > 0)
     if (!validRows.length) { showToast('Add at least one valid row', 'error'); return }
@@ -218,18 +276,64 @@ export default function AdminTransactions() {
     downloadCSV(rows, `transactions_${new Date().toISOString().slice(0, 10)}.csv`)
   }
 
-  const hasFilters = filterPlayer || filterType || filterFrom || filterTo
+  const hasFilters   = filterPlayer || filterType || filterFrom || filterTo
+  const pendingReqs  = (reqData?.requests ?? []).filter(r => r.status === 'pending')
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">Payments & Transactions</h1>
+        <h1 className="text-xl font-bold text-gray-900">
+          Payments & Transactions
+          {pendingReqs.length > 0 && (
+            <span className="ml-2 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5">{pendingReqs.length}</span>
+          )}
+        </h1>
         <div className="flex gap-2">
           <button onClick={exportCSV} className="btn-secondary text-sm">↓ CSV</button>
           {isAdmin && <button onClick={() => setShowBulk(true)} className="btn-secondary text-sm">Bulk Record</button>}
           {isAdmin && <button onClick={() => setShowForm(true)} className="btn-primary text-sm">+ Record Payment</button>}
         </div>
       </div>
+
+      {/* Pending payment requests */}
+      {isAdmin && pendingReqs.length > 0 && (
+        <div className="card border-l-4 border-amber-400 space-y-2">
+          <h2 className="font-semibold text-gray-800 text-sm">⏳ Pending Payment References ({pendingReqs.length})</h2>
+          <div className="divide-y divide-gray-100">
+            {pendingReqs.map(req => {
+              const payer = players.find(p => p.id === req.player_id)
+              return (
+                <div key={req.id} className="py-2 flex items-center justify-between gap-4 text-sm">
+                  <div>
+                    <span className="font-medium text-gray-800">{payer?.display_name ?? req.player_id}</span>
+                    <span className="mx-2 text-gray-300">·</span>
+                    <span className="font-mono text-green-700">₹{req.amount.toLocaleString('en-IN')}</span>
+                    <span className="mx-2 text-gray-300">·</span>
+                    <span className="text-gray-500 text-xs">Ref: {req.upi_ref}</span>
+                    <div className="text-xs text-gray-400 mt-0.5">{req.submitted_on}</div>
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      onClick={() => approveRequest(req)}
+                      disabled={approvingId === req.id}
+                      className="text-xs text-green-700 font-medium border border-green-300 rounded px-2 py-1 hover:bg-green-50 disabled:opacity-50"
+                    >
+                      {approvingId === req.id ? '…' : '✓ Approve'}
+                    </button>
+                    <button
+                      onClick={() => rejectRequest(req)}
+                      disabled={approvingId === req.id}
+                      className="text-xs text-red-500 hover:underline disabled:opacity-50"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="card p-3">

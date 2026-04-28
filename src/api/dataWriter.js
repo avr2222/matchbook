@@ -170,6 +170,13 @@ export async function writeAnnouncements(data, summary) {
   await appendAuditEntry(octokit, config, auditEntry('update_announcements', 'announcement', null, summary, null, null))
 }
 
+export async function writePaymentRequests(requests, summary) {
+  const config = await fetchConfig()
+  const octokit = getOctokit()
+  const payload = { schema_version: 1, requests }
+  await writeFile(octokit, config, 'public/data/payment_requests.json', payload, `payment_req: ${summary}`)
+}
+
 export async function triggerCricHeroesSync(config, token) {
   const octokit = new Octokit({ auth: token })
   await octokit.actions.createWorkflowDispatch({

@@ -195,9 +195,11 @@ export default function AdminPlayers() {
     try {
       const isNew   = !players.find(p => p.id === editing.id)
       const before  = players.find(p => p.id === editing.id) ?? null
-      editing.balance_status = calcBalanceStatus(editing.corpus_balance, cfg ?? {
-        corpus_overdue_threshold: 0, corpus_urgent_threshold: 500, corpus_low_threshold: 1000,
-      })
+      editing.balance_status = (editing.type === 'ppm' || editing.type === 'guest')
+        ? 'good'
+        : calcBalanceStatus(editing.corpus_balance, cfg ?? {
+            corpus_overdue_threshold: 0, corpus_urgent_threshold: 500, corpus_low_threshold: 1000,
+          })
       const updated = isNew
         ? [...players, editing]
         : players.map(p => p.id === editing.id ? editing : p)

@@ -1,13 +1,12 @@
 import { NavLink } from 'react-router-dom'
 import { useMapping } from '../../hooks/useData'
 
-export default function AdminSidebar() {
+function useAdminLinks() {
   const { data: mapData } = useMapping()
   const unmatchedCount = (mapData?.unmatched ?? []).length
   const staleCount     = (mapData?.player_mappings ?? []).filter(m => !m.confirmed).length
   const cricHeroesBadge = unmatchedCount + staleCount
-
-  const links = [
+  return [
     { to: '/admin',                label: 'Overview',       icon: '🏠', end: true },
     { to: '/admin/players',        label: 'Players',        icon: '👥' },
     { to: '/admin/weeks',          label: 'Matches',        icon: '📅' },
@@ -19,6 +18,40 @@ export default function AdminSidebar() {
     { to: '/admin/mapping',        label: 'CricHeroes',     icon: '🔗', badge: cricHeroesBadge },
     { to: '/admin/settings',       label: 'Settings',       icon: '⚙️' },
   ]
+}
+
+export function AdminMobileNav() {
+  const links = useAdminLinks()
+  return (
+    <nav className="md:hidden overflow-x-auto flex gap-1 pb-1 -mx-4 px-4">
+      {links.map(({ to, label, icon, end, badge }) => (
+        <NavLink
+          key={to}
+          to={to}
+          end={end}
+          className={({ isActive }) =>
+            `flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0 relative ${
+              isActive
+                ? 'bg-green-600 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`
+          }
+        >
+          <span>{icon}</span>
+          <span>{label}</span>
+          {badge > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
+              {badge > 9 ? '!' : badge}
+            </span>
+          )}
+        </NavLink>
+      ))}
+    </nav>
+  )
+}
+
+export default function AdminSidebar() {
+  const links = useAdminLinks()
 
   return (
     <aside className="w-48 shrink-0 hidden md:block">

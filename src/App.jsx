@@ -1,7 +1,7 @@
 import { HashRouter, Routes, Route, Navigate, Link } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Navbar from './components/layout/Navbar'
-import AdminSidebar from './components/layout/AdminSidebar'
+import AdminSidebar, { AdminMobileNav } from './components/layout/AdminSidebar'
 import ProtectedRoute from './auth/ProtectedRoute'
 import { ToastProvider } from './components/ui/Toast'
 import { useIsAdmin } from './hooks/useIsAdmin'
@@ -34,6 +34,7 @@ function AdminLayout({ children }) {
           <Link to="/login" className="font-medium underline">Log in as admin →</Link>
         </div>
       )}
+      <AdminMobileNav />
       <div className="flex gap-6">
         <AdminSidebar />
         <main className="flex-1 min-w-0">{children}</main>

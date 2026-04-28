@@ -11,16 +11,21 @@ const CONFIDENCE_LABEL = c => c >= 0.85 ? '✅ Auto' : c >= 0.5 ? '🟡 Review' 
 
 export default function AdminMapping() {
   const qc = useQueryClient()
-  const { data: mapData, isLoading } = useMapping()
+  const { data: mapData, isLoading, isError } = useMapping()
   const { data: pData } = usePlayers()
   const isAdmin = useIsAdmin()
   const [saving, setSaving] = useState(false)
   const [localMap, setLocalMap] = useState(null)
 
   if (isLoading) return <PageSpinner />
+  if (isError || (!isLoading && !mapData)) return (
+    <div className="card text-center py-12 text-gray-500">
+      <p className="text-lg mb-1">⚠️ Failed to load mapping data</p>
+      <p className="text-sm text-gray-400">Check your GitHub connection or run a CricHeroes sync first.</p>
+    </div>
+  )
 
   const mapping = localMap ?? mapData
-  if (!mapping) return null
 
   const players = pData?.players ?? []
   const mappings = mapping.player_mappings ?? []

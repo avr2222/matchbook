@@ -1,9 +1,13 @@
 import { useState } from 'react'
-import { usePlayers, useWeeks, useAttendance, useTransactions, useConfig, useAnnouncements } from '../../hooks/useData'
+import { useQueryClient } from '@tanstack/react-query'
+import { usePlayers, useWeeks, useAttendance, useTransactions, useConfig, useAnnouncements, usePaymentRequests } from '../../hooks/useData'
+import { writePaymentRequests } from '../../api/dataWriter'
 import { useAuthStore } from '../../store/authStore'
 import BalanceBadge from '../../components/ui/BalanceBadge'
 import { PageSpinner } from '../../components/ui/Spinner'
 import MatchPlayersModal from '../../components/ui/MatchPlayersModal'
+import { showToast } from '../../components/ui/Toast'
+import { generateId } from '../../utils/balanceCalculator'
 import { format, parseISO } from 'date-fns'
 
 function PayNowButton({ player, config }) {
@@ -59,6 +63,81 @@ function PayNowButton({ player, config }) {
   )
 }
 
+function PaymentProofForm({ playerId, cfg, existingRequests }) {
+  const qc = useQueryClient()
+  const [open, setOpen]       = useState(false)
+  const [amount, setAmount]   = useState('')
+  const [upiRef, setUpiRef]   = useState('')
+  const [saving, setSaving]   = useState(false)
+
+  const pending = existingRequests.filter(r => r.player_id === playerId && r.status === 'pending')
+
+  async function submit() {
+    if (!upiRef.trim() || parseFloat(amount) <= 0) { showToast('Amount and UPI reference required', 'error'); return }
+    setSaving(true)
+    try {
+      const id = generateId('REQ', existingRequests.map(r => r.id))
+      const req = {
+        id, player_id: playerId,
+        amount: parseFloat(amount),
+        upi_ref: upiRef.trim(),
+        submitted_on: new Date().toISOString().slice(0, 10),
+        status: 'pending',
+        reviewed_on: null,
+        notes: '',
+      }
+      await writePaymentRequests([...existingRequests, req], `Payment proof submitted by ${playerId}`)
+      qc.invalidateQueries({ queryKey: ['payment_requests'] })
+      setOpen(false)
+      setAmount('')
+      setUpiRef('')
+      showToast('Payment reference submitted — admin will verify and credit your account')
+    } catch (e) {
+      showToast(e.message, 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="card border-l-4 border-green-400 space-y-2">
+      <p className="text-sm font-semibold text-gray-800">Already paid via UPI?</p>
+      {pending.length > 0 && (
+        <div className="text-xs text-amber-600 bg-amber-50 rounded px-2 py-1">
+          ⏳ {pending.length} pending request{pending.length > 1 ? 's' : ''} awaiting admin review
+        </div>
+      )}
+      {!open ? (
+        <button onClick={() => setOpen(true)} className="text-sm text-green-600 hover:underline">
+          Submit your UPI transaction reference →
+        </button>
+      ) : (
+        <div className="space-y-2 pt-1">
+          <input
+            className="input text-sm"
+            type="number" min="1"
+            placeholder={`Amount paid (₹)`}
+            value={amount}
+            onChange={e => setAmount(e.target.value)}
+          />
+          <input
+            className="input text-sm"
+            placeholder="UPI Transaction ID / UTR number"
+            value={upiRef}
+            onChange={e => setUpiRef(e.target.value)}
+          />
+          <div className="flex gap-2">
+            <button onClick={submit} disabled={saving} className="btn-primary text-sm py-1.5">
+              {saving ? 'Submitting…' : 'Submit'}
+            </button>
+            <button onClick={() => setOpen(false)} className="btn-secondary text-sm py-1.5">Cancel</button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function MyDashboard() {
   const [detail, setDetail]           = useState(null)
   const [showAllTxns, setShowAllTxns] = useState(false)
@@ -69,6 +148,7 @@ export default function MyDashboard() {
   const { data: aData }            = useAttendance()
   const { data: tData }            = useTransactions()
   const { data: annData }          = useAnnouncements()
+  const { data: reqData }          = usePaymentRequests()
 
   if (isLoading) return <PageSpinner />
 
@@ -186,6 +266,7 @@ export default function MyDashboard() {
           <div className="mt-2"><BalanceBadge status={player.balance_status} /></div>
           {player.type !== 'ppm' && <PayNowButton player={player} config={cfg} />}
         </div>
+
         <div className="card text-center">
           <div className="text-3xl font-bold text-gray-900">
             {played}<span className="text-xl text-gray-400">/{total}</span>
@@ -196,6 +277,15 @@ export default function MyDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Payment proof submission */}
+      {player.type !== 'ppm' && cfg?.admin_upi_id && (
+        <PaymentProofForm
+          playerId={playerId}
+          cfg={cfg}
+          existingRequests={reqData?.requests ?? []}
+        />
+      )}
 
       {/* Missed matches */}
       {missedWeeks.length > 0 && (
