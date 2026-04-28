@@ -6,6 +6,7 @@ import { writeTransactions, writePlayers } from '../../api/dataWriter'
 import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { calcBalanceStatus, generateId } from '../../utils/balanceCalculator'
+import { useIsAdmin } from '../../hooks/useIsAdmin'
 import { downloadCSV } from '../../utils/csvExport'
 import { format, parseISO } from 'date-fns'
 
@@ -32,6 +33,7 @@ export default function AdminTransactions() {
   const { data: cfg }              = useConfig()
   const [searchParams, setSearchParams] = useSearchParams()
 
+  const isAdmin                   = useIsAdmin()
   const [showForm, setShowForm]   = useState(false)
   const [showBulk, setShowBulk]   = useState(false)
   const [saving, setSaving]       = useState(false)
@@ -224,8 +226,8 @@ export default function AdminTransactions() {
         <h1 className="text-xl font-bold text-gray-900">Payments & Transactions</h1>
         <div className="flex gap-2">
           <button onClick={exportCSV} className="btn-secondary text-sm">↓ CSV</button>
-          <button onClick={() => setShowBulk(true)} className="btn-secondary text-sm">Bulk Record</button>
-          <button onClick={() => setShowForm(true)} className="btn-primary text-sm">+ Record Payment</button>
+          {isAdmin && <button onClick={() => setShowBulk(true)} className="btn-secondary text-sm">Bulk Record</button>}
+          {isAdmin && <button onClick={() => setShowForm(true)} className="btn-primary text-sm">+ Record Payment</button>}
         </div>
       </div>
 
@@ -278,9 +280,11 @@ export default function AdminTransactions() {
                   </td>
                   <td className="px-4 py-3 text-gray-400 text-xs">{t.description}</td>
                   <td className="px-4 py-3 text-center">
-                    <button onClick={() => reverseTransaction(t)} className="text-orange-500 hover:underline text-xs" title="Create reversal entry">
-                      Reverse
-                    </button>
+                    {isAdmin && (
+                      <button onClick={() => reverseTransaction(t)} className="text-orange-500 hover:underline text-xs" title="Create reversal entry">
+                        Reverse
+                      </button>
+                    )}
                   </td>
                 </tr>
               )
@@ -289,8 +293,8 @@ export default function AdminTransactions() {
         </table>
       </div>
 
-      {/* Single payment form */}
-      {showForm && (
+      {/* Single payment form — admin only */}
+      {showForm && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
@@ -345,8 +349,8 @@ export default function AdminTransactions() {
         </div>
       )}
 
-      {/* Bulk payment form */}
-      {showBulk && (
+      {/* Bulk payment form — admin only */}
+      {showBulk && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">

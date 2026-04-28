@@ -5,11 +5,12 @@ import { writeAnnouncements } from '../../api/dataWriter'
 import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { generateId } from '../../utils/balanceCalculator'
+import { useIsAdmin } from '../../hooks/useIsAdmin'
 import { format, parseISO } from 'date-fns'
 
 const EMPTY = { title: '', body: '', expires_on: '', pinned: false }
 
-function AnnRow({ ann, todayStr, onEdit, onDelete, deletingId }) {
+function AnnRow({ ann, todayStr, onEdit, onDelete, deletingId, isAdmin }) {
   const isExpired = ann.expires_on && ann.expires_on < todayStr
   return (
     <div className={`py-3 flex items-start justify-between gap-4 ${isExpired ? 'opacity-50' : ''}`}>
@@ -24,16 +25,18 @@ function AnnRow({ ann, todayStr, onEdit, onDelete, deletingId }) {
           {ann.expires_on && ` · Expires ${format(parseISO(ann.expires_on), 'MMM d, yyyy')}`}
         </p>
       </div>
-      <div className="flex items-center gap-3 shrink-0">
-        <button onClick={() => onEdit(ann)} className="text-xs text-blue-600 hover:underline">Edit</button>
-        <button
-          onClick={() => onDelete(ann)}
-          disabled={deletingId === ann.id}
-          className="text-xs text-red-500 hover:underline disabled:opacity-50"
-        >
-          {deletingId === ann.id ? 'Deleting…' : 'Delete'}
-        </button>
-      </div>
+      {isAdmin && (
+        <div className="flex items-center gap-3 shrink-0">
+          <button onClick={() => onEdit(ann)} className="text-xs text-blue-600 hover:underline">Edit</button>
+          <button
+            onClick={() => onDelete(ann)}
+            disabled={deletingId === ann.id}
+            className="text-xs text-red-500 hover:underline disabled:opacity-50"
+          >
+            {deletingId === ann.id ? 'Deleting…' : 'Delete'}
+          </button>
+        </div>
+      )}
     </div>
   )
 }
@@ -41,6 +44,7 @@ function AnnRow({ ann, todayStr, onEdit, onDelete, deletingId }) {
 export default function AdminAnnouncements() {
   const qc = useQueryClient()
   const { data, isLoading } = useAnnouncements()
+  const isAdmin = useIsAdmin()
   const [editing, setEditing]     = useState(null)
   const [saving, setSaving]       = useState(false)
   const [deletingId, setDeletingId] = useState(null)
@@ -106,7 +110,7 @@ export default function AdminAnnouncements() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-900">Announcements</h1>
-        <button onClick={openNew} className="btn-primary text-sm">+ New Announcement</button>
+        {isAdmin && <button onClick={openNew} className="btn-primary text-sm">+ New Announcement</button>}
       </div>
 
       <div className="card">
@@ -116,7 +120,7 @@ export default function AdminAnnouncements() {
         ) : (
           <div className="divide-y divide-gray-100">
             {active.map(a => (
-              <AnnRow key={a.id} ann={a} todayStr={todayStr} onEdit={openEdit} onDelete={deleteAnn} deletingId={deletingId} />
+              <AnnRow key={a.id} ann={a} todayStr={todayStr} onEdit={openEdit} onDelete={deleteAnn} deletingId={deletingId} isAdmin={isAdmin} />
             ))}
           </div>
         )}
@@ -127,13 +131,13 @@ export default function AdminAnnouncements() {
           <h2 className="font-semibold text-gray-400 mb-2 text-sm">Expired ({expired.length})</h2>
           <div className="divide-y divide-gray-100">
             {expired.map(a => (
-              <AnnRow key={a.id} ann={a} todayStr={todayStr} onEdit={openEdit} onDelete={deleteAnn} deletingId={deletingId} />
+              <AnnRow key={a.id} ann={a} todayStr={todayStr} onEdit={openEdit} onDelete={deleteAnn} deletingId={deletingId} isAdmin={isAdmin} />
             ))}
           </div>
         </div>
       )}
 
-      {editing && (
+      {editing && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">

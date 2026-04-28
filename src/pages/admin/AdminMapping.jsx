@@ -4,6 +4,7 @@ import { useMapping, usePlayers } from '../../hooks/useData'
 import { writeCricHeroesMapping } from '../../api/dataWriter'
 import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
+import { useIsAdmin } from '../../hooks/useIsAdmin'
 
 const CONFIDENCE_CLASS = c => c >= 0.85 ? 'text-green-600' : c >= 0.5 ? 'text-yellow-600' : 'text-red-500'
 const CONFIDENCE_LABEL = c => c >= 0.85 ? '✅ Auto' : c >= 0.5 ? '🟡 Review' : '🔴 Manual'
@@ -12,6 +13,7 @@ export default function AdminMapping() {
   const qc = useQueryClient()
   const { data: mapData, isLoading } = useMapping()
   const { data: pData } = usePlayers()
+  const isAdmin = useIsAdmin()
   const [saving, setSaving] = useState(false)
   const [localMap, setLocalMap] = useState(null)
 
@@ -71,7 +73,7 @@ export default function AdminMapping() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-900">CricHeroes Player Mapping</h1>
-        {localMap && (
+        {localMap && isAdmin && (
           <button onClick={save} disabled={saving} className="btn-primary text-sm">
             {saving ? 'Saving…' : 'Save Changes'}
           </button>
@@ -91,7 +93,8 @@ export default function AdminMapping() {
                 <select
                   className="input w-44 text-sm"
                   defaultValue=""
-                  onChange={e => assignUnmatched(u.cricheroes_player_id, u.cricheroes_name, e.target.value)}
+                  disabled={!isAdmin}
+                  onChange={e => isAdmin && assignUnmatched(u.cricheroes_player_id, u.cricheroes_name, e.target.value)}
                 >
                   <option value="">Assign to player…</option>
                   {players.filter(p=>p.status==='active').map(p => <option key={p.id} value={p.id}>{p.display_name}</option>)}
@@ -129,7 +132,8 @@ export default function AdminMapping() {
                     <select
                       className="input w-36 text-xs"
                       value={m.player_id ?? ''}
-                      onChange={e => updateMapping(m.cricheroes_player_id, e.target.value || null)}
+                      disabled={!isAdmin}
+                      onChange={e => isAdmin && updateMapping(m.cricheroes_player_id, e.target.value || null)}
                     >
                       <option value="">— unassign —</option>
                       {players.filter(p=>p.status==='active').map(p => <option key={p.id} value={p.id}>{p.display_name}</option>)}

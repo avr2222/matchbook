@@ -5,6 +5,7 @@ import { writeTournaments } from '../../api/dataWriter'
 import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { calcBalanceStatus } from '../../utils/balanceCalculator'
+import { useIsAdmin } from '../../hooks/useIsAdmin'
 
 export default function AdminSettings() {
   const qc = useQueryClient()
@@ -12,6 +13,7 @@ export default function AdminSettings() {
   const { data: cfg }  = useConfig()
   const { data: pData }= usePlayers()
   const { data: txData }= useTransactions()
+  const isAdmin = useIsAdmin()
   const [saving, setSaving] = useState(false)
   const [showMigrate, setShowMigrate] = useState(false)
   const [newTournamentName, setNewTournamentName] = useState('')
@@ -77,9 +79,11 @@ export default function AdminSettings() {
           <div><span className="text-gray-500">Start Date:</span> {activeTournament?.start_date ?? '—'}</div>
           <div><span className="text-gray-500">Status:</span> {activeTournament?.status}</div>
         </div>
-        <button onClick={() => setShowMigrate(true)} className="btn-danger text-sm mt-4">
-          Close Tournament & Start New
-        </button>
+        {isAdmin && (
+          <button onClick={() => setShowMigrate(true)} className="btn-danger text-sm mt-4">
+            Close Tournament & Start New
+          </button>
+        )}
       </div>
 
       {/* All tournaments */}
@@ -110,7 +114,7 @@ export default function AdminSettings() {
         <p className="text-xs text-gray-400 mt-2">Edit config.json in the repo to change these values.</p>
       </div>
 
-      {showMigrate && (
+      {showMigrate && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">

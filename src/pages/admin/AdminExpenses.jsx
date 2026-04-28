@@ -6,20 +6,32 @@ import { writeExpenses } from '../../api/dataWriter'
 import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { generateId } from '../../utils/balanceCalculator'
+import { useIsAdmin } from '../../hooks/useIsAdmin'
 import { format, parseISO } from 'date-fns'
 
 const CATEGORIES = [
-  { value: 'ground_booking', label: 'Ground Booking' },
-  { value: 'equipment',      label: 'Equipment'      },
-  { value: 'refreshments',   label: 'Refreshments'   },
-  { value: 'kit',            label: 'Kit / Uniform'  },
-  { value: 'other',          label: 'Other'          },
+  { value: 'match_cost',    label: 'Match Cost'     },
+  { value: 'ground_booking',label: 'Ground Booking' },
+  { value: 'cricket_ball',  label: 'Cricket Ball'   },
+  { value: 'cricket_bat',   label: 'Cricket Bat'    },
+  { value: 'equipment',     label: 'Equipment'      },
+  { value: 'refreshments',  label: 'Refreshments'   },
+  { value: 'kit',           label: 'Kit / Uniform'  },
+  { value: 'other',         label: 'Other'          },
 ]
 
+const SPLIT_LABEL = {
+  all_played:   'Played',
+  all_active:   'All Active',
+  corpus_pool:  'Corpus Pool',
+  week_present: 'Played',
+  all_corpus:   'All Corpus',
+}
+
 const SPLIT_OPTIONS = [
-  { value: 'all_played',   label: 'Split among all who played' },
-  { value: 'all_active',   label: 'Split among all active players' },
-  { value: 'corpus_pool',  label: 'Deduct from corpus pool only' },
+  { value: 'all_played',  label: 'Split among all who played' },
+  { value: 'all_active',  label: 'Split among all active players' },
+  { value: 'corpus_pool', label: 'Deduct from corpus pool only' },
 ]
 
 export default function AdminExpenses() {
@@ -30,13 +42,14 @@ export default function AdminExpenses() {
   const { data: pData } = usePlayers()
   const { data: aData } = useAttendance()
   const [searchParams, setSearchParams] = useSearchParams()
+  const isAdmin = useIsAdmin()
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving]     = useState(false)
   const [deletingId, setDeletingId] = useState(null)
   const [form, setForm] = useState({
     date: new Date().toISOString().slice(0, 10),
     week_id: '',
-    category: 'ground_booking',
+    category: 'match_cost',
     amount: '',
     description: '',
     split_among: 'all_played',
@@ -91,7 +104,7 @@ export default function AdminExpenses() {
       await writeExpenses([...expenses, newExp], 'add_expense', `Added expense: ${newExp.description} ₹${form.amount}`)
       qc.invalidateQueries({ queryKey: ['expenses'] })
       setShowForm(false)
-      setForm({ date: new Date().toISOString().slice(0, 10), week_id: '', category: 'ground_booking', amount: '', description: '', split_among: 'all_played' })
+      setForm({ date: new Date().toISOString().slice(0, 10), week_id: '', category: 'match_cost', amount: '', description: '', split_among: 'all_played' })
       showToast('Expense recorded')
     } catch (e) {
       showToast(e.message, 'error')
@@ -125,7 +138,7 @@ export default function AdminExpenses() {
           <h1 className="text-xl font-bold text-gray-900">Expenses</h1>
           <p className="text-sm text-gray-500 mt-0.5">Total: ₹{total.toLocaleString('en-IN')}</p>
         </div>
-        <button onClick={() => setShowForm(true)} className="btn-primary text-sm">+ Add Expense</button>
+        {isAdmin && <button onClick={() => setShowForm(true)} className="btn-primary text-sm">+ Add Expense</button>}
       </div>
 
       <div className="card p-0 overflow-hidden overflow-x-auto">
@@ -143,47 +156,47 @@ export default function AdminExpenses() {
           <tbody className="divide-y divide-gray-100">
             {expenses.length === 0 ? (
               <tr><td colSpan={6} className="text-center py-10 text-gray-400">No expenses recorded yet.</td></tr>
-            ) : expenses.map(e => {
-              const week = weeks.find(w => w.week_id === e.week_id)
-              return (
+            ) : expenses.map(e => (
                 <tr key={e.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{format(parseISO(e.date), 'MMM d, yyyy')}</td>
                   <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{CATEGORIES.find(c => c.value === e.category)?.label ?? e.category}</td>
-                  <td className="px-4 py-3 text-gray-600">
-                    {e.description}
-                    {week ? <span className="ml-1 text-xs text-gray-400">({week.label})</span> : null}
-                  </td>
+                  <td className="px-4 py-3 text-gray-600">{e.description}</td>
                   <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
-                    {SPLIT_OPTIONS.find(s => s.value === e.split_among)?.label ?? e.split_among}
+                    <div>{SPLIT_LABEL[e.split_among ?? e.distribution] ?? e.split_among ?? e.distribution ?? '—'}</div>
+                    {(e.share_per_player ?? e.per_player_amount) ? (
+                      <div className="text-gray-400">₹{(e.share_per_player ?? e.per_player_amount).toLocaleString('en-IN')}/player</div>
+                    ) : null}
                   </td>
                   <td className="px-4 py-3 text-right font-mono font-medium text-red-600 whitespace-nowrap">
                     ₹{e.amount.toLocaleString('en-IN')}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => deleteExpense(e)}
-                      disabled={deletingId === e.id}
-                      className="text-xs text-red-500 hover:underline disabled:opacity-50"
-                    >
-                      {deletingId === e.id ? 'Deleting…' : 'Delete'}
-                    </button>
+                    {isAdmin && (
+                      <button
+                        onClick={() => deleteExpense(e)}
+                        disabled={deletingId === e.id}
+                        className="text-xs text-red-500 hover:underline disabled:opacity-50"
+                      >
+                        {deletingId === e.id ? 'Deleting…' : 'Delete'}
+                      </button>
+                    )}
                   </td>
                 </tr>
-              )
-            })}
+            ))}
           </tbody>
           {expenses.length > 0 && (
             <tfoot className="bg-gray-50 border-t border-gray-200">
               <tr>
-                <td colSpan={5} className="px-4 py-2 text-right text-sm font-semibold text-gray-700">Total</td>
-                <td className="px-4 py-2 text-right font-mono font-bold text-gray-900 pr-4">₹{total.toLocaleString('en-IN')}</td>
+                <td colSpan={4} className="px-4 py-2 text-right text-sm font-semibold text-gray-700">Total</td>
+                <td className="px-4 py-2 text-right font-mono font-bold text-gray-900">₹{total.toLocaleString('en-IN')}</td>
+                <td />
               </tr>
             </tfoot>
           )}
         </table>
       </div>
 
-      {showForm && (
+      {showForm && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">

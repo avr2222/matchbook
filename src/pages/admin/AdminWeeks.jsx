@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useWeeks, usePlayers, useAttendance, useConfig, useTransactions } from '../../hooks/useData'
+import { useIsAdmin } from '../../hooks/useIsAdmin'
 import { writeWeeks, writeAttendance, writeTransactions, writePlayers } from '../../api/dataWriter'
 import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
@@ -16,6 +17,7 @@ export default function AdminWeeks() {
   const { data: tData } = useTransactions()
   const { data: cfg }   = useConfig()
 
+  const isAdmin                            = useIsAdmin()
   const [selected, setSelected]           = useState(null)
   const [attendanceMap, setAttendanceMap] = useState({})
   const [detail, setDetail]               = useState(null)
@@ -185,7 +187,7 @@ export default function AdminWeeks() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-900">Matches</h1>
-        <button onClick={() => setShowNew(true)} className="btn-primary text-sm">+ Add Match</button>
+        {isAdmin && <button onClick={() => setShowNew(true)} className="btn-primary text-sm">+ Add Match</button>}
       </div>
 
       <div className="card p-0 overflow-hidden">
@@ -234,13 +236,16 @@ export default function AdminWeeks() {
                   </td>
                   <td className="px-4 py-3 text-center" onClick={e => e.stopPropagation()}>
                     <div className="flex items-center justify-center gap-2 flex-wrap">
-                      <button onClick={() => openAttendance(w.week_id)} className="text-blue-600 hover:underline text-xs">
-                        Attendance
-                      </button>
-                      <button onClick={() => openResultEditor(w)} className="text-purple-600 hover:underline text-xs">
-                        Result
-                      </button>
-                      {/* WhatsApp share */}
+                      {isAdmin && (
+                        <button onClick={() => openAttendance(w.week_id)} className="text-blue-600 hover:underline text-xs">
+                          Attendance
+                        </button>
+                      )}
+                      {isAdmin && (
+                        <button onClick={() => openResultEditor(w)} className="text-purple-600 hover:underline text-xs">
+                          Result
+                        </button>
+                      )}
                       <a
                         href={`https://wa.me/?text=${encodeURIComponent(
                           `🏏 Match on ${format(parseISO(w.match_date), 'MMM d')} at ${w.venue?.split(',')[0] ?? 'TBD'}. Fee: ₹${w.match_fee}. ${w.result ? 'Result: ' + w.result : ''}`
@@ -250,7 +255,7 @@ export default function AdminWeeks() {
                       >
                         Share
                       </a>
-                      {w.status === 'scheduled' && (
+                      {isAdmin && w.status === 'scheduled' && (
                         <button onClick={() => deleteWeek(w)} className="text-red-500 hover:underline text-xs">
                           Delete
                         </button>
@@ -272,8 +277,8 @@ export default function AdminWeeks() {
         onClose={() => setDetail(null)}
       />
 
-      {/* Result editor modal */}
-      {editResult && (
+      {/* Result editor modal — admin only */}
+      {editResult && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
@@ -302,8 +307,8 @@ export default function AdminWeeks() {
         </div>
       )}
 
-      {/* Attendance editor */}
-      {selected && selectedWeek && (
+      {/* Attendance editor — admin only */}
+      {selected && selectedWeek && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
@@ -326,7 +331,7 @@ export default function AdminWeeks() {
       )}
 
       {/* Add match modal */}
-      {showNew && (
+      {showNew && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">

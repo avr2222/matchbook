@@ -1,12 +1,113 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { usePlayers, useConfig } from '../../hooks/useData'
+import { usePlayers, useConfig, useTransactions, useAttendance, useWeeks, useExpenses } from '../../hooks/useData'
+import { useIsAdmin } from '../../hooks/useIsAdmin'
 import BalanceBadge from '../../components/ui/BalanceBadge'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { writePlayers } from '../../api/dataWriter'
 import { showToast } from '../../components/ui/Toast'
 import { typeEmoji, typeLabel, generateId, calcBalanceStatus } from '../../utils/balanceCalculator'
+import { format, parseISO } from 'date-fns'
+
+const fmt = n => (n ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+function PlayerHistoryModal({ player, allTxns, attendance, weeks, expenses, onClose }) {
+  if (!player) return null
+
+  const playerTxns = allTxns
+    .filter(t => t.player_id === player.id)
+    .sort((a, b) => b.date.localeCompare(a.date))
+
+  const matchDeductions = attendance
+    .filter(r => r.player_id === player.id && r.status === 'played' && r.fee_deducted)
+    .map(r => {
+      const week = weeks.find(w => w.week_id === r.week_id)
+      if (!week) return null
+      return { date: week.match_date, kind: 'debit', amount: week.match_fee ?? 0, label: `Match fee — ${format(parseISO(week.match_date), 'EEE, MMM d, yyyy')}` }
+    })
+    .filter(Boolean)
+
+  const isCorpus = player.type === 'corpus' || player.type === 'new'
+  const expenseDeductions = isCorpus ? expenses.filter(e => {
+    const split = e.split_among ?? e.distribution
+    if (split === 'all_corpus' || split === 'all_active' || split === 'corpus_pool') return true
+    if (split === 'all_played' || split === 'week_present') {
+      return attendance.some(r => r.player_id === player.id && r.week_id === e.week_id && r.status === 'played')
+    }
+    return false
+  }).map(e => ({
+    date: e.date,
+    kind: 'debit',
+    amount: +(e.share_per_player ?? e.per_player_amount ?? 0),
+    label: `Expense share — ${e.description}`,
+  })) : []
+
+  const timeline = [
+    ...playerTxns.map(t => ({
+      date: t.date,
+      kind: t.direction === 'credit' ? 'credit' : 'debit',
+      amount: t.amount,
+      label: t.description || 'Corpus Payment',
+    })),
+    ...matchDeductions,
+    ...expenseDeductions,
+  ].sort((a, b) => b.date.localeCompare(a.date))
+
+  const matchesPlayed = attendance.filter(r => r.player_id === player.id && r.status === 'played').length
+
+  return (
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
+        <div className="px-6 py-4 border-b border-gray-200 flex items-start justify-between shrink-0">
+          <div>
+            <h2 className="font-semibold text-gray-900 text-lg">{player.display_name}</h2>
+            <div className="flex items-center gap-2 mt-1">
+              <BalanceBadge status={player.balance_status} />
+              <span className="text-xs text-gray-500">{typeEmoji(player.type)} {typeLabel(player.type)}</span>
+            </div>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
+        </div>
+
+        <div className="px-6 py-3 bg-gray-50 grid grid-cols-3 gap-3 border-b border-gray-200 shrink-0">
+          <div className="text-center">
+            <div className="text-xs text-gray-500 mb-0.5">Balance</div>
+            <div className={`font-bold text-sm ${(player.corpus_balance ?? 0) < 0 ? 'text-red-600' : 'text-gray-900'}`}>₹{fmt(player.corpus_balance)}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-xs text-gray-500 mb-0.5">Total Paid In</div>
+            <div className="font-bold text-sm text-green-700">₹{fmt(player.total_paid)}</div>
+          </div>
+          <div className="text-center">
+            <div className="text-xs text-gray-500 mb-0.5">Matches Played</div>
+            <div className="font-bold text-sm text-blue-700">{matchesPlayed}</div>
+          </div>
+        </div>
+
+        <div className="overflow-y-auto flex-1 divide-y divide-gray-100">
+          {timeline.length === 0 ? (
+            <p className="text-sm text-gray-400 py-8 text-center">No transaction history found.</p>
+          ) : timeline.map((entry, i) => (
+            <div key={i} className="px-6 py-3 flex items-center justify-between text-sm">
+              <div>
+                <div className="text-gray-800">{entry.label}</div>
+                <div className="text-xs text-gray-400 mt-0.5">{format(parseISO(entry.date), 'MMM d, yyyy')}</div>
+              </div>
+              <div className={`font-mono font-semibold shrink-0 ml-4 ${entry.kind === 'credit' ? 'text-green-600' : 'text-red-500'}`}>
+                {entry.kind === 'credit' ? '+' : '−'}₹{entry.amount.toLocaleString('en-IN')}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="px-6 py-3 border-t border-gray-200 shrink-0 text-right">
+          <button onClick={onClose} className="btn-secondary text-sm">Close</button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 const EMPTY = {
   display_name: '', type: 'corpus', status: 'active', joined_date: new Date().toISOString().slice(0,10),
@@ -33,12 +134,18 @@ function similarName(a, b) {
 export default function AdminPlayers() {
   const qc = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
-  const { data, isLoading } = usePlayers()
-  const { data: cfg } = useConfig()
-  const [editing, setEditing] = useState(null)
-  const [saving, setSaving]   = useState(false)
-  const [search, setSearch]   = useState('')
-  const [typeTab, setTypeTab] = useState('all')
+  const { data, isLoading }     = usePlayers()
+  const { data: cfg }           = useConfig()
+  const { data: tData }         = useTransactions()
+  const { data: aData }         = useAttendance()
+  const { data: wData }         = useWeeks()
+  const { data: eData }         = useExpenses()
+  const isAdmin                 = useIsAdmin()
+  const [editing, setEditing]   = useState(null)
+  const [detail, setDetail]     = useState(null)
+  const [saving, setSaving]     = useState(false)
+  const [search, setSearch]     = useState('')
+  const [typeTab, setTypeTab]   = useState('all')
 
   useEffect(() => {
     if (searchParams.get('new') === '1' && data) {
@@ -131,7 +238,7 @@ export default function AdminPlayers() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-900">Players</h1>
-        <button onClick={openNew} className="btn-primary text-sm">+ Add Player</button>
+        {isAdmin && <button onClick={openNew} className="btn-primary text-sm">+ Add Player</button>}
       </div>
 
       {/* Type filter tabs */}
@@ -181,7 +288,12 @@ export default function AdminPlayers() {
             {visible.map(p => (
               <tr key={p.id} className={`hover:bg-gray-50 ${p.status === 'inactive' ? 'opacity-40' : ''}`}>
                 <td className="px-4 py-3 font-medium text-gray-900">
-                  <div>{p.display_name}</div>
+                  <button
+                    onClick={() => setDetail(p)}
+                    className="font-medium text-gray-900 hover:text-green-700 hover:underline text-left"
+                  >
+                    {p.display_name}
+                  </button>
                   {p.type === 'guest' && p.sponsored_by_player_id && (
                     <div className="text-xs text-purple-600 mt-0.5">
                       Sponsored by {sponsorName(p.sponsored_by_player_id)}
@@ -190,20 +302,26 @@ export default function AdminPlayers() {
                 </td>
                 <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{typeEmoji(p.type)} {typeLabel(p.type)}</td>
                 <td className="px-4 py-3 text-right font-mono whitespace-nowrap">
-                  {p.type === 'ppm' ? 'PPM' : `₹${(p.corpus_balance ?? 0).toLocaleString('en-IN')}`}
+                  {p.type === 'ppm' ? 'PPM' : `₹${fmt(p.corpus_balance)}`}
                 </td>
                 <td className="px-4 py-3 text-right font-mono text-green-700 whitespace-nowrap">
-                  {p.type === 'ppm' ? '—' : `₹${(p.total_paid ?? 0).toLocaleString('en-IN')}`}
+                  {p.type === 'ppm' ? '—' : `₹${fmt(p.total_paid)}`}
                 </td>
                 <td className="px-4 py-3 text-right font-mono text-red-500 whitespace-nowrap">
-                  {p.type === 'ppm' ? '—' : `₹${(p.total_deducted ?? 0).toLocaleString('en-IN')}`}
+                  {p.type === 'ppm' ? '—' : `₹${fmt(p.total_deducted)}`}
                 </td>
                 <td className="px-4 py-3 text-center"><BalanceBadge status={p.balance_status} /></td>
                 <td className="px-4 py-3 text-center text-gray-400 text-xs">{p.github_username || '—'}</td>
                 <td className="px-4 py-3 text-center whitespace-nowrap">
-                  <button onClick={() => openEdit(p)} className="text-blue-600 hover:underline text-xs mr-3">Edit</button>
-                  {p.status === 'active' && (
-                    <button onClick={() => remove(p)} className="text-red-500 hover:underline text-xs">Remove</button>
+                  {isAdmin ? (
+                    <>
+                      <button onClick={() => openEdit(p)} className="text-blue-600 hover:underline text-xs mr-3">Edit</button>
+                      {p.status === 'active' && (
+                        <button onClick={() => remove(p)} className="text-red-500 hover:underline text-xs">Remove</button>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-gray-300 text-xs">—</span>
                   )}
                 </td>
               </tr>
@@ -212,8 +330,8 @@ export default function AdminPlayers() {
         </table>
       </div>
 
-      {/* Edit / Add modal */}
-      {editing && (
+      {/* Edit / Add modal — admin only */}
+      {editing && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
@@ -305,6 +423,15 @@ export default function AdminPlayers() {
           </div>
         </div>
       )}
+
+      <PlayerHistoryModal
+        player={detail}
+        allTxns={tData?.transactions ?? []}
+        attendance={aData?.records ?? []}
+        weeks={wData?.weeks ?? []}
+        expenses={eData?.expenses ?? []}
+        onClose={() => setDetail(null)}
+      />
     </div>
   )
 }

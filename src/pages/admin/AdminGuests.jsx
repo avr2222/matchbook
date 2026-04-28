@@ -5,6 +5,7 @@ import { writeGuestVisits, writePlayers } from '../../api/dataWriter'
 import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { generateId, calcBalanceStatus } from '../../utils/balanceCalculator'
+import { useIsAdmin } from '../../hooks/useIsAdmin'
 import { format, parseISO } from 'date-fns'
 
 export default function AdminGuests() {
@@ -13,6 +14,7 @@ export default function AdminGuests() {
   const { data: pData } = usePlayers()
   const { data: wData } = useWeeks()
   const { data: cfg }   = useConfig()
+  const isAdmin = useIsAdmin()
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving]     = useState(false)
   const [converting, setConverting] = useState(null) // visit id being converted
@@ -118,7 +120,7 @@ export default function AdminGuests() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-900">Guest Visits</h1>
-        <button onClick={() => setShowForm(true)} className="btn-primary text-sm">+ Add Guest Visit</button>
+        {isAdmin && <button onClick={() => setShowForm(true)} className="btn-primary text-sm">+ Add Guest Visit</button>}
       </div>
 
       <div className="card p-0 overflow-hidden overflow-x-auto">
@@ -167,7 +169,7 @@ export default function AdminGuests() {
                   <td className="px-4 py-3 text-right font-mono text-gray-700">₹{(v.guest_fee ?? 0).toLocaleString('en-IN')}</td>
                   <td className="px-4 py-3 text-center">{v.fee_paid ? '✅' : '❌'}</td>
                   <td className="px-4 py-3 text-center">
-                    {!alreadyConverted && (
+                    {isAdmin && !alreadyConverted && (
                       <button
                         onClick={() => convertToPlayer(v)}
                         disabled={converting === v.id}
@@ -184,7 +186,7 @@ export default function AdminGuests() {
         </table>
       </div>
 
-      {showForm && (
+      {showForm && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">

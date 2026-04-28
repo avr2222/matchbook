@@ -1,9 +1,10 @@
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate, Link } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Navbar from './components/layout/Navbar'
 import AdminSidebar from './components/layout/AdminSidebar'
 import ProtectedRoute from './auth/ProtectedRoute'
 import { ToastProvider } from './components/ui/Toast'
+import { useIsAdmin } from './hooks/useIsAdmin'
 
 import Dashboard      from './pages/public/Dashboard'
 import Players        from './pages/public/Players'
@@ -23,10 +24,19 @@ import AdminAnnouncements   from './pages/admin/AdminAnnouncements'
 const qc = new QueryClient()
 
 function AdminLayout({ children }) {
+  const isAdmin = useIsAdmin()
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 flex gap-6">
-      <AdminSidebar />
-      <main className="flex-1 min-w-0">{children}</main>
+    <div className="max-w-7xl mx-auto px-4 py-6 space-y-3">
+      {!isAdmin && (
+        <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 text-sm text-amber-800">
+          <span>👁️ View-only — you can browse but not make changes.</span>
+          <Link to="/login" className="font-medium underline">Log in as admin →</Link>
+        </div>
+      )}
+      <div className="flex gap-6">
+        <AdminSidebar />
+        <main className="flex-1 min-w-0">{children}</main>
+      </div>
     </div>
   )
 }
@@ -56,45 +66,17 @@ export default function App() {
                 </ProtectedRoute>
               } />
 
-              {/* Admin panel */}
-              <Route path="/admin" element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout><AdminDashboard /></AdminLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/players" element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout><AdminPlayers /></AdminLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/weeks" element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout><AdminWeeks /></AdminLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/transactions" element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout><AdminTransactions /></AdminLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/audit" element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout><AdminAudit /></AdminLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/mapping" element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout><AdminMapping /></AdminLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/settings" element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout><AdminSettings /></AdminLayout>
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/expenses"       element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminExpenses /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/guests"         element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminGuests /></AdminLayout></ProtectedRoute>} />
-              <Route path="/admin/announcements"  element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminAnnouncements /></AdminLayout></ProtectedRoute>} />
+              {/* Admin panel — readable by all, writes gated per-page by useIsAdmin() */}
+              <Route path="/admin"                element={<AdminLayout><AdminDashboard /></AdminLayout>} />
+              <Route path="/admin/players"        element={<AdminLayout><AdminPlayers /></AdminLayout>} />
+              <Route path="/admin/weeks"          element={<AdminLayout><AdminWeeks /></AdminLayout>} />
+              <Route path="/admin/transactions"   element={<AdminLayout><AdminTransactions /></AdminLayout>} />
+              <Route path="/admin/audit"          element={<AdminLayout><AdminAudit /></AdminLayout>} />
+              <Route path="/admin/mapping"        element={<AdminLayout><AdminMapping /></AdminLayout>} />
+              <Route path="/admin/settings"       element={<AdminLayout><AdminSettings /></AdminLayout>} />
+              <Route path="/admin/expenses"       element={<AdminLayout><AdminExpenses /></AdminLayout>} />
+              <Route path="/admin/guests"         element={<AdminLayout><AdminGuests /></AdminLayout>} />
+              <Route path="/admin/announcements"  element={<AdminLayout><AdminAnnouncements /></AdminLayout>} />
 
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
