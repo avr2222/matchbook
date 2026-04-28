@@ -65,6 +65,7 @@ function UpiPaySection({ player, config }) {
 }
 
 export default function PlayerPay() {
+  const [showTopUp, setShowTopUp] = useState(false)
   const { playerId } = useParams()
   const { data: pData, isLoading } = usePlayers()
   const { data: wData } = useWeeks()
@@ -121,10 +122,22 @@ export default function PlayerPay() {
             <UpiPaySection player={player} config={cfg} />
           </div>
         ) : (
-          <div className="card text-center py-6">
-            <div className="text-3xl mb-2">✅</div>
+          <div className="card text-center py-6 space-y-3">
+            <div className="text-3xl">✅</div>
             <p className="font-semibold text-green-700">You're all good!</p>
-            <p className="text-sm text-gray-500 mt-1">Your corpus balance is healthy.</p>
+            <p className="text-sm text-gray-500">Your corpus balance is healthy.</p>
+            {showTopUp ? (
+              <div className="text-left pt-2">
+                <UpiPaySection player={player} config={cfg} />
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowTopUp(true)}
+                className="text-sm text-green-600 hover:underline"
+              >
+                Top up anyway →
+              </button>
+            )}
           </div>
         )}
 

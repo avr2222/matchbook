@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { usePlayers } from '../../hooks/useData'
 import BalanceBadge from '../../components/ui/BalanceBadge'
 import { PageSpinner } from '../../components/ui/Spinner'
@@ -65,9 +66,11 @@ export default function Players() {
             {visible.length === 0 ? (
               <tr><td colSpan={5} className="text-center py-10 text-gray-400">No players found.</td></tr>
             ) : visible.map((p, i) => (
-              <tr key={p.id} className="hover:bg-gray-50">
+              <tr key={p.id} className="hover:bg-gray-50 cursor-pointer">
                 <td className="px-4 py-3 text-gray-400">{i + 1}</td>
-                <td className="px-4 py-3 font-medium text-gray-900">{p.display_name}</td>
+                <td className="px-4 py-3 font-medium text-gray-900">
+                  <Link to={`/pay/${p.id}`} className="hover:text-green-700 hover:underline">{p.display_name}</Link>
+                </td>
                 <td className="px-4 py-3 text-gray-500">
                   <span className="mr-1">{typeEmoji(p.type)}</span>{typeLabel(p.type)}
                 </td>
@@ -75,7 +78,7 @@ export default function Players() {
                   {p.type === 'ppm' ? 'PPM' : `₹${(p.corpus_balance ?? 0).toLocaleString('en-IN')}`}
                 </td>
                 <td className="px-4 py-3 text-center">
-                  <BalanceBadge status={p.balance_status} />
+                  <Link to={`/pay/${p.id}`}><BalanceBadge status={p.balance_status} /></Link>
                 </td>
               </tr>
             ))}
