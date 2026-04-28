@@ -69,31 +69,38 @@ export default function AdminDashboard() {
 
       {/* Warning banners */}
       {unmatched.length > 0 && (
-        <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4 text-sm text-yellow-800 flex items-center justify-between">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-2xl px-4 py-3 text-sm text-yellow-800 flex items-center justify-between gap-3">
           <span>⚠️ {unmatched.length} player(s) from last CricHeroes sync could not be matched.</span>
-          <Link to="/admin/mapping" className="underline font-medium">Fix mapping →</Link>
+          <Link to="/admin/mapping" className="underline font-semibold shrink-0">Fix →</Link>
         </div>
       )}
       {staleMaps > 0 && (
-        <div className="bg-orange-50 border border-orange-300 rounded-lg p-4 text-sm text-orange-800 flex items-center justify-between">
+        <div className="bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3 text-sm text-orange-800 flex items-center justify-between gap-3">
           <span>🟡 {staleMaps} CricHeroes mapping(s) flagged for manual review.</span>
-          <Link to="/admin/mapping" className="underline font-medium">Review →</Link>
+          <Link to="/admin/mapping" className="underline font-semibold shrink-0">Review →</Link>
         </div>
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'Active Players', value: players.length,   icon: '👥' },
-          { label: 'Matches',        value: completed.length, icon: '🏟' },
-          { label: 'At Risk',        value: atRisk.length,    icon: '⚠️' },
-          { label: 'Corpus Pool',    value: `₹${totalPool.toLocaleString('en-IN')}`, icon: '💰' },
-        ].map(({ label, value, icon }) => (
-          <div key={label} className="card text-center">
-            <div className="text-2xl mb-1">{icon}</div>
-            <div className="text-xl font-bold text-gray-900">{value}</div>
-            <div className="text-xs text-gray-500">{label}</div>
-          </div>
+          { label: 'Active Players', value: players.length,   icon: '👥', bg: 'from-blue-500 to-blue-600',     to: '/admin/players'      },
+          { label: 'Matches Played', value: completed.length, icon: '🏟', bg: 'from-green-500 to-emerald-600', to: '/admin/weeks'        },
+          { label: 'At Risk',        value: atRisk.length,    icon: '⚠️', bg: atRisk.length > 0 ? 'from-red-500 to-rose-600' : 'from-gray-400 to-gray-500', to: '/admin/players' },
+          { label: 'Corpus Pool',    value: `₹${Math.round(totalPool).toLocaleString('en-IN')}`, icon: '💰', bg: 'from-amber-500 to-orange-500', to: '/admin/transactions' },
+        ].map(({ label, value, icon, bg, to }) => (
+          <Link
+            key={label}
+            to={to}
+            className="group relative overflow-hidden rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+          >
+            <div className={`absolute inset-0 bg-gradient-to-br ${bg} opacity-90`} />
+            <div className="relative p-4 text-white">
+              <div className="text-2xl mb-2">{icon}</div>
+              <div className="text-2xl font-bold leading-tight">{value}</div>
+              <div className="text-xs font-medium text-white/75 mt-0.5">{label}</div>
+            </div>
+          </Link>
         ))}
       </div>
 

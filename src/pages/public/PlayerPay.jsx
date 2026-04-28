@@ -30,34 +30,39 @@ function UpiPaySection({ player, config }) {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="text-center text-sm text-gray-500">
-        Suggested top-up to reach <span className="font-medium text-green-700">Good</span> status
-      </div>
-      <div className="text-center text-3xl font-bold text-gray-900">
-        ₹{suggested.toLocaleString('en-IN')}
+    <div className="space-y-4">
+      <div className="text-center">
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Suggested Top-up</p>
+        <div className="text-4xl font-extrabold text-gray-900">
+          ₹{suggested.toLocaleString('en-IN')}
+        </div>
+        <p className="text-xs text-gray-400 mt-1">to reach <span className="text-emerald-600 font-semibold">Good</span> standing</p>
       </div>
 
       {isMobile ? (
         <a
           href={upiHref}
-          className="btn-primary w-full text-center block text-base py-3"
+          className="btn-primary w-full text-center block text-base py-3.5 rounded-2xl"
         >
           💳 Pay via UPI App
         </a>
       ) : (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4 space-y-2">
-          <p className="text-xs font-semibold text-green-800 uppercase tracking-wide">Pay to UPI ID</p>
+        <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 space-y-2">
+          <p className="text-xs font-bold text-emerald-700 uppercase tracking-widest">Pay to UPI ID</p>
           <div className="flex items-center gap-2">
-            <span className="font-mono text-lg font-semibold text-gray-900 flex-1">{upiId}</span>
+            <span className="font-mono text-base font-semibold text-gray-900 flex-1 break-all">{upiId}</span>
             <button
               onClick={copy}
-              className="text-sm text-green-700 font-medium border border-green-300 rounded-lg px-3 py-1.5 hover:bg-green-100 transition-colors"
+              className={`shrink-0 text-sm font-semibold px-3 py-1.5 rounded-xl border transition-all ${
+                copied
+                  ? 'bg-emerald-600 text-white border-emerald-600'
+                  : 'text-emerald-700 border-emerald-300 hover:bg-emerald-100'
+              }`}
             >
               {copied ? '✓ Copied' : 'Copy'}
             </button>
           </div>
-          <p className="text-xs text-gray-400">Open any UPI app and pay to this ID, or open this page on your phone to pay in one tap.</p>
+          <p className="text-xs text-gray-400">Open any UPI app and pay, or open this page on your phone to pay in one tap.</p>
         </div>
       )}
     </div>
@@ -78,10 +83,10 @@ export default function PlayerPay() {
   if (!player) {
     return (
       <div className="max-w-sm mx-auto px-4 py-16 text-center space-y-3">
-        <div className="text-4xl">🏏</div>
-        <p className="text-gray-600 font-medium">Player not found.</p>
+        <div className="text-5xl">🏏</div>
+        <p className="text-gray-700 font-semibold text-lg">Player not found.</p>
         <p className="text-sm text-gray-400">Check the link or contact your admin.</p>
-        <Link to="/" className="text-green-600 hover:underline text-sm block">← Back to home</Link>
+        <Link to="/" className="inline-block mt-2 text-green-600 hover:underline text-sm font-medium">← Back to home</Link>
       </div>
     )
   }
@@ -94,73 +99,93 @@ export default function PlayerPay() {
   const needsTopUp = player.balance_status !== 'good' && player.type !== 'ppm'
   const balance    = player.corpus_balance ?? 0
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center py-10 px-4">
-      <div className="w-full max-w-sm space-y-4">
+  const statusColor = {
+    good:         'from-emerald-600 via-green-500 to-teal-500',
+    collect_soon: 'from-amber-500 via-amber-400 to-yellow-400',
+    urgent:       'from-orange-600 via-orange-500 to-amber-500',
+    overdue:      'from-red-600 via-red-500 to-rose-500',
+  }[player.balance_status] ?? 'from-gray-600 to-gray-500'
 
-        {/* Team header */}
-        <div className="text-center mb-2">
-          <div className="text-3xl mb-1">🏏</div>
-          <h1 className="text-lg font-bold text-gray-900">{cfg?.team_name ?? 'Cricket Team'}</h1>
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center pb-12 px-4">
+      <div className="w-full max-w-sm">
+
+        {/* Hero gradient header */}
+        <div className={`relative overflow-hidden bg-gradient-to-br ${statusColor} rounded-b-3xl px-6 pt-10 pb-10 text-white text-center shadow-xl mb-6`}>
+          <div className="absolute inset-0 opacity-10 pointer-events-none select-none text-[120px] leading-none flex items-center justify-center">🏏</div>
+          <p className="text-white/70 text-xs font-bold uppercase tracking-widest mb-2">{cfg?.team_name ?? 'Cricket Team'}</p>
+          <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-3xl font-extrabold mx-auto mb-3 ring-2 ring-white/30">
+            {player.display_name.charAt(0).toUpperCase()}
+          </div>
+          <h1 className="text-xl font-bold">Hi, {player.display_name} 👋</h1>
+          <p className="text-white/60 text-xs mt-0.5">Corpus Account</p>
         </div>
 
-        {/* Player balance card */}
-        <div className="card text-center space-y-2">
-          <p className="text-sm text-gray-500">Hi, <span className="font-semibold text-gray-900">{player.display_name}</span> 👋</p>
-          <div className={`text-4xl font-bold mt-1 ${balance < 0 ? 'text-red-600' : 'text-gray-900'}`}>
-            {player.type === 'ppm' ? 'PPM' : `₹${balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+        {/* Balance card */}
+        <div className="card text-center mb-4 shadow-md">
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Corpus Balance</p>
+          <div className={`text-5xl font-extrabold tracking-tight mb-3 ${balance < 0 ? 'text-red-600' : 'text-gray-900'}`}>
+            {player.type === 'ppm'
+              ? <span className="text-3xl text-gray-500">PPM</span>
+              : `₹${balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            }
           </div>
-          <div className="text-sm text-gray-500">Corpus Balance</div>
-          <div className="flex justify-center mt-1">
+          <div className="flex justify-center">
             <BalanceBadge status={player.balance_status} />
           </div>
         </div>
 
         {/* Pay section */}
         {needsTopUp ? (
-          <div className="card">
+          <div className="card shadow-md mb-4">
             <UpiPaySection player={player} config={cfg} />
           </div>
         ) : (
-          <div className="card text-center py-6 space-y-3">
-            <div className="text-3xl">✅</div>
-            <p className="font-semibold text-green-700">You're all good!</p>
-            <p className="text-sm text-gray-500">Your corpus balance is healthy.</p>
+          <div className="card text-center mb-4 shadow-md">
             {showTopUp ? (
-              <div className="text-left pt-2">
+              <div className="text-left">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3 text-center">Top Up</p>
                 <UpiPaySection player={player} config={cfg} />
               </div>
             ) : (
-              <button
-                onClick={() => setShowTopUp(true)}
-                className="text-sm text-green-600 hover:underline"
-              >
-                Top up anyway →
-              </button>
+              <div className="py-4 space-y-3">
+                <div className="text-4xl">✅</div>
+                <p className="font-bold text-emerald-700 text-lg">You're all good!</p>
+                <p className="text-sm text-gray-400">Your corpus balance is healthy. No action needed.</p>
+                <button
+                  onClick={() => setShowTopUp(true)}
+                  className="mt-1 text-sm text-green-600 font-semibold hover:text-green-700 transition-colors"
+                >
+                  Top up anyway →
+                </button>
+              </div>
             )}
           </div>
         )}
 
-        {/* Next match info */}
+        {/* Next match */}
         {nextMatch && (
-          <div className="card bg-green-50 border border-green-200">
-            <p className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-1">Next Match</p>
-            <p className="font-semibold text-green-900">{format(parseISO(nextMatch.match_date), 'EEEE, MMM d')}</p>
+          <div className="card bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100 shadow-sm mb-4">
+            <p className="text-xs font-bold text-green-600 uppercase tracking-widest mb-1.5">Next Match</p>
+            <p className="font-bold text-green-900 text-base">{format(parseISO(nextMatch.match_date), 'EEEE, MMM d')}</p>
             {nextMatch.venue && (
-              <p className="text-sm text-green-700 mt-0.5">{nextMatch.venue.split(',')[0]}</p>
+              <p className="text-sm text-green-700 mt-0.5 flex items-center gap-1">
+                <span>📍</span>{nextMatch.venue.split(',')[0]}
+              </p>
             )}
-            <div className="flex items-center justify-between mt-2">
-              <span className="text-xs text-green-600">Match fee</span>
-              <span className="font-bold text-green-900">₹{(nextMatch.match_fee ?? 0).toLocaleString('en-IN')}</span>
+            <div className="flex items-center justify-between mt-3 pt-3 border-t border-green-100">
+              <span className="text-xs text-green-500 font-medium">Match fee</span>
+              <span className="font-extrabold text-green-800 text-xl">₹{(nextMatch.match_fee ?? 0).toLocaleString('en-IN')}</span>
             </div>
           </div>
         )}
 
         {/* Footer */}
-        <p className="text-center text-xs text-gray-400">
-          <Link to="/login" className="text-green-600 hover:underline">Log in</Link>
-          {' '}to see your full match history and transactions.
+        <p className="text-center text-xs text-gray-400 mt-2">
+          <Link to="/login" className="text-green-600 hover:underline font-medium">Log in</Link>
+          {' '}to view your full transaction history.
         </p>
+
       </div>
     </div>
   )
