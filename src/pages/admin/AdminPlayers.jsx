@@ -141,6 +141,7 @@ export default function AdminPlayers() {
   const { data: wData }         = useWeeks()
   const { data: eData }         = useExpenses()
   const isAdmin                 = useIsAdmin()
+  const [copiedId, setCopiedId] = useState(null)
   const [editing, setEditing]   = useState(null)
   const [detail, setDetail]     = useState(null)
   const [saving, setSaving]     = useState(false)
@@ -234,6 +235,15 @@ export default function AdminPlayers() {
 
   const sponsorName = (id) => players.find(p => p.id === id)?.display_name ?? id
 
+  function sharePayLink(playerId) {
+    const base = window.location.href.split('#')[0]
+    const url  = `${base}#/pay/${playerId}`
+    navigator.clipboard?.writeText(url).then(() => {
+      setCopiedId(playerId)
+      setTimeout(() => setCopiedId(null), 2000)
+    })
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -313,6 +323,15 @@ export default function AdminPlayers() {
                 <td className="px-4 py-3 text-center"><BalanceBadge status={p.balance_status} /></td>
                 <td className="px-4 py-3 text-center text-gray-400 text-xs">{p.github_username || '—'}</td>
                 <td className="px-4 py-3 text-center whitespace-nowrap">
+                  {(p.type === 'corpus' || p.type === 'new') && (
+                    <button
+                      onClick={() => sharePayLink(p.id)}
+                      className="text-green-600 hover:underline text-xs mr-3"
+                      title="Copy pay link"
+                    >
+                      {copiedId === p.id ? '✓ Copied' : '📤 Pay Link'}
+                    </button>
+                  )}
                   {isAdmin ? (
                     <>
                       <button onClick={() => openEdit(p)} className="text-blue-600 hover:underline text-xs mr-3">Edit</button>

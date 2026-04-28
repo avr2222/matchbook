@@ -8,6 +8,7 @@ import { useIsAdmin } from './hooks/useIsAdmin'
 
 import Dashboard      from './pages/public/Dashboard'
 import Players        from './pages/public/Players'
+import PlayerPay      from './pages/public/PlayerPay'
 import DeviceFlowLogin from './auth/DeviceFlowLogin'
 import MyDashboard    from './pages/player/MyDashboard'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -50,9 +51,10 @@ export default function App() {
           <div className="flex-1">
             <Routes>
               {/* Public */}
-              <Route path="/"        element={<Dashboard />} />
-              <Route path="/players" element={<Players />} />
-              <Route path="/login"   element={<DeviceFlowLogin />} />
+              <Route path="/"              element={<Dashboard />} />
+              <Route path="/players"       element={<Players />} />
+              <Route path="/pay/:playerId" element={<PlayerPay />} />
+              <Route path="/login"         element={<DeviceFlowLogin />} />
               <Route path="/unauthorized" element={
                 <div className="flex items-center justify-center h-64 text-gray-500">
                   Access denied. You don't have permission to view this page.
