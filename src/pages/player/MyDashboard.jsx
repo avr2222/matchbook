@@ -6,21 +6,56 @@ import { PageSpinner } from '../../components/ui/Spinner'
 import MatchPlayersModal from '../../components/ui/MatchPlayersModal'
 import { format, parseISO } from 'date-fns'
 
-function PayNowButton({ balance, config }) {
-  const upiId = config?.admin_upi_id
-  if (!upiId || balance >= 0) return null
-  const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent)
-  if (!isMobile) return null
-  const amount = Math.abs(Math.round(balance))
-  const name   = encodeURIComponent(config?.team_name ?? 'Cricket Team')
-  const note   = encodeURIComponent('MatchBook Corpus Topup')
+function PayNowButton({ player, config }) {
+  const [copied, setCopied] = useState(false)
+  const upiId    = config?.admin_upi_id
+  const threshold = config?.corpus_low_threshold ?? 1000
+  const balance   = player.corpus_balance ?? 0
+
+  if (!upiId || player.balance_status === 'good') return null
+
+  // Round up to nearest ₹500 to bring balance comfortably above threshold
+  const needed    = Math.max(threshold - balance, 500)
+  const suggested = Math.ceil(needed / 500) * 500
+
+  const isMobile  = /Android|iPhone|iPad/i.test(navigator.userAgent)
+  const name      = encodeURIComponent(config?.team_name ?? 'Cricket Team')
+  const note      = encodeURIComponent(`Corpus Topup - ${player.display_name}`)
+  const upiHref   = `upi://pay?pa=${upiId}&pn=${name}&am=${suggested}&cu=INR&tn=${note}`
+
+  function copyUpi() {
+    navigator.clipboard?.writeText(upiId).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  if (isMobile) {
+    return (
+      <a href={upiHref} className="mt-3 btn-primary text-sm w-full text-center block">
+        💳 Pay ₹{suggested.toLocaleString('en-IN')} via UPI
+      </a>
+    )
+  }
+
   return (
-    <a
-      href={`upi://pay?pa=${upiId}&pn=${name}&am=${amount}&cu=INR&tn=${note}`}
-      className="mt-3 btn-primary text-sm w-full text-center block"
-    >
-      Pay ₹{amount.toLocaleString('en-IN')} via UPI
-    </a>
+    <div className="mt-3 bg-green-50 border border-green-200 rounded-lg p-3 text-left">
+      <p className="text-xs font-semibold text-green-800 mb-1">
+        Top up ₹{suggested.toLocaleString('en-IN')} to reach Good status
+      </p>
+      <div className="flex items-center gap-2 mt-1">
+        <span className="font-mono text-sm bg-white border border-gray-200 rounded px-2 py-1 flex-1 text-gray-800 truncate">
+          {upiId}
+        </span>
+        <button
+          onClick={copyUpi}
+          className="text-xs text-green-700 font-medium hover:underline whitespace-nowrap"
+        >
+          {copied ? '✓ Copied' : 'Copy ID'}
+        </button>
+      </div>
+      <p className="text-xs text-gray-400 mt-1.5">Open on mobile to pay directly via UPI app</p>
+    </div>
   )
 }
 
@@ -149,7 +184,7 @@ export default function MyDashboard() {
           </div>
           <div className="text-sm text-gray-500 mt-1">My Balance</div>
           <div className="mt-2"><BalanceBadge status={player.balance_status} /></div>
-          {player.type !== 'ppm' && <PayNowButton balance={player.corpus_balance ?? 0} config={cfg} />}
+          {player.type !== 'ppm' && <PayNowButton player={player} config={cfg} />}
         </div>
         <div className="card text-center">
           <div className="text-3xl font-bold text-gray-900">
