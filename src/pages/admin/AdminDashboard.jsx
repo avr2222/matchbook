@@ -29,7 +29,8 @@ export default function AdminDashboard() {
   const unmatched   = mapData?.unmatched ?? []
   const staleMaps   = (mapData?.player_mappings ?? []).filter(m => !m.confirmed).length
   const expenses    = eData?.expenses ?? []
-  const recentWeeks = [...completed].sort((a, b) => b.match_date.localeCompare(a.match_date)).slice(0, 3)
+  const recentWeeks   = [...completed].sort((a, b) => b.match_date.localeCompare(a.match_date)).slice(0, 3)
+  const totalMatches  = completed.reduce((s, w) => s + (w.cricheroes_match_ids?.length ?? 1), 0)
 
   // Corpus health — how many more matches the pool can cover per player
   const corpusPlayers   = players.filter(p => p.type === 'corpus' || p.type === 'new')
@@ -85,7 +86,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: 'Active Players', value: players.length,   icon: '👥', bg: 'from-blue-500 to-blue-600',     to: '/admin/players'      },
-          { label: 'Matches Played', value: completed.length, icon: '🏟', bg: 'from-green-500 to-emerald-600', to: '/admin/weeks'        },
+          { label: 'Weeks Played',   value: completed.length, icon: '🏟', bg: 'from-green-500 to-emerald-600', to: '/admin/weeks'        },
           { label: 'At Risk',        value: atRisk.length,    icon: '⚠️', bg: atRisk.length > 0 ? 'from-red-500 to-rose-600' : 'from-gray-400 to-gray-500', to: '/admin/players' },
           { label: 'Corpus Pool',    value: `₹${Math.round(totalPool).toLocaleString('en-IN')}`, icon: '💰', bg: 'from-amber-500 to-orange-500', to: '/admin/transactions' },
         ].map(({ label, value, icon, bg, to }) => (

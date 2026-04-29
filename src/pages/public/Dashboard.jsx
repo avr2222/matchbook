@@ -23,15 +23,18 @@ export default function Dashboard() {
   const completed    = weeks.filter(w => w.status === 'completed')
   const scheduled    = weeks.filter(w => w.status === 'scheduled').sort((a, b) => a.match_date.localeCompare(b.match_date))
   const records      = aData?.records ?? []
-  const nextMatch    = scheduled[0] ?? null
   const seasonName   = tData?.tournaments?.find(t => t.id === activeTournamentId)?.short_name ?? cfg?.team_name ?? 'Season'
 
   const statusCounts = { good: 0, collect_soon: 0, urgent: 0, overdue: 0 }
   corpusPlayers.forEach(p => { if (statusCounts[p.balance_status] !== undefined) statusCounts[p.balance_status]++ })
   const remainingPool = corpusPlayers.reduce((s, p) => s + (p.corpus_balance ?? 0), 0)
   const recentWeeks   = [...completed].sort((a, b) => b.match_date.localeCompare(a.match_date)).slice(0, 5)
+  // Each week may have multiple games (e.g. 3-game CricHeroes session)
+  const totalMatches  = completed.reduce((s, w) => s + (w.cricheroes_match_ids?.length ?? 1), 0)
 
   const todayStr = new Date().toISOString().slice(0, 10)
+  // Only show scheduled weeks that are actually in the future
+  const futureScheduled = scheduled.filter(w => w.match_date > todayStr)
   const activeAnnouncements = (annData?.announcements ?? [])
     .filter(a => !a.expires_on || a.expires_on >= todayStr)
     .sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.posted_on.localeCompare(a.posted_on))
@@ -47,7 +50,7 @@ export default function Dashboard() {
 
   const stats = [
     { label: 'Active Players',   value: allActive.length,                                       icon: '👥', to: '/players',            bg: 'from-blue-500 to-blue-600'    },
-    { label: 'Matches Played',   value: completed.length,                                       icon: '🏏', to: '/admin/weeks',         bg: 'from-green-500 to-emerald-600' },
+    { label: 'Weeks Played',     value: completed.length,                                       icon: '🏏', to: '/admin/weeks',         bg: 'from-green-500 to-emerald-600' },
     { label: 'Corpus Pool',      value: `₹${Math.round(remainingPool).toLocaleString('en-IN')}`, icon: '💰', to: '/admin/transactions',  bg: 'from-amber-500 to-orange-500'  },
     { label: 'Season',           value: seasonName,                                             icon: '🏆', to: '/admin',               bg: 'from-purple-500 to-violet-600' },
   ]
@@ -61,14 +64,8 @@ export default function Dashboard() {
         <p className="text-green-200 text-sm font-semibold uppercase tracking-widest mb-1">{seasonName}</p>
         <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-1">{cfg?.team_name ?? 'MatchBook'}</h1>
         <p className="text-green-100 text-sm mt-1">
-          {completed.length} match{completed.length !== 1 ? 'es' : ''} played · {allActive.length} active players
+          {completed.length} week{completed.length !== 1 ? 's' : ''} played · {allActive.length} active players
         </p>
-        {nextMatch && (
-          <div className="mt-4 inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm rounded-xl px-4 py-2 text-sm font-medium">
-            <span className="w-2 h-2 bg-green-300 rounded-full animate-pulse" />
-            Next match: {format(parseISO(nextMatch.match_date), 'EEE, MMM d')}
-          </div>
-        )}
       </div>
 
       {/* Announcements */}
@@ -104,28 +101,6 @@ export default function Dashboard() {
           </Link>
         ))}
       </div>
-
-      {/* Next match banner */}
-      {nextMatch && (
-        <div className="card bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100 mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-bold text-green-600 uppercase tracking-widest mb-1">Upcoming Match</p>
-              <p className="font-bold text-green-900 text-xl">{format(parseISO(nextMatch.match_date), 'EEEE, MMM d')}</p>
-              {nextMatch.venue && (
-                <p className="text-sm text-green-700 mt-0.5 flex items-center gap-1">
-                  <span>📍</span>{nextMatch.venue.split(',')[0]}
-                </p>
-              )}
-              {nextMatch.notes && <p className="text-xs text-green-600 mt-1 italic">{nextMatch.notes}</p>}
-            </div>
-            <div className="text-right shrink-0 ml-4">
-              <p className="text-xs text-green-500 font-medium">Match fee</p>
-              <p className="text-3xl font-extrabold text-green-700">₹{(nextMatch.match_fee ?? 0).toLocaleString('en-IN')}</p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Balance health */}
       <div className="card mb-6">

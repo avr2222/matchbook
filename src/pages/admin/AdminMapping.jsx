@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useMapping, usePlayers } from '../../hooks/useData'
-import { writeCricHeroesMapping } from '../../api/dataWriter'
+import { writeCricHeroesMapping, writePlayers } from '../../api/dataWriter'
 import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { useIsAdmin } from '../../hooks/useIsAdmin'
@@ -60,6 +60,40 @@ export default function AdminMapping() {
     })
   }
 
+  async function syncName(mappingEntry) {
+    if (!mappingEntry.player_id || !mappingEntry.cricheroes_name) return
+    try {
+      const updated = (pData?.players ?? []).map(p =>
+        p.id === mappingEntry.player_id ? { ...p, display_name: mappingEntry.cricheroes_name } : p
+      )
+      await writePlayers(updated, 'edit_player', mappingEntry.player_id,
+        `Name synced from CricHeroes: ${mappingEntry.cricheroes_name}`, null, null)
+      qc.invalidateQueries({ queryKey: ['players'] })
+      showToast(`Name updated to "${mappingEntry.cricheroes_name}"`)
+    } catch (e) {
+      showToast(e.message, 'error')
+    }
+  }
+
+  async function syncAllNames() {
+    if (!confirm('Update all confirmed-mapped players to use their CricHeroes profile names?')) return
+    const confirmedMaps = (mapping.player_mappings ?? [])
+      .filter(m => m.confirmed && m.player_id && m.cricheroes_name)
+    if (!confirmedMaps.length) { showToast('No confirmed mappings to sync', 'error'); return }
+    try {
+      const nameMap = Object.fromEntries(confirmedMaps.map(m => [m.player_id, m.cricheroes_name]))
+      const updated = (pData?.players ?? []).map(p =>
+        nameMap[p.id] ? { ...p, display_name: nameMap[p.id] } : p
+      )
+      await writePlayers(updated, 'bulk_edit', null,
+        `Synced ${confirmedMaps.length} player names from CricHeroes`, null, null)
+      qc.invalidateQueries({ queryKey: ['players'] })
+      showToast(`${confirmedMaps.length} player names synced from CricHeroes`)
+    } catch (e) {
+      showToast(e.message, 'error')
+    }
+  }
+
   async function save() {
     setSaving(true)
     try {
@@ -76,13 +110,20 @@ export default function AdminMapping() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <h1 className="text-xl font-bold text-gray-900">CricHeroes Player Mapping</h1>
-        {localMap && isAdmin && (
-          <button onClick={save} disabled={saving} className="btn-primary text-sm">
-            {saving ? 'Saving…' : 'Save Changes'}
-          </button>
-        )}
+        <div className="flex gap-2">
+          {isAdmin && (
+            <button onClick={syncAllNames} className="btn-secondary text-sm">
+              🔄 Sync All Names
+            </button>
+          )}
+          {localMap && isAdmin && (
+            <button onClick={save} disabled={saving} className="btn-primary text-sm">
+              {saving ? 'Saving…' : 'Save Changes'}
+            </button>
+          )}
+        </div>
       </div>
 
       {unmatched.length > 0 && (
@@ -118,6 +159,7 @@ export default function AdminMapping() {
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Mapped To</th>
               <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Confidence</th>
               <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Remap</th>
+              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Name</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -143,6 +185,20 @@ export default function AdminMapping() {
                       <option value="">— unassign —</option>
                       {players.filter(p=>p.status==='active').map(p => <option key={p.id} value={p.id}>{p.display_name}</option>)}
                     </select>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {isAdmin && m.player_id && m.cricheroes_name && player?.display_name !== m.cricheroes_name && (
+                      <button
+                        onClick={() => syncName(m)}
+                        className="text-xs text-blue-600 hover:underline font-medium whitespace-nowrap"
+                        title={`Set display name to "${m.cricheroes_name}"`}
+                      >
+                        Use CH Name
+                      </button>
+                    )}
+                    {player?.display_name === m.cricheroes_name && (
+                      <span className="text-xs text-gray-300">✓ Synced</span>
+                    )}
                   </td>
                 </tr>
               )

@@ -163,8 +163,9 @@ export default function MyDashboard() {
     .filter(w => w.tournament_id === activeTId && w.status === 'completed')
     .sort((a, b) => b.match_date.localeCompare(a.match_date))
 
+  const todayStr = new Date().toISOString().slice(0, 10)
   const scheduledWeeks = (wData?.weeks ?? [])
-    .filter(w => w.tournament_id === activeTId && w.status === 'scheduled')
+    .filter(w => w.tournament_id === activeTId && w.status === 'scheduled' && w.match_date > todayStr)
     .sort((a, b) => a.match_date.localeCompare(b.match_date))
 
   const allMyTxns = (tData?.transactions ?? [])
@@ -197,9 +198,8 @@ export default function MyDashboard() {
     type: 'transaction', direction: t.direction, amount: t.amount, description: t.description,
   }))).sort((a, b) => b.date.localeCompare(a.date))
 
-  const today = new Date().toISOString().slice(0, 10)
   const activeAnnouncements = (annData?.announcements ?? [])
-    .filter(a => !a.expires_on || a.expires_on >= today)
+    .filter(a => !a.expires_on || a.expires_on >= todayStr)
     .sort((a, b) => b.posted_on.localeCompare(a.posted_on))
 
   const nextMatch = scheduledWeeks[0]
