@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "last_updated": "2026-04-28T09:55:32.770Z",
+  "last_updated": "2026-04-30T08:20:06.875Z",
   "players": [
     {
       "id": "PLY_001",
@@ -580,7 +580,7 @@
     },
     {
       "id": "PLY_033",
-      "display_name": "Ashok(Raaga)",
+      "display_name": "Ashok adapala",
       "type": "corpus",
       "status": "active",
       "joined_date": "2026-02-22",
