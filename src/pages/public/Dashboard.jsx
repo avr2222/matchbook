@@ -5,6 +5,63 @@ import { PageSpinner } from '../../components/ui/Spinner'
 import MatchPlayersModal from '../../components/ui/MatchPlayersModal'
 import { format, parseISO } from 'date-fns'
 
+function PlayerTransactionModal({ player, allTxns, weeks, onClose }) {
+  const txns = allTxns
+    .filter(t => t.player_id === player.id)
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 40)
+
+  const statusColor = {
+    good:         'bg-emerald-100 text-emerald-700',
+    collect_soon: 'bg-amber-100 text-amber-700',
+    urgent:       'bg-orange-100 text-orange-700',
+    overdue:      'bg-red-100 text-red-700',
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="px-5 py-4 border-b border-gray-100 flex items-start justify-between shrink-0">
+          <div>
+            <h2 className="font-bold text-gray-900">{player.display_name}</h2>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-sm font-semibold text-gray-700">
+                ₹{Math.round(player.corpus_balance ?? 0).toLocaleString('en-IN')}
+              </span>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor[player.balance_status] ?? 'bg-gray-100 text-gray-600'}`}>
+                {(player.balance_status ?? '').replace('_', ' ')}
+              </span>
+            </div>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none ml-4">✕</button>
+        </div>
+        <div className="overflow-y-auto flex-1 divide-y divide-gray-50">
+          {txns.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-10">No transactions yet.</p>
+          ) : txns.map(t => {
+            const week = weeks.find(w => w.week_id === t.week_id)
+            return (
+              <div key={t.id} className="flex items-start justify-between px-5 py-3">
+                <div className="flex-1 min-w-0 pr-3">
+                  <div className="text-xs text-gray-400">
+                    {format(parseISO(t.date), 'MMM d, yyyy')}
+                    {week ? ` · ${week.label}` : ''}
+                  </div>
+                  <div className="text-sm text-gray-700 mt-0.5">{t.description}</div>
+                  <div className="text-xs text-gray-400 mt-0.5 capitalize">{t.type.replace(/_/g, ' ')}</div>
+                </div>
+                <div className={`font-mono font-semibold text-sm shrink-0 ${t.direction === 'credit' ? 'text-green-600' : 'text-red-500'}`}>
+                  {t.direction === 'credit' ? '+' : '−'}₹{t.amount.toLocaleString('en-IN')}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Dashboard() {
   const [detail, setDetail]         = useState(null)
   const [payPlayer, setPayPlayer]   = useState('')
@@ -293,6 +350,14 @@ export default function Dashboard() {
         records={records}
         onClose={() => setDetail(null)}
       />
+      {playerDetail && (
+        <PlayerTransactionModal
+          player={playerDetail}
+          allTxns={txnData?.transactions ?? []}
+          weeks={wData?.weeks ?? []}
+          onClose={() => setPlayerDetail(null)}
+        />
+      )}
     </div>
   )
 }

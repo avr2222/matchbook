@@ -42,6 +42,8 @@ export default function AdminTransactions() {
   const [approvingId, setApprovingId] = useState(null)
   const [form, setForm]           = useState(EMPTY_FORM)
   const [confirmData, setConfirmData] = useState(null)
+  const [editTxn, setEditTxn]         = useState(null)
+  const [editTxnForm, setEditTxnForm] = useState(null)
 
   // Filters
   const [filterPlayer, setFilterPlayer] = useState('')
@@ -229,6 +231,29 @@ export default function AdminTransactions() {
     })
   }
 
+  async function saveEditTxn() {
+    setSaving(true)
+    try {
+      const updated = {
+        ...editTxn,
+        date: editTxnForm.date,
+        description: editTxnForm.description,
+        receipt_ref: editTxnForm.receipt_ref,
+        week_id: editTxnForm.week_id || null,
+      }
+      const updatedList = allTxns.map(t => t.id === editTxn.id ? updated : t)
+      await writeTransactions(updatedList, 'edit_transaction', editTxn.id,
+        `Edited transaction ${editTxn.id}: ${editTxnForm.description}`, editTxn, updated)
+      qc.invalidateQueries({ queryKey: ['transactions'] })
+      setEditTxn(null)
+      showToast('Transaction updated')
+    } catch (e) {
+      showToast(e.message, 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   async function saveBulk() {
     const validRows = bulkRows.filter(r => r.player_id && parseFloat(r.amount) > 0)
     if (!validRows.length) { showToast('Add at least one valid row', 'error'); return }
@@ -398,9 +423,17 @@ export default function AdminTransactions() {
                   <td className="px-4 py-3 text-gray-400 text-xs">{t.description}</td>
                   <td className="px-4 py-3 text-center">
                     {isAdmin && (
-                      <button onClick={() => reverseTransaction(t)} className="text-orange-500 hover:underline text-xs" title="Create reversal entry">
-                        Reverse
-                      </button>
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => { setEditTxn(t); setEditTxnForm({ date: t.date, description: t.description ?? '', receipt_ref: t.receipt_ref ?? '', week_id: t.week_id ?? '' }) }}
+                          className="text-blue-500 hover:underline text-xs"
+                        >
+                          Edit
+                        </button>
+                        <button onClick={() => reverseTransaction(t)} className="text-orange-500 hover:underline text-xs" title="Create reversal entry">
+                          Reverse
+                        </button>
+                      </div>
                     )}
                   </td>
                 </tr>
@@ -467,6 +500,45 @@ export default function AdminTransactions() {
       )}
 
       {confirmData && <ConfirmModal {...confirmData} onClose={() => setConfirmData(null)} />}
+
+      {editTxn && editTxnForm && isAdmin && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
+              <div>
+                <h2 className="font-semibold">Edit Transaction</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Amount and player cannot be changed — use Reverse to correct those.</p>
+              </div>
+              <button onClick={() => setEditTxn(null)} className="text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+            <div className="px-6 py-4 space-y-3">
+              <div>
+                <label className="label">Date</label>
+                <input className="input" type="date" value={editTxnForm.date} onChange={e => setEditTxnForm(f => ({ ...f, date: e.target.value }))} />
+              </div>
+              <div>
+                <label className="label">Description</label>
+                <input className="input" value={editTxnForm.description} onChange={e => setEditTxnForm(f => ({ ...f, description: e.target.value }))} />
+              </div>
+              <div>
+                <label className="label">UPI / Ref # (optional)</label>
+                <input className="input" value={editTxnForm.receipt_ref} onChange={e => setEditTxnForm(f => ({ ...f, receipt_ref: e.target.value }))} />
+              </div>
+              <div>
+                <label className="label">Match (optional)</label>
+                <select className="input" value={editTxnForm.week_id} onChange={e => setEditTxnForm(f => ({ ...f, week_id: e.target.value }))}>
+                  <option value="">— not tied to a match —</option>
+                  {weeks.map(w => <option key={w.week_id} value={w.week_id}>{w.label} · {w.match_date}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
+              <button onClick={() => setEditTxn(null)} className="btn-secondary">Cancel</button>
+              <button onClick={saveEditTxn} disabled={saving} className="btn-primary">{saving ? 'Saving…' : 'Save'}</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bulk payment form — admin only */}
       {showBulk && isAdmin && (

@@ -26,7 +26,7 @@ export default function AdminWeeks() {
   const [detail, setDetail]               = useState(null)
   const [showNew, setShowNew]             = useState(false)
   const [newWeek, setNewWeek]             = useState({
-    match_date: '', venue: '', match_fee: cfg?.default_match_fee ?? 500,
+    match_date: '', venue: '', match_fee: cfg?.default_match_fee ?? 4688,
     total_cost: '', expected_players: '', notes: '',
   })
   const [saving, setSaving]   = useState(false)
@@ -219,7 +219,7 @@ export default function AdminWeeks() {
       await writeWeeks([...wData.weeks, week], 'add_week', `Added match ${week.label}`)
       qc.invalidateQueries({ queryKey: ['weeks'] })
       setShowNew(false)
-      setNewWeek({ match_date: '', venue: '', match_fee: cfg?.default_match_fee ?? 500, total_cost: '', expected_players: '', notes: '' })
+      setNewWeek({ match_date: '', venue: '', match_fee: cfg?.default_match_fee ?? 4688, total_cost: '', expected_players: '', notes: '' })
       showToast('Match week added')
     } catch (e) {
       showToast(e.message, 'error')

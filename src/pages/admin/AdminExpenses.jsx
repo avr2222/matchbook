@@ -49,6 +49,8 @@ export default function AdminExpenses() {
   const [saving, setSaving]     = useState(false)
   const [deletingId, setDeletingId] = useState(null)
   const [confirmData, setConfirmData] = useState(null)
+  const [editExpense, setEditExpense] = useState(null)
+  const [editForm, setEditForm]       = useState(null)
   const [form, setForm] = useState({
     date: new Date().toISOString().slice(0, 10),
     week_id: '',
@@ -174,6 +176,35 @@ export default function AdminExpenses() {
     })
   }
 
+  async function saveEdit() {
+    if (!editForm.amount || parseFloat(editForm.amount) <= 0) { showToast('Valid amount required', 'error'); return }
+    setSaving(true)
+    try {
+      const payer = players.find(p => p.id === editForm.paid_by_player_id) ?? null
+      const updated = {
+        ...editExpense,
+        date: editForm.date,
+        week_id: editForm.week_id || null,
+        category: editForm.category,
+        amount: parseFloat(editForm.amount),
+        description: editForm.description || CATEGORIES.find(c => c.value === editForm.category)?.label,
+        split_among: editForm.split_among,
+        paid_by: payer?.display_name ?? '',
+        paid_by_player_id: editForm.paid_by_player_id || null,
+      }
+      const updatedList = expenses.map(e => e.id === editExpense.id ? updated : e)
+      await writeExpenses(updatedList, 'edit_expense', `Edited expense: ${updated.description} ₹${editForm.amount}`)
+      qc.invalidateQueries({ queryKey: ['expenses'] })
+      setEditExpense(null)
+      setEditForm(null)
+      showToast('Expense updated')
+    } catch (e) {
+      showToast(e.message, 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const total = expenses.reduce((s, e) => s + e.amount, 0)
   const preview = perPlayerPreview()
 
@@ -225,13 +256,21 @@ export default function AdminExpenses() {
                   </td>
                   <td className="px-4 py-3 text-center">
                     {isAdmin && (
-                      <button
-                        onClick={() => deleteExpense(e)}
-                        disabled={deletingId === e.id}
-                        className="text-xs text-red-500 hover:underline disabled:opacity-50"
-                      >
-                        {deletingId === e.id ? 'Deleting…' : 'Delete'}
-                      </button>
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => { setEditExpense(e); setEditForm({ date: e.date, week_id: e.week_id ?? '', category: e.category, amount: String(e.amount), description: e.description ?? '', split_among: e.split_among ?? 'all_played', paid_by_player_id: e.paid_by_player_id ?? '' }) }}
+                          className="text-xs text-blue-500 hover:underline"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => deleteExpense(e)}
+                          disabled={deletingId === e.id}
+                          className="text-xs text-red-500 hover:underline disabled:opacity-50"
+                        >
+                          {deletingId === e.id ? 'Deleting…' : 'Delete'}
+                        </button>
+                      </div>
                     )}
                   </td>
                 </tr>
@@ -250,6 +289,61 @@ export default function AdminExpenses() {
       </div>
 
       {confirmData && <ConfirmModal {...confirmData} onClose={() => setConfirmData(null)} />}
+
+      {editExpense && editForm && isAdmin && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+            <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
+              <h2 className="font-semibold">Edit Expense</h2>
+              <button onClick={() => { setEditExpense(null); setEditForm(null) }} className="text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+            <div className="px-6 py-4 space-y-3">
+              <div>
+                <label className="label">Category</label>
+                <select className="input" value={editForm.category} onChange={e => setEditForm(f => ({ ...f, category: e.target.value }))}>
+                  {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="label">Amount (₹)</label>
+                <input className="input" type="number" min="0" value={editForm.amount} onChange={e => setEditForm(f => ({ ...f, amount: e.target.value }))} />
+              </div>
+              <div>
+                <label className="label">Date</label>
+                <input className="input" type="date" value={editForm.date} onChange={e => setEditForm(f => ({ ...f, date: e.target.value }))} />
+              </div>
+              <div>
+                <label className="label">Match (optional)</label>
+                <select className="input" value={editForm.week_id} onChange={e => setEditForm(f => ({ ...f, week_id: e.target.value }))}>
+                  <option value="">— not tied to a match —</option>
+                  {weeks.map(w => <option key={w.week_id} value={w.week_id}>{w.label} · {w.match_date}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="label">Split Among</label>
+                <select className="input" value={editForm.split_among} onChange={e => setEditForm(f => ({ ...f, split_among: e.target.value }))}>
+                  {SPLIT_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="label">Description</label>
+                <input className="input" value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} />
+              </div>
+              <div>
+                <label className="label">Who paid? (optional)</label>
+                <select className="input" value={editForm.paid_by_player_id} onChange={e => setEditForm(f => ({ ...f, paid_by_player_id: e.target.value }))}>
+                  <option value="">— nobody / unknown —</option>
+                  {players.map(p => <option key={p.id} value={p.id}>{p.display_name}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
+              <button onClick={() => { setEditExpense(null); setEditForm(null) }} className="btn-secondary">Cancel</button>
+              <button onClick={saveEdit} disabled={saving} className="btn-primary">{saving ? 'Saving…' : 'Save'}</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showForm && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">

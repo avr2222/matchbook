@@ -48,7 +48,7 @@ async function writeFile(octokit, config, path, content, message, retries = 3) {
       })
       return
     } catch (err) {
-      if (err.status === 409 && attempt < retries) {
+      if ((err.status === 409 || err.status === 422) && attempt < retries) {
         await new Promise(r => setTimeout(r, 500 * attempt))
         continue
       }
