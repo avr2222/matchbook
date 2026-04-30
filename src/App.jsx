@@ -9,6 +9,7 @@ import { useIsAdmin } from './hooks/useIsAdmin'
 import Dashboard      from './pages/public/Dashboard'
 import Players        from './pages/public/Players'
 import PlayerPay      from './pages/public/PlayerPay'
+import PlayerDetail   from './pages/public/PlayerDetail'
 import DeviceFlowLogin from './auth/DeviceFlowLogin'
 import MyDashboard    from './pages/player/MyDashboard'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -54,6 +55,7 @@ export default function App() {
               {/* Public */}
               <Route path="/"              element={<Dashboard />} />
               <Route path="/players"       element={<Players />} />
+              <Route path="/player/:id"    element={<PlayerDetail />} />
               <Route path="/pay/:playerId" element={<PlayerPay />} />
               <Route path="/login"         element={<DeviceFlowLogin />} />
               <Route path="/unauthorized" element={

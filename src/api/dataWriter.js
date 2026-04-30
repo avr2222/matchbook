@@ -28,11 +28,12 @@ async function getFileSha(octokit, config, path) {
     repo: config.repo_name,
     path,
     ref: config.data_branch,
+    headers: { 'If-None-Match': '' }, // bypass GitHub's ETag cache for fresh SHA
   })
   return { sha: data.sha, content: JSON.parse(atob(data.content.replace(/\n/g, ''))) }
 }
 
-async function writeFile(octokit, config, path, content, message, retries = 3) {
+async function writeFile(octokit, config, path, content, message, retries = 5) {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       const { sha } = await getFileSha(octokit, config, path)
