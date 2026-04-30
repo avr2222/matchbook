@@ -1,20 +1,24 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { usePlayers, useWeeks, useAttendance, useTournaments, useConfig, useAnnouncements } from '../../hooks/useData'
+import { usePlayers, useWeeks, useAttendance, useTournaments, useConfig, useAnnouncements, useTransactions, useExpenses } from '../../hooks/useData'
 import { PageSpinner } from '../../components/ui/Spinner'
 import MatchPlayersModal from '../../components/ui/MatchPlayersModal'
 import { format, parseISO } from 'date-fns'
 
 export default function Dashboard() {
-  const [detail, setDetail]     = useState(null)
-  const [payPlayer, setPayPlayer] = useState('')
-  const [copied, setCopied]     = useState(false)
+  const [detail, setDetail]         = useState(null)
+  const [payPlayer, setPayPlayer]   = useState('')
+  const [copied, setCopied]         = useState(false)
+  const [activeStatus, setActiveStatus] = useState(null) // 'good'|'collect_soon'|'urgent'|'overdue'
+  const [playerDetail, setPlayerDetail] = useState(null)
   const { data: cfg }     = useConfig()
   const { data: tData }   = useTournaments()
   const { data: pData, isLoading: pLoad } = usePlayers()
   const { data: wData }   = useWeeks()
   const { data: aData }   = useAttendance()
   const { data: annData } = useAnnouncements()
+  const { data: txnData } = useTransactions()
+  const { data: expData } = useExpenses()
 
   if (pLoad) return <PageSpinner />
 
@@ -23,7 +27,6 @@ export default function Dashboard() {
   const corpusPlayers = allActive.filter(p => p.type === 'corpus' || p.type === 'new')
   const weeks        = (wData?.weeks ?? []).filter(w => w.tournament_id === activeTournamentId)
   const completed    = weeks.filter(w => w.status === 'completed')
-  const scheduled    = weeks.filter(w => w.status === 'scheduled').sort((a, b) => a.match_date.localeCompare(b.match_date))
   const records      = aData?.records ?? []
   const seasonName   = tData?.tournaments?.find(t => t.id === activeTournamentId)?.short_name ?? cfg?.team_name ?? 'Season'
 
@@ -31,12 +34,8 @@ export default function Dashboard() {
   corpusPlayers.forEach(p => { if (statusCounts[p.balance_status] !== undefined) statusCounts[p.balance_status]++ })
   const remainingPool = corpusPlayers.reduce((s, p) => s + (p.corpus_balance ?? 0), 0)
   const recentWeeks   = [...completed].sort((a, b) => b.match_date.localeCompare(a.match_date)).slice(0, 5)
-  // Each week may have multiple games (e.g. 3-game CricHeroes session)
-  const totalMatches  = completed.reduce((s, w) => s + (w.cricheroes_match_ids?.length ?? 1), 0)
-
-  const todayStr = new Date().toISOString().slice(0, 10)
-  // Only show scheduled weeks that are actually in the future
-  const futureScheduled = scheduled.filter(w => w.match_date > todayStr)
+  const todayStr      = new Date().toISOString().slice(0, 10)
+  const sortedCorpus  = [...corpusPlayers].sort((a, b) => a.display_name.localeCompare(b.display_name))
   const activeAnnouncements = (annData?.announcements ?? [])
     .filter(a => !a.expires_on || a.expires_on >= todayStr)
     .sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.posted_on.localeCompare(a.posted_on))
@@ -55,7 +54,7 @@ export default function Dashboard() {
   const stats = [
     { label: 'Active Players',   value: allActive.length,                                       icon: '👥', to: '/players',            bg: 'from-blue-500 to-blue-600'    },
     { label: 'Weeks Played',     value: completed.length,                                       icon: '🏏', to: '/admin/weeks',         bg: 'from-green-500 to-emerald-600' },
-    { label: 'Corpus Pool',      value: `₹${Math.round(remainingPool).toLocaleString('en-IN')}`, icon: '💰', to: '/admin/transactions',  bg: 'from-amber-500 to-orange-500'  },
+    { label: 'Corpus Balance',   value: `₹${Math.round(remainingPool).toLocaleString('en-IN')}`, icon: '💰', to: '/admin/transactions',  bg: 'from-amber-500 to-orange-500'  },
     { label: 'Season',           value: seasonName,                                             icon: '🏆', to: '/admin',               bg: 'from-purple-500 to-violet-600' },
   ]
 
@@ -73,7 +72,7 @@ export default function Dashboard() {
               onChange={e => { setPayPlayer(e.target.value); setCopied(false) }}
             >
               <option value="" disabled className="text-gray-800">Select your name…</option>
-              {corpusPlayers.map(p => (
+              {sortedCorpus.map(p => (
                 <option key={p.id} value={p.id} className="text-gray-800">{p.display_name}</option>
               ))}
             </select>
@@ -172,27 +171,66 @@ export default function Dashboard() {
             )
           )}
         </div>
+        {/* Clickable status chips — tap to see that group of players */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {statusBar.map(({ key, label, color }) => (
-            <div key={key} className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
+            <button
+              key={key}
+              onClick={() => setActiveStatus(activeStatus === key ? null : key)}
+              className={`flex items-center gap-2 rounded-xl px-3 py-2 text-left transition-all ${
+                activeStatus === key
+                  ? 'bg-gray-200 ring-2 ring-gray-400'
+                  : 'bg-gray-50 hover:bg-gray-100'
+              }`}
+            >
               <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${color}`} />
               <div>
                 <div className="text-xs text-gray-500">{label}</div>
                 <div className="font-bold text-gray-900 text-sm">{statusCounts[key]}</div>
               </div>
-            </div>
+            </button>
           ))}
         </div>
-        {atRiskCount > 0 && (
+
+        {/* Status-filtered player list */}
+        {activeStatus && (() => {
+          const filtered = sortedCorpus.filter(p => p.balance_status === activeStatus)
+          if (!filtered.length) return null
+          const chip = statusBar.find(s => s.key === activeStatus)
+          return (
+            <div className="mt-3 border-t border-gray-100 pt-3">
+              <p className="text-xs font-semibold text-gray-500 mb-2">{chip?.label} · {filtered.length} player{filtered.length !== 1 ? 's' : ''}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {filtered.map(p => (
+                  <button
+                    key={p.id}
+                    onClick={() => setPlayerDetail(p)}
+                    className={`text-xs font-medium px-2.5 py-0.5 rounded-full transition-colors ${
+                      p.balance_status === 'overdue'   ? 'bg-red-100 text-red-700 hover:bg-red-200' :
+                      p.balance_status === 'urgent'    ? 'bg-orange-100 text-orange-700 hover:bg-orange-200' :
+                      p.balance_status === 'collect_soon' ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' :
+                                                          'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                    }`}
+                  >
+                    {p.display_name} · ₹{Math.round(p.corpus_balance ?? 0).toLocaleString('en-IN')}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* At-risk quick list (always shown when no filter active) */}
+        {!activeStatus && atRiskCount > 0 && (
           <div className="mt-3 bg-orange-50 border border-orange-100 rounded-xl px-3 py-2.5">
             <p className="text-xs font-semibold text-orange-700 mb-1.5">⚠️ {atRiskCount} player{atRiskCount > 1 ? 's' : ''} need to top up</p>
             <div className="flex flex-wrap gap-1.5">
-              {corpusPlayers
+              {sortedCorpus
                 .filter(p => p.balance_status === 'urgent' || p.balance_status === 'overdue')
                 .map(p => (
-                  <Link
+                  <button
                     key={p.id}
-                    to={`/pay/${p.id}`}
+                    onClick={() => setPlayerDetail(p)}
                     className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${
                       p.balance_status === 'overdue'
                         ? 'bg-red-100 text-red-700 hover:bg-red-200'
@@ -200,7 +238,7 @@ export default function Dashboard() {
                     } transition-colors`}
                   >
                     {p.display_name}
-                  </Link>
+                  </button>
                 ))
               }
             </div>
