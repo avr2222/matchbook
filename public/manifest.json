@@ -5,14 +5,41 @@
   "start_url": "/matchbook/",
   "scope": "/matchbook/",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#f8fafc",
   "theme_color": "#16a34a",
+  "categories": ["sports", "utilities"],
   "icons": [
     {
       "src": "/matchbook/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/matchbook/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/matchbook/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Players",
+      "url": "/matchbook/#/players",
+      "description": "View player roster"
+    },
+    {
+      "name": "My Dashboard",
+      "url": "/matchbook/#/my",
+      "description": "View my balance and history"
     }
   ]
 }
