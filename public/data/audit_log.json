@@ -1,4 +1,17 @@
 {
   "schema_version": 1,
-  "entries": []
+  "entries": [
+    {
+      "id": "AUD_1777522876412",
+      "timestamp": "2026-04-30T04:21:16.412Z",
+      "actor": "avr2222",
+      "actor_role": "admin",
+      "action": "delete_week",
+      "entity_type": "week",
+      "entity_id": null,
+      "summary": "Deleted match 03-May-2026",
+      "before": null,
+      "after": null
+    }
+  ]
 }
