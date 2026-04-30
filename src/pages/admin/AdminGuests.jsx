@@ -6,6 +6,7 @@ import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { generateId, calcBalanceStatus } from '../../utils/balanceCalculator'
 import { useIsAdmin } from '../../hooks/useIsAdmin'
+import ConfirmModal from '../../components/ui/ConfirmModal'
 import { format, parseISO } from 'date-fns'
 
 export default function AdminGuests() {
@@ -17,7 +18,8 @@ export default function AdminGuests() {
   const isAdmin = useIsAdmin()
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving]     = useState(false)
-  const [converting, setConverting] = useState(null) // visit id being converted
+  const [converting, setConverting] = useState(null)
+  const [confirmData, setConfirmData] = useState(null)
   const [form, setForm] = useState({
     week_id: '',
     guest_name: '',
@@ -78,42 +80,47 @@ export default function AdminGuests() {
     }
   }
 
-  async function convertToPlayer(visit) {
-    if (!confirm(`Convert ${visit.guest_name} to a permanent player?`)) return
-    setConverting(visit.id)
-    try {
-      const allPlayers = pData?.players ?? []
-      const newId = generateId('PLY', allPlayers.map(p => p.id))
-      const newPlayer = {
-        id: newId,
-        display_name: visit.guest_name,
-        type: 'corpus',
-        status: 'active',
-        joined_date: new Date().toISOString().slice(0, 10),
-        phone: '',
-        corpus_balance: 0,
-        total_paid: 0,
-        total_deducted: 0,
-        balance_status: calcBalanceStatus(0, cfg ?? { corpus_overdue_threshold: 0, corpus_urgent_threshold: 500, corpus_low_threshold: 1000 }),
-        github_username: '',
-        cricheroes_player_id: '',
-        cricheroes_name: '',
-        guest_fee_mode: null,
-        sponsored_by_player_id: null,
-        notes: `Converted from guest (${visit.guest_name})`,
-      }
-      await writePlayers([...allPlayers, newPlayer], 'add_player', newId, `Converted guest ${visit.guest_name} to player`, null, newPlayer)
-      // Mark the visit as converted
-      const updatedVisits = visits.map(v => v.id === visit.id ? { ...v, converted_to_player_id: newId } : v)
-      await writeGuestVisits(updatedVisits, `Marked ${visit.guest_name} as converted to player ${newId}`)
-      qc.invalidateQueries({ queryKey: ['players'] })
-      qc.invalidateQueries({ queryKey: ['guests'] })
-      showToast(`${visit.guest_name} added as a player`)
-    } catch (e) {
-      showToast(e.message, 'error')
-    } finally {
-      setConverting(null)
-    }
+  function convertToPlayer(visit) {
+    setConfirmData({
+      message: `Convert ${visit.guest_name} to a permanent corpus player?`,
+      confirmLabel: 'Convert',
+      danger: false,
+      onConfirm: async () => {
+        setConverting(visit.id)
+        try {
+          const allPlayers = pData?.players ?? []
+          const newId = generateId('PLY', allPlayers.map(p => p.id))
+          const newPlayer = {
+            id: newId,
+            display_name: visit.guest_name,
+            type: 'corpus',
+            status: 'active',
+            joined_date: new Date().toISOString().slice(0, 10),
+            phone: '',
+            corpus_balance: 0,
+            total_paid: 0,
+            total_deducted: 0,
+            balance_status: calcBalanceStatus(0, cfg ?? { corpus_overdue_threshold: 0, corpus_urgent_threshold: 500, corpus_low_threshold: 1000 }),
+            github_username: '',
+            cricheroes_player_id: '',
+            cricheroes_name: '',
+            guest_fee_mode: null,
+            sponsored_by_player_id: null,
+            notes: `Converted from guest (${visit.guest_name})`,
+          }
+          await writePlayers([...allPlayers, newPlayer], 'add_player', newId, `Converted guest ${visit.guest_name} to player`, null, newPlayer)
+          const updatedVisits = visits.map(v => v.id === visit.id ? { ...v, converted_to_player_id: newId } : v)
+          await writeGuestVisits(updatedVisits, `Marked ${visit.guest_name} as converted to player ${newId}`)
+          qc.invalidateQueries({ queryKey: ['players'] })
+          qc.invalidateQueries({ queryKey: ['guests'] })
+          showToast(`${visit.guest_name} added as a player`)
+        } catch (e) {
+          showToast(e.message, 'error')
+        } finally {
+          setConverting(null)
+        }
+      },
+    })
   }
 
   return (
@@ -185,6 +192,8 @@ export default function AdminGuests() {
           </tbody>
         </table>
       </div>
+
+      {confirmData && <ConfirmModal {...confirmData} onClose={() => setConfirmData(null)} />}
 
       {showForm && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">

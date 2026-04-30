@@ -5,10 +5,11 @@ import { usePlayers, useConfig, useTransactions, useAttendance, useWeeks, useExp
 import { useIsAdmin } from '../../hooks/useIsAdmin'
 import BalanceBadge from '../../components/ui/BalanceBadge'
 import { PageSpinner } from '../../components/ui/Spinner'
-import { writePlayers } from '../../api/dataWriter'
+import { writePlayers, writeTransactions } from '../../api/dataWriter'
 import { showToast } from '../../components/ui/Toast'
 import { typeEmoji, typeLabel, generateId, calcBalanceStatus } from '../../utils/balanceCalculator'
 import { format, parseISO } from 'date-fns'
+import ConfirmModal from '../../components/ui/ConfirmModal'
 
 const fmt = n => (n ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
@@ -147,6 +148,10 @@ export default function AdminPlayers() {
   const [saving, setSaving]     = useState(false)
   const [search, setSearch]     = useState('')
   const [typeTab, setTypeTab]   = useState('all')
+  const [confirmData, setConfirmData] = useState(null)
+  const [cashModal, setCashModal]     = useState(null)
+  const [cashAmount, setCashAmount]   = useState('')
+  const [cashDesc, setCashDesc]       = useState('')
 
   useEffect(() => {
     if (searchParams.get('new') === '1' && data) {
@@ -220,14 +225,55 @@ export default function AdminPlayers() {
     }
   }
 
-  async function remove(player) {
-    if (!confirm(`Remove ${player.display_name}? This will mark them inactive.`)) return
+  function remove(player) {
+    setConfirmData({
+      message: `Remove ${player.display_name}? This will mark them inactive.`,
+      confirmLabel: 'Remove',
+      danger: true,
+      onConfirm: async () => {
+        setSaving(true)
+        try {
+          const updated = players.map(p => p.id === player.id ? { ...p, status: 'inactive' } : p)
+          await writePlayers(updated, 'remove_player', player.id, `Deactivated ${player.display_name}`, player, { ...player, status: 'inactive' })
+          qc.invalidateQueries({ queryKey: ['players'] })
+          showToast(`${player.display_name} deactivated`)
+        } catch (e) {
+          showToast(e.message, 'error')
+        } finally {
+          setSaving(false)
+        }
+      },
+    })
+  }
+
+  async function saveCashPayment() {
+    const { player } = cashModal
+    const amount = parseFloat(cashAmount)
+    if (!amount || amount <= 0) return
+    const allTxns = tData?.transactions ?? []
+    const txnId   = generateId('TXN', allTxns.map(t => t.id))
+    const newTxn  = {
+      id: txnId,
+      player_id: player.id,
+      tournament_id: cfg?.active_tournament_id ?? null,
+      type: 'ppm_payment',
+      amount,
+      direction: 'credit',
+      date: new Date().toISOString().slice(0, 10),
+      week_id: null,
+      description: cashDesc.trim() || 'Cash payment received',
+      recorded_by: 'admin',
+      receipt_ref: '',
+    }
     setSaving(true)
     try {
-      const updated = players.map(p => p.id === player.id ? { ...p, status: 'inactive' } : p)
-      await writePlayers(updated, 'remove_player', player.id, `Deactivated ${player.display_name}`, player, { ...player, status: 'inactive' })
-      qc.invalidateQueries({ queryKey: ['players'] })
-      showToast(`${player.display_name} deactivated`)
+      await writeTransactions(
+        [...allTxns, newTxn], 'add_transaction', txnId,
+        `Cash payment for ${player.display_name} ₹${amount}`, null, newTxn,
+      )
+      qc.invalidateQueries({ queryKey: ['transactions'] })
+      showToast(`Cash payment of ₹${amount.toLocaleString('en-IN')} recorded for ${player.display_name}`)
+      setCashModal(null)
     } catch (e) {
       showToast(e.message, 'error')
     } finally {
@@ -336,6 +382,15 @@ export default function AdminPlayers() {
                   )}
                   {isAdmin ? (
                     <>
+                      {(p.type === 'ppm' || p.type === 'guest') && p.status === 'active' && (
+                        <button
+                          onClick={() => { setCashModal({ player: p }); setCashAmount(String(cfg?.default_match_fee ?? '')); setCashDesc('') }}
+                          className="text-xs text-green-700 border border-green-200 rounded-lg px-2 py-1 hover:bg-green-50 transition-colors mr-3"
+                          title="Record cash payment"
+                        >
+                          💰 Cash
+                        </button>
+                      )}
                       <button onClick={() => openEdit(p)} className="text-blue-600 hover:underline text-xs mr-3">Edit</button>
                       {p.status === 'active' && (
                         <button onClick={() => remove(p)} className="text-red-500 hover:underline text-xs">Remove</button>
@@ -350,6 +405,50 @@ export default function AdminPlayers() {
           </tbody>
         </table>
       </div>
+
+      {confirmData && <ConfirmModal {...confirmData} onClose={() => setConfirmData(null)} />}
+
+      {/* Cash payment modal for PPM/Guest players */}
+      {cashModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
+            <h3 className="font-bold text-gray-900 mb-4">Record Cash Payment — {cashModal.player.display_name}</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="label">Amount (₹)</label>
+                <input
+                  type="number"
+                  className="input"
+                  value={cashAmount}
+                  onChange={e => setCashAmount(e.target.value)}
+                  placeholder="500"
+                  min="0"
+                />
+              </div>
+              <div>
+                <label className="label">Description (optional)</label>
+                <input
+                  type="text"
+                  className="input"
+                  value={cashDesc}
+                  onChange={e => setCashDesc(e.target.value)}
+                  placeholder="Cash payment received"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-5 justify-end">
+              <button onClick={() => setCashModal(null)} className="btn-secondary text-sm">Cancel</button>
+              <button
+                onClick={saveCashPayment}
+                disabled={saving || !cashAmount || parseFloat(cashAmount) <= 0}
+                className="btn-primary text-sm"
+              >
+                {saving ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit / Add modal — admin only */}
       {editing && isAdmin && (

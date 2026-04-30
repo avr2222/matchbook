@@ -6,6 +6,7 @@ import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { generateId } from '../../utils/balanceCalculator'
 import { useIsAdmin } from '../../hooks/useIsAdmin'
+import ConfirmModal from '../../components/ui/ConfirmModal'
 import { format, parseISO } from 'date-fns'
 
 const EMPTY = { title: '', body: '', expires_on: '', pinned: false }
@@ -48,6 +49,7 @@ export default function AdminAnnouncements() {
   const [editing, setEditing]     = useState(null)
   const [saving, setSaving]       = useState(false)
   const [deletingId, setDeletingId] = useState(null)
+  const [confirmData, setConfirmData] = useState(null)
 
   if (isLoading) return <PageSpinner />
 
@@ -91,19 +93,25 @@ export default function AdminAnnouncements() {
     }
   }
 
-  async function deleteAnn(ann) {
-    if (!confirm(`Delete announcement "${ann.title}"?`)) return
-    setDeletingId(ann.id)
-    try {
-      const updated = announcements.filter(a => a.id !== ann.id)
-      await writeAnnouncements({ schema_version: 1, announcements: updated }, `Delete announcement: ${ann.title}`)
-      qc.invalidateQueries({ queryKey: ['announcements'] })
-      showToast('Announcement deleted')
-    } catch (e) {
-      showToast(e.message, 'error')
-    } finally {
-      setDeletingId(null)
-    }
+  function deleteAnn(ann) {
+    setConfirmData({
+      message: `Delete announcement "${ann.title}"?`,
+      confirmLabel: 'Delete',
+      danger: true,
+      onConfirm: async () => {
+        setDeletingId(ann.id)
+        try {
+          const updated = announcements.filter(a => a.id !== ann.id)
+          await writeAnnouncements({ schema_version: 1, announcements: updated }, `Delete announcement: ${ann.title}`)
+          qc.invalidateQueries({ queryKey: ['announcements'] })
+          showToast('Announcement deleted')
+        } catch (e) {
+          showToast(e.message, 'error')
+        } finally {
+          setDeletingId(null)
+        }
+      },
+    })
   }
 
   return (
@@ -136,6 +144,8 @@ export default function AdminAnnouncements() {
           </div>
         </div>
       )}
+
+      {confirmData && <ConfirmModal {...confirmData} onClose={() => setConfirmData(null)} />}
 
       {editing && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">

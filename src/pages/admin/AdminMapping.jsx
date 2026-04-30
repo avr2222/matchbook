@@ -5,6 +5,7 @@ import { writeCricHeroesMapping, writePlayers } from '../../api/dataWriter'
 import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { useIsAdmin } from '../../hooks/useIsAdmin'
+import ConfirmModal from '../../components/ui/ConfirmModal'
 
 const CONFIDENCE_CLASS = c => c >= 0.85 ? 'text-green-600' : c >= 0.5 ? 'text-yellow-600' : 'text-red-500'
 const CONFIDENCE_LABEL = c => c >= 0.85 ? '✅ Auto' : c >= 0.5 ? '🟡 Review' : '🔴 Manual'
@@ -16,6 +17,7 @@ export default function AdminMapping() {
   const isAdmin = useIsAdmin()
   const [saving, setSaving] = useState(false)
   const [localMap, setLocalMap] = useState(null)
+  const [confirmData, setConfirmData] = useState(null)
 
   if (isLoading) return <PageSpinner />
   if (isError || (!isLoading && !mapData)) return (
@@ -75,23 +77,29 @@ export default function AdminMapping() {
     }
   }
 
-  async function syncAllNames() {
-    if (!confirm('Update all confirmed-mapped players to use their CricHeroes profile names?')) return
+  function syncAllNames() {
     const confirmedMaps = (mapping.player_mappings ?? [])
       .filter(m => m.confirmed && m.player_id && m.cricheroes_name)
     if (!confirmedMaps.length) { showToast('No confirmed mappings to sync', 'error'); return }
-    try {
-      const nameMap = Object.fromEntries(confirmedMaps.map(m => [m.player_id, m.cricheroes_name]))
-      const updated = (pData?.players ?? []).map(p =>
-        nameMap[p.id] ? { ...p, display_name: nameMap[p.id] } : p
-      )
-      await writePlayers(updated, 'bulk_edit', null,
-        `Synced ${confirmedMaps.length} player names from CricHeroes`, null, null)
-      qc.invalidateQueries({ queryKey: ['players'] })
-      showToast(`${confirmedMaps.length} player names synced from CricHeroes`)
-    } catch (e) {
-      showToast(e.message, 'error')
-    }
+    setConfirmData({
+      message: `Update ${confirmedMaps.length} confirmed-mapped players to use their CricHeroes profile names?`,
+      confirmLabel: 'Confirm Sync',
+      danger: false,
+      onConfirm: async () => {
+        try {
+          const nameMap = Object.fromEntries(confirmedMaps.map(m => [m.player_id, m.cricheroes_name]))
+          const updated = (pData?.players ?? []).map(p =>
+            nameMap[p.id] ? { ...p, display_name: nameMap[p.id] } : p
+          )
+          await writePlayers(updated, 'bulk_edit', null,
+            `Synced ${confirmedMaps.length} player names from CricHeroes`, null, null)
+          qc.invalidateQueries({ queryKey: ['players'] })
+          showToast(`${confirmedMaps.length} player names synced from CricHeroes`)
+        } catch (e) {
+          showToast(e.message, 'error')
+        }
+      },
+    })
   }
 
   async function save() {
@@ -206,6 +214,7 @@ export default function AdminMapping() {
           </tbody>
         </table>
       </div>
+      {confirmData && <ConfirmModal {...confirmData} onClose={() => setConfirmData(null)} />}
     </div>
   )
 }

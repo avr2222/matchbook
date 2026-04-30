@@ -6,7 +6,9 @@ import MatchPlayersModal from '../../components/ui/MatchPlayersModal'
 import { format, parseISO } from 'date-fns'
 
 export default function Dashboard() {
-  const [detail, setDetail] = useState(null)
+  const [detail, setDetail]     = useState(null)
+  const [payPlayer, setPayPlayer] = useState('')
+  const [copied, setCopied]     = useState(false)
   const { data: cfg }     = useConfig()
   const { data: tData }   = useTournaments()
   const { data: pData, isLoading: pLoad } = usePlayers()
@@ -47,6 +49,8 @@ export default function Dashboard() {
   ]
   const corpusTotal = corpusPlayers.length || 1
   const atRiskCount = statusCounts.urgent + statusCounts.overdue
+  const upiId       = cfg?.admin_upi_id
+  const threshold   = cfg?.corpus_low_threshold ?? 1000
 
   const stats = [
     { label: 'Active Players',   value: allActive.length,                                       icon: '👥', to: '/players',            bg: 'from-blue-500 to-blue-600'    },
@@ -58,8 +62,61 @@ export default function Dashboard() {
   return (
     <div className="max-w-5xl mx-auto px-4 pb-12">
 
+      {/* Pay Corpus card */}
+      {upiId && (
+        <div className="rounded-3xl mt-6 mb-4 bg-gradient-to-br from-emerald-600 to-green-500 px-5 py-5 text-white shadow-lg">
+          <p className="text-sm font-bold text-white/80 uppercase tracking-widest mb-3">Top Up Your Corpus</p>
+          <div className="flex gap-2 items-center">
+            <select
+              className="flex-1 bg-white/20 backdrop-blur-sm text-white rounded-xl px-3 py-2.5 text-sm font-medium outline-none border border-white/20 focus:border-white/60 transition-colors"
+              value={payPlayer}
+              onChange={e => { setPayPlayer(e.target.value); setCopied(false) }}
+            >
+              <option value="" disabled className="text-gray-800">Select your name…</option>
+              {corpusPlayers.map(p => (
+                <option key={p.id} value={p.id} className="text-gray-800">{p.display_name}</option>
+              ))}
+            </select>
+            {payPlayer && (() => {
+              const p = corpusPlayers.find(pl => pl.id === payPlayer)
+              if (!p) return null
+              const needed    = Math.max(threshold - (p.corpus_balance ?? 0), 500)
+              const suggested = Math.ceil(needed / 500) * 500
+              const name      = encodeURIComponent(cfg?.team_name ?? 'Cricket Team')
+              const note      = encodeURIComponent(`Corpus Topup - ${p.display_name}`)
+              const upiHref   = `upi://pay?pa=${upiId}&pn=${name}&am=${suggested}&cu=INR&tn=${note}`
+              const isMobile  = /Android|iPhone|iPad/i.test(navigator.userAgent)
+              return isMobile ? (
+                <a href={upiHref} className="shrink-0 bg-white text-emerald-700 font-bold text-sm px-4 py-2.5 rounded-xl shadow hover:bg-green-50 transition-colors">
+                  Pay ₹{suggested.toLocaleString('en-IN')} →
+                </a>
+              ) : (
+                <button
+                  onClick={() => { navigator.clipboard.writeText(upiId); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
+                  className="shrink-0 bg-white text-emerald-700 font-bold text-sm px-4 py-2.5 rounded-xl shadow hover:bg-green-50 transition-colors"
+                >
+                  {copied ? '✓ Copied!' : 'Copy UPI'}
+                </button>
+              )
+            })()}
+          </div>
+          {payPlayer && (() => {
+            const p = corpusPlayers.find(pl => pl.id === payPlayer)
+            if (!p) return null
+            const needed    = Math.max(threshold - (p.corpus_balance ?? 0), 500)
+            const suggested = Math.ceil(needed / 500) * 500
+            return (
+              <p className="text-xs text-white/70 mt-2">
+                Balance: ₹{(p.corpus_balance ?? 0).toLocaleString('en-IN')} · Suggested top-up: ₹{suggested.toLocaleString('en-IN')}
+                {!(/Android|iPhone|iPad/i.test(navigator.userAgent)) && <span className="ml-1">· UPI: {upiId}</span>}
+              </p>
+            )
+          })()}
+        </div>
+      )}
+
       {/* Hero */}
-      <div className="relative overflow-hidden rounded-3xl mt-6 mb-6 bg-gradient-to-br from-green-700 via-green-600 to-emerald-500 px-6 py-10 text-white shadow-xl">
+      <div className={`relative overflow-hidden rounded-3xl ${upiId ? '' : 'mt-6 '}mb-6 bg-gradient-to-br from-green-700 via-green-600 to-emerald-500 px-6 py-10 text-white shadow-xl`}>
         <div className="absolute inset-0 opacity-10 pointer-events-none select-none text-[160px] leading-none flex items-center justify-end pr-6">🏏</div>
         <p className="text-green-200 text-sm font-semibold uppercase tracking-widest mb-1">{seasonName}</p>
         <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-1">{cfg?.team_name ?? 'MatchBook'}</h1>
@@ -127,10 +184,26 @@ export default function Dashboard() {
           ))}
         </div>
         {atRiskCount > 0 && (
-          <div className="mt-3 flex items-center gap-2 text-xs text-orange-700 bg-orange-50 rounded-xl px-3 py-2 border border-orange-100">
-            <span>⚠️</span>
-            <span>{atRiskCount} player{atRiskCount > 1 ? 's' : ''} need{atRiskCount === 1 ? 's' : ''} to top up.</span>
-            <Link to="/login" className="ml-auto font-semibold underline underline-offset-2">Log in →</Link>
+          <div className="mt-3 bg-orange-50 border border-orange-100 rounded-xl px-3 py-2.5">
+            <p className="text-xs font-semibold text-orange-700 mb-1.5">⚠️ {atRiskCount} player{atRiskCount > 1 ? 's' : ''} need to top up</p>
+            <div className="flex flex-wrap gap-1.5">
+              {corpusPlayers
+                .filter(p => p.balance_status === 'urgent' || p.balance_status === 'overdue')
+                .map(p => (
+                  <Link
+                    key={p.id}
+                    to={`/pay/${p.id}`}
+                    className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${
+                      p.balance_status === 'overdue'
+                        ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                        : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                    } transition-colors`}
+                  >
+                    {p.display_name}
+                  </Link>
+                ))
+              }
+            </div>
           </div>
         )}
       </div>

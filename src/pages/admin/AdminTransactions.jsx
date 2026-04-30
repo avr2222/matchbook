@@ -7,6 +7,7 @@ import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { calcBalanceStatus, generateId } from '../../utils/balanceCalculator'
 import { useIsAdmin } from '../../hooks/useIsAdmin'
+import ConfirmModal from '../../components/ui/ConfirmModal'
 import { downloadCSV } from '../../utils/csvExport'
 import { format, parseISO } from 'date-fns'
 
@@ -40,6 +41,7 @@ export default function AdminTransactions() {
   const [saving, setSaving]       = useState(false)
   const [approvingId, setApprovingId] = useState(null)
   const [form, setForm]           = useState(EMPTY_FORM)
+  const [confirmData, setConfirmData] = useState(null)
 
   // Filters
   const [filterPlayer, setFilterPlayer] = useState('')
@@ -122,42 +124,46 @@ export default function AdminTransactions() {
     }
   }
 
-  async function reverseTransaction(t) {
-    if (!confirm(`Reverse this ${t.type} of ₹${t.amount}?`)) return
-    setSaving(true)
-    try {
-      const reversedDir = t.direction === 'credit' ? 'debit' : 'credit'
-      const revId       = generateId('TXN', allTxns.map(x => x.id))
-      const rev = {
-        id: revId, player_id: t.player_id, tournament_id: t.tournament_id,
-        type: 'adjustment', amount: t.amount,
-        direction: reversedDir, date: new Date().toISOString().slice(0, 10),
-        week_id: t.week_id ?? null,
-        description: `Reversal of ${t.id}: ${t.description}`,
-        recorded_by: 'admin', receipt_ref: '',
-      }
-      await writeTransactions([...allTxns, rev], 'reverse_transaction', revId,
-        `Reversed ${t.description}`, null, rev)
-
-      // Update player balance
-      const p = players.find(x => x.id === t.player_id)
-      if (p && (p.type === 'corpus' || p.type === 'new')) {
-        const delta = reversedDir === 'credit' ? t.amount : -t.amount
-        const bal   = (p.corpus_balance ?? 0) + delta
-        const updated = players.map(x =>
-          x.id !== t.player_id ? x
-          : { ...x, corpus_balance: Math.round(bal * 100) / 100, balance_status: calcBalanceStatus(bal, cfg ?? {}) }
-        )
-        await writePlayers(updated, 'edit_player', p.id, `Balance reversed for ${p.display_name}`, p, null)
-      }
-      qc.invalidateQueries({ queryKey: ['transactions'] })
-      qc.invalidateQueries({ queryKey: ['players'] })
-      showToast('Transaction reversed')
-    } catch (e) {
-      showToast(e.message, 'error')
-    } finally {
-      setSaving(false)
-    }
+  function reverseTransaction(t) {
+    setConfirmData({
+      message: `Reverse this ${t.type} of ₹${t.amount}? A reversal entry will be created.`,
+      confirmLabel: 'Reverse',
+      danger: true,
+      onConfirm: async () => {
+        setSaving(true)
+        try {
+          const reversedDir = t.direction === 'credit' ? 'debit' : 'credit'
+          const revId       = generateId('TXN', allTxns.map(x => x.id))
+          const rev = {
+            id: revId, player_id: t.player_id, tournament_id: t.tournament_id,
+            type: 'adjustment', amount: t.amount,
+            direction: reversedDir, date: new Date().toISOString().slice(0, 10),
+            week_id: t.week_id ?? null,
+            description: `Reversal of ${t.id}: ${t.description}`,
+            recorded_by: 'admin', receipt_ref: '',
+          }
+          await writeTransactions([...allTxns, rev], 'reverse_transaction', revId,
+            `Reversed ${t.description}`, null, rev)
+          const p = players.find(x => x.id === t.player_id)
+          if (p && (p.type === 'corpus' || p.type === 'new')) {
+            const delta = reversedDir === 'credit' ? t.amount : -t.amount
+            const bal   = (p.corpus_balance ?? 0) + delta
+            const updated = players.map(x =>
+              x.id !== t.player_id ? x
+              : { ...x, corpus_balance: Math.round(bal * 100) / 100, balance_status: calcBalanceStatus(bal, cfg ?? {}) }
+            )
+            await writePlayers(updated, 'edit_player', p.id, `Balance reversed for ${p.display_name}`, p, null)
+          }
+          qc.invalidateQueries({ queryKey: ['transactions'] })
+          qc.invalidateQueries({ queryKey: ['players'] })
+          showToast('Transaction reversed')
+        } catch (e) {
+          showToast(e.message, 'error')
+        } finally {
+          setSaving(false)
+        }
+      },
+    })
   }
 
   async function approveRequest(req) {
@@ -198,22 +204,29 @@ export default function AdminTransactions() {
     }
   }
 
-  async function rejectRequest(req) {
-    if (!confirm(`Reject this payment reference from ${players.find(p => p.id === req.player_id)?.display_name ?? req.player_id}?`)) return
-    setApprovingId(req.id)
-    try {
-      const allReqs = reqData?.requests ?? []
-      const updatedReqs = allReqs.map(r =>
-        r.id !== req.id ? r : { ...r, status: 'rejected', reviewed_on: new Date().toISOString().slice(0, 10) }
-      )
-      await writePaymentRequests(updatedReqs, `Rejected payment request ${req.id}`)
-      qc.invalidateQueries({ queryKey: ['payment_requests'] })
-      showToast('Request rejected')
-    } catch (e) {
-      showToast(e.message, 'error')
-    } finally {
-      setApprovingId(null)
-    }
+  function rejectRequest(req) {
+    const name = players.find(p => p.id === req.player_id)?.display_name ?? req.player_id
+    setConfirmData({
+      message: `Reject this payment reference from ${name}?`,
+      confirmLabel: 'Reject',
+      danger: true,
+      onConfirm: async () => {
+        setApprovingId(req.id)
+        try {
+          const allReqs = reqData?.requests ?? []
+          const updatedReqs = allReqs.map(r =>
+            r.id !== req.id ? r : { ...r, status: 'rejected', reviewed_on: new Date().toISOString().slice(0, 10) }
+          )
+          await writePaymentRequests(updatedReqs, `Rejected payment request ${req.id}`)
+          qc.invalidateQueries({ queryKey: ['payment_requests'] })
+          showToast('Request rejected')
+        } catch (e) {
+          showToast(e.message, 'error')
+        } finally {
+          setApprovingId(null)
+        }
+      },
+    })
   }
 
   async function saveBulk() {
@@ -452,6 +465,8 @@ export default function AdminTransactions() {
           </div>
         </div>
       )}
+
+      {confirmData && <ConfirmModal {...confirmData} onClose={() => setConfirmData(null)} />}
 
       {/* Bulk payment form — admin only */}
       {showBulk && isAdmin && (

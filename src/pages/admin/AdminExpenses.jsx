@@ -7,6 +7,7 @@ import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { generateId, calcBalanceStatus } from '../../utils/balanceCalculator'
 import { useIsAdmin } from '../../hooks/useIsAdmin'
+import ConfirmModal from '../../components/ui/ConfirmModal'
 import { format, parseISO } from 'date-fns'
 
 const CATEGORIES = [
@@ -47,6 +48,7 @@ export default function AdminExpenses() {
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving]     = useState(false)
   const [deletingId, setDeletingId] = useState(null)
+  const [confirmData, setConfirmData] = useState(null)
   const [form, setForm] = useState({
     date: new Date().toISOString().slice(0, 10),
     week_id: '',
@@ -151,19 +153,25 @@ export default function AdminExpenses() {
     }
   }
 
-  async function deleteExpense(exp) {
-    if (!confirm(`Delete expense "${exp.description}" (₹${exp.amount.toLocaleString('en-IN')})?`)) return
-    setDeletingId(exp.id)
-    try {
-      const updated = expenses.filter(e => e.id !== exp.id)
-      await writeExpenses(updated, 'delete_expense', `Deleted expense: ${exp.description} ₹${exp.amount}`)
-      qc.invalidateQueries({ queryKey: ['expenses'] })
-      showToast('Expense deleted')
-    } catch (e) {
-      showToast(e.message, 'error')
-    } finally {
-      setDeletingId(null)
-    }
+  function deleteExpense(exp) {
+    setConfirmData({
+      message: `Delete expense "${exp.description}" (₹${exp.amount.toLocaleString('en-IN')})?`,
+      confirmLabel: 'Delete',
+      danger: true,
+      onConfirm: async () => {
+        setDeletingId(exp.id)
+        try {
+          const updated = expenses.filter(e => e.id !== exp.id)
+          await writeExpenses(updated, 'delete_expense', `Deleted expense: ${exp.description} ₹${exp.amount}`)
+          qc.invalidateQueries({ queryKey: ['expenses'] })
+          showToast('Expense deleted')
+        } catch (e) {
+          showToast(e.message, 'error')
+        } finally {
+          setDeletingId(null)
+        }
+      },
+    })
   }
 
   const total = expenses.reduce((s, e) => s + e.amount, 0)
@@ -240,6 +248,8 @@ export default function AdminExpenses() {
           )}
         </table>
       </div>
+
+      {confirmData && <ConfirmModal {...confirmData} onClose={() => setConfirmData(null)} />}
 
       {showForm && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">

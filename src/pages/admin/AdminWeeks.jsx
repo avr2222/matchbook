@@ -8,6 +8,7 @@ import { PageSpinner } from '../../components/ui/Spinner'
 import { calcBalanceStatus, typeEmoji } from '../../utils/balanceCalculator'
 import { format, parseISO } from 'date-fns'
 import MatchPlayersModal from '../../components/ui/MatchPlayersModal'
+import ConfirmModal from '../../components/ui/ConfirmModal'
 
 export default function AdminWeeks() {
   const qc = useQueryClient()
@@ -30,6 +31,7 @@ export default function AdminWeeks() {
   })
   const [saving, setSaving]   = useState(false)
   const [editResult, setEditResult] = useState(null)
+  const [confirmData, setConfirmData] = useState(null)
   const [resultForm, setResultForm] = useState({ result: '', team_a: '', team_b: '' })
 
   if (isLoading) return <PageSpinner />
@@ -89,22 +91,28 @@ export default function AdminWeeks() {
     }
   }
 
-  async function deleteWeek(week) {
-    if (!confirm(`Delete match on ${format(parseISO(week.match_date), 'MMM d, yyyy')}? This cannot be undone.`)) return
-    setSaving(true)
-    try {
-      const updatedWeeks   = weeks.filter(w => w.week_id !== week.week_id)
-      const updatedRecords = records.filter(r => r.week_id !== week.week_id)
-      await writeWeeks(updatedWeeks, 'delete_week', `Deleted match ${week.label}`)
-      await writeAttendance(updatedRecords, `Cleared attendance for deleted match ${week.label}`)
-      qc.invalidateQueries({ queryKey: ['weeks'] })
-      qc.invalidateQueries({ queryKey: ['attendance'] })
-      showToast('Match week deleted')
-    } catch (e) {
-      showToast(e.message, 'error')
-    } finally {
-      setSaving(false)
-    }
+  function deleteWeek(week) {
+    setConfirmData({
+      message: `Delete match on ${format(parseISO(week.match_date), 'MMM d, yyyy')}? This cannot be undone.`,
+      confirmLabel: 'Delete',
+      danger: true,
+      onConfirm: async () => {
+        setSaving(true)
+        try {
+          const updatedWeeks   = weeks.filter(w => w.week_id !== week.week_id)
+          const updatedRecords = records.filter(r => r.week_id !== week.week_id)
+          await writeWeeks(updatedWeeks, 'delete_week', `Deleted match ${week.label}`)
+          await writeAttendance(updatedRecords, `Cleared attendance for deleted match ${week.label}`)
+          qc.invalidateQueries({ queryKey: ['weeks'] })
+          qc.invalidateQueries({ queryKey: ['attendance'] })
+          showToast('Match week deleted')
+        } catch (e) {
+          showToast(e.message, 'error')
+        } finally {
+          setSaving(false)
+        }
+      },
+    })
   }
 
   async function saveAttendance(week) {
@@ -388,6 +396,8 @@ export default function AdminWeeks() {
           </div>
         </div>
       )}
+
+      {confirmData && <ConfirmModal {...confirmData} onClose={() => setConfirmData(null)} />}
 
       {/* Add match modal */}
       {showNew && isAdmin && (
