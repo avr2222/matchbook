@@ -3,6 +3,7 @@
 // so useData.js / admin pages require no changes.
 
 import { supabase } from '../lib/supabase'
+import { calcBalanceStatus } from '../utils/balanceCalculator'
 
 export async function fetchConfig() {
   const { data, error } = await supabase
@@ -18,13 +19,17 @@ export async function fetchConfig() {
 export function clearConfig() {}
 
 export async function fetchPlayers() {
-  // player_balances view returns corpus_balance, total_paid, total_deducted computed from transactions
-  const { data, error } = await supabase
-    .from('player_balances')
-    .select('*')
-    .order('display_name')
-  if (error) throw new Error(`fetchPlayers: ${error.message}`)
-  return { schema_version: 1, players: data }
+  const [playersRes, cfgRes] = await Promise.all([
+    supabase.from('player_balances').select('*').order('display_name'),
+    supabase.from('config').select('corpus_overdue_threshold,corpus_urgent_threshold,corpus_low_threshold').eq('id', 1).single(),
+  ])
+  if (playersRes.error) throw new Error(`fetchPlayers: ${playersRes.error.message}`)
+  const cfg = cfgRes.data ?? {}
+  const players = playersRes.data.map(p => ({
+    ...p,
+    balance_status: calcBalanceStatus(p.corpus_balance ?? 0, cfg),
+  }))
+  return { schema_version: 1, players }
 }
 
 export async function fetchWeeks() {

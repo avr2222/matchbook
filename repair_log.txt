@@ -1,0 +1,50 @@
+﻿Completed weeks:      8
+Attendance records:   322
+Existing transactions: 35
+
+Match deduction txns to insert: 170
+Expense deduction txns to insert: 35
+Total new transactions:          204
+
+Inserted rows 1-204 OK
+
+=== BALANCE VERIFICATION ===
+Player                      Excel   Supabase     Diff
+-------------------------------------------------------
+  Vinod                       31.54      -75.57   107.11  <-- MISMATCH
+  Pavan                      -43.11     -353.57   310.46  <-- MISMATCH
+  Venkat                     877.63      780.43    97.20  <-- MISMATCH
+  Leela                      509.32     -139.57   648.89  <-- MISMATCH
+  Sudheer(Raaga)             490.27      433.43    56.84  <-- MISMATCH
+  Mahesh Amaran              -21.76     -659.57   637.81  <-- MISMATCH
+  Jithin                      53.15     -543.57   596.72  <-- MISMATCH
+  Mithun                     -16.18     -133.57   117.39  <-- MISMATCH
+  Karthik Reddy              756.70        0.00   756.70  <-- MISMATCH
+  Azeed                      182.89     -116.57   299.46  <-- MISMATCH
+  Srikanta                  5213.80     4564.43   649.37  <-- MISMATCH
+  Arun                       537.62     -102.57   640.19  <-- MISMATCH
+  Vinay                     2183.80     1534.43   649.37  <-- MISMATCH
+  Sreenu                     530.69      -35.57   566.26  <-- MISMATCH
+  Balaji                    1028.72      901.43   127.29  <-- MISMATCH
+  Arun(Raaga)                 28.72     -189.14   217.86  <-- MISMATCH
+  Subbu                     -420.52    -1069.57   649.05  <-- MISMATCH
+  Satyam                     277.22      170.43   106.79  <-- MISMATCH
+  Mahesh Reddy               329.96      262.43    67.53  <-- MISMATCH
+  Murali                    -462.38     -602.57   140.19  <-- MISMATCH
+  Ashok                      939.14      810.43   128.71  <-- MISMATCH
+  Vishwa                     779.19      733.43    45.76  <-- MISMATCH
+  Raj                        802.72      164.43   638.29  <-- MISMATCH
+  Pabitra                   -368.05     -965.57   597.52  <-- MISMATCH
+  Ashiq                      452.74      346.43   106.31  <-- MISMATCH
+  Lokesh                    1739.47     1397.43   342.04  <-- MISMATCH
+  Srinivas                   333.80      184.43   149.37  <-- MISMATCH
+  Deepak                     553.19      496.43    56.76  <-- MISMATCH
+  Firoz                      961.64      342.43   619.21  <-- MISMATCH
+  Sudheer                    557.04      -81.57   638.61  <-- MISMATCH
+  Gopi                       559.80      421.43   138.37  <-- MISMATCH
+  Manjunath                  559.80      -78.57   638.37  <-- MISMATCH
+  Ashok(Raaga)              1033.47      810.43   223.04  <-- MISMATCH
+  RK                         877.63      280.43   597.20  <-- MISMATCH
+  Vijay                      234.53      157.43    77.10  <-- MISMATCH
+
+OK: 0  |  Mismatch (>₹5): 35  |  Unmatched: 0
