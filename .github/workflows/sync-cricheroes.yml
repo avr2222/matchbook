@@ -12,7 +12,7 @@ on:
         default: 'false'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   sync:
@@ -20,27 +20,17 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
+      - name: Install dependencies
+        run: pip install requests
+
       - name: Run CricHeroes sync
         run: python scripts/sync_cricheroes.py
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Commit updated data files
-        run: |
-          git config user.name  "CricHeroes Bot"
-          git config user.email "bot@github.com"
-          git add public/data/
-          if git diff --staged --quiet; then
-            echo "No data changes to commit."
-          else
-            git commit -m "sync: cricheroes auto-sync $(date -u '+%Y-%m-%d %H:%M UTC')"
-            git push
-          fi
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}

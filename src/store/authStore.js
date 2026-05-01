@@ -1,45 +1,37 @@
 import { create } from 'zustand'
-import { clearConfig } from '../api/dataReader'
+import { supabase } from '../lib/supabase'
 
-const SESSION_KEY = 'cricket_auth'
-
-function loadSession() {
-  try {
-    const raw = sessionStorage.getItem(SESSION_KEY)
-    return raw ? JSON.parse(raw) : null
-  } catch {
-    return null
-  }
-}
-
-function saveSession(data) {
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(data))
-}
-
-function clearSession() {
-  sessionStorage.removeItem(SESSION_KEY)
-}
-
-export const useAuthStore = create((set, get) => {
-  const saved = loadSession()
+function deriveState(session) {
+  const meta = session?.user?.user_metadata ?? {}
   return {
-    token: saved?.token ?? null,
-    role: saved?.role ?? null,           // 'admin' | 'player' | null
-    playerId: saved?.playerId ?? null,
-    githubUsername: saved?.githubUsername ?? null,
-    displayName: saved?.displayName ?? null,
-    isAuthenticated: !!saved?.token,
-
-    login(token, role, playerId, githubUsername, displayName) {
-      const data = { token, role, playerId, githubUsername, displayName }
-      saveSession(data)
-      set({ ...data, isAuthenticated: true })
-    },
-
-    logout() {
-      clearSession()
-      clearConfig()
-      set({ token: null, role: null, playerId: null, githubUsername: null, displayName: null, isAuthenticated: false })
-    },
+    session,
+    isAuthenticated: !!session,
+    role: meta.is_admin ? 'admin' : (session ? 'player' : null),
+    playerId: meta.player_id ?? null,
   }
-})
+}
+
+export const useAuthStore = create((set) => ({
+  session: null,
+  role: null,
+  isAuthenticated: false,
+  playerId: null,
+
+  // Call once on app mount — restores session and subscribes to auth changes
+  init: async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    set(deriveState(session))
+    supabase.auth.onAuthStateChange((_event, session) => set(deriveState(session)))
+  },
+
+  login: async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) throw error
+    set(deriveState(data.session))
+  },
+
+  logout: async () => {
+    await supabase.auth.signOut()
+    set({ session: null, role: null, isAuthenticated: false })
+  },
+}))

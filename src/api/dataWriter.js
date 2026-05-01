@@ -1,189 +1,142 @@
-// Writes JSON data files to GitHub via the Contents API (Octokit).
-// Handles SHA conflict retries and appends to audit_log on every write.
+// Writes data to Supabase PostgreSQL.
+// Function signatures are kept identical to the old GitHub/Octokit version
+// so all admin pages work without changes.
+// No more SHA conflicts, no base64, no retries — Supabase handles concurrency.
 
-import { Octokit } from '@octokit/rest'
-import { fetchConfig, fetchAnnouncements } from './dataReader'
-import { useAuthStore } from '../store/authStore'
+import { supabase } from '../lib/supabase'
 
-// unescape() is deprecated — use TextEncoder for correct UTF-8 → base64 encoding.
-function toBase64(str) {
-  const bytes = new TextEncoder().encode(str)
-  const chunkSize = 8192
-  let binary = ''
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    binary += String.fromCharCode(...bytes.slice(i, i + chunkSize))
-  }
-  return btoa(binary)
+// ── Computed fields that live only in the player_balances VIEW ─────────────
+const COMPUTED_PLAYER_FIELDS = ['corpus_balance', 'total_paid', 'total_deducted', 'balance_status']
+
+function stripComputed(player) {
+  const row = { ...player }
+  COMPUTED_PLAYER_FIELDS.forEach(f => delete row[f])
+  return row
 }
 
-function getOctokit() {
-  const token = useAuthStore.getState().token
-  if (!token) throw new Error('Not authenticated')
-  return new Octokit({ auth: token })
-}
-
-async function getFileSha(octokit, config, path) {
-  const { data } = await octokit.repos.getContent({
-    owner: config.repo_owner,
-    repo: config.repo_name,
-    path,
-    ref: config.data_branch,
-    headers: { 'If-None-Match': '' }, // bypass GitHub's ETag cache for fresh SHA
-  })
-  return { sha: data.sha, content: JSON.parse(atob(data.content.replace(/\n/g, ''))) }
-}
-
-async function writeFile(octokit, config, path, content, message, retries = 5) {
-  for (let attempt = 1; attempt <= retries; attempt++) {
-    try {
-      const { sha } = await getFileSha(octokit, config, path)
-      const encoded = toBase64(JSON.stringify(content, null, 2))
-      await octokit.repos.createOrUpdateFileContents({
-        owner: config.repo_owner,
-        repo: config.repo_name,
-        path,
-        message,
-        content: encoded,
-        sha,
-        branch: config.data_branch,
-      })
-      return
-    } catch (err) {
-      if ((err.status === 409 || err.status === 422) && attempt < retries) {
-        await new Promise(r => setTimeout(r, 500 * attempt))
-        continue
-      }
-      throw err
-    }
-  }
-}
-
-async function appendAuditEntry(octokit, config, entry) {
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    try {
-      const { sha, content: log } = await getFileSha(octokit, config, 'public/data/audit_log.json')
-      log.entries.unshift(entry) // newest first
-      const encoded = toBase64(JSON.stringify(log, null, 2))
-      await octokit.repos.createOrUpdateFileContents({
-        owner: config.repo_owner,
-        repo: config.repo_name,
-        path: 'public/data/audit_log.json',
-        message: `audit: ${entry.action} by ${entry.actor}`,
-        content: encoded,
-        sha,
-        branch: config.data_branch,
-      })
-      return
-    } catch (err) {
-      if (err.status === 409 && attempt < 3) {
-        await new Promise(r => setTimeout(r, 500 * attempt))
-        continue
-      }
-      // audit log failure must not block the main write
-      return
-    }
-  }
-}
-
-function auditEntry(action, entityType, entityId, summary, before, after) {
-  const auth = useAuthStore.getState()
-  return {
+// ── Audit log helper ───────────────────────────────────────────────────────
+async function appendAudit(action, entityType, entityId, summary, before, after) {
+  const { data: { session } } = await supabase.auth.getSession()
+  const actor = session?.user?.email ?? 'unknown'
+  const isAdmin = session?.user?.user_metadata?.is_admin === true
+  await supabase.from('audit_log').insert({
     id: `AUD_${Date.now()}`,
-    timestamp: new Date().toISOString(),
-    actor: auth.githubUsername || 'unknown',
-    actor_role: auth.role || 'unknown',
+    actor,
+    actor_role: isAdmin ? 'admin' : 'user',
     action,
     entity_type: entityType,
-    entity_id: entityId,
+    entity_id: String(entityId ?? ''),
     summary,
-    before: before ?? null,
-    after: after ?? null,
+    before_state: before ?? null,
+    after_state: after ?? null,
+  })
+  // Audit failures must not block the main write — errors are swallowed here.
+}
+
+// ── Batch upsert with chunking (Supabase max ~500 rows/request) ─────────────
+async function batchUpsert(table, rows, opts = {}) {
+  const CHUNK = 500
+  for (let i = 0; i < rows.length; i += CHUNK) {
+    const { error } = await supabase.from(table).upsert(rows.slice(i, i + CHUNK), opts)
+    if (error) throw new Error(`${table} upsert: ${error.message}`)
   }
 }
 
-// ── Public write helpers ───────────────────────────────────────────────────
+// ── Sync helper: upsert all rows, delete rows not in new set ────────────────
+async function syncTable(table, rows, pkField) {
+  if (rows.length > 0) await batchUpsert(table, rows)
+  // Find and delete rows that were removed
+  const { data: existing, error: fetchErr } = await supabase.from(table).select(pkField)
+  if (fetchErr) throw new Error(`${table} sync fetch: ${fetchErr.message}`)
+  const newIds = new Set(rows.map(r => r[pkField]))
+  const toDelete = (existing ?? []).filter(r => !newIds.has(r[pkField])).map(r => r[pkField])
+  if (toDelete.length > 0) {
+    const { error } = await supabase.from(table).delete().in(pkField, toDelete)
+    if (error) throw new Error(`${table} sync delete: ${error.message}`)
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// Public write helpers — same signatures as the old dataWriter.js
+// ══════════════════════════════════════════════════════════════════════════
 
 export async function writePlayers(players, auditAction, entityId, summary, before, after) {
-  const config = await fetchConfig()
-  const octokit = getOctokit()
-  const payload = { schema_version: 1, last_updated: new Date().toISOString(), players }
-  await writeFile(octokit, config, 'public/data/players.json', payload, `${auditAction}: ${summary}`)
-  await appendAuditEntry(octokit, config, auditEntry(auditAction, 'player', entityId, summary, before, after))
+  const rows = players.map(stripComputed)
+  await batchUpsert('players', rows)
+  await appendAudit(auditAction ?? 'update_player', 'player', entityId, summary, before, after)
 }
 
 export async function writeWeeks(weeks, auditAction, summary) {
-  const config = await fetchConfig()
-  const octokit = getOctokit()
-  const payload = { schema_version: 1, weeks }
-  await writeFile(octokit, config, 'public/data/weeks.json', payload, `weeks: ${summary}`)
-  await appendAuditEntry(octokit, config, auditEntry(auditAction, 'week', null, summary, null, null))
+  // Upsert only — never bulk-delete here to avoid stale-cache races with CricHeroes sync.
+  // Use deleteWeekById() for explicit week deletion.
+  if (weeks.length > 0) await batchUpsert('weeks', weeks)
+  await appendAudit(auditAction ?? 'update_week', 'week', null, summary, null, null)
+}
+
+export async function deleteWeekById(weekId, label) {
+  // CASCADE on attendance + guest_visits handles child rows automatically.
+  const { error } = await supabase.from('weeks').delete().eq('week_id', weekId)
+  if (error) throw new Error(`weeks delete: ${error.message}`)
+  await appendAudit('delete_week', 'week', weekId, `Deleted match ${label}`, null, null)
 }
 
 export async function writeAttendance(records, summary) {
-  const config = await fetchConfig()
-  const octokit = getOctokit()
-  const payload = { schema_version: 1, last_updated: new Date().toISOString(), records }
-  await writeFile(octokit, config, 'public/data/attendance.json', payload, `attendance: ${summary}`)
-  await appendAuditEntry(octokit, config, auditEntry('mark_attendance', 'attendance', null, summary, null, null))
+  // Upsert all; orphaned records for deleted weeks are removed by ON DELETE CASCADE
+  if (records.length > 0) {
+    await batchUpsert('attendance', records, { onConflict: 'player_id,week_id' })
+  }
+  await appendAudit('mark_attendance', 'attendance', null, summary, null, null)
 }
 
 export async function writeTransactions(transactions, auditAction, entityId, summary, before, after) {
-  const config = await fetchConfig()
-  const octokit = getOctokit()
-  const payload = { schema_version: 1, transactions }
-  await writeFile(octokit, config, 'public/data/transactions.json', payload, `txn: ${summary}`)
-  await appendAuditEntry(octokit, config, auditEntry(auditAction, 'transaction', entityId, summary, before, after))
+  // Transactions are append-only (reversals add a new record, never delete)
+  await batchUpsert('transactions', transactions)
+  await appendAudit(auditAction ?? 'update_transaction', 'transaction', entityId, summary, before, after)
 }
 
 export async function writeExpenses(expenses, auditAction, summary) {
-  const config = await fetchConfig()
-  const octokit = getOctokit()
-  const payload = { schema_version: 1, expenses }
-  await writeFile(octokit, config, 'public/data/expenses.json', payload, `expense: ${summary}`)
-  await appendAuditEntry(octokit, config, auditEntry(auditAction, 'expense', null, summary, null, null))
+  await syncTable('expenses', expenses, 'id')
+  await appendAudit(auditAction ?? 'update_expense', 'expense', null, summary, null, null)
 }
 
 export async function writeGuestVisits(visits, summary) {
-  const config = await fetchConfig()
-  const octokit = getOctokit()
-  const payload = { schema_version: 1, guest_visits: visits }
-  await writeFile(octokit, config, 'public/data/guest_visits.json', payload, `guests: ${summary}`)
-  await appendAuditEntry(octokit, config, auditEntry('add_guest', 'guest', null, summary, null, null))
+  await syncTable('guest_visits', visits, 'id')
+  await appendAudit('add_guest', 'guest', null, summary, null, null)
 }
 
 export async function writeCricHeroesMapping(mapping, summary) {
-  const config = await fetchConfig()
-  const octokit = getOctokit()
-  await writeFile(octokit, config, 'public/data/cricheroes_mapping.json', mapping, `mapping: ${summary}`)
+  const { error } = await supabase
+    .from('cricheroes_mapping')
+    .upsert({ id: 1, mapping, updated_at: new Date().toISOString() })
+  if (error) throw new Error(`cricheroes_mapping upsert: ${error.message}`)
+}
+
+export async function updateConfig(patch, summary) {
+  const { error } = await supabase.from('config').update(patch).eq('id', 1)
+  if (error) throw new Error(`config update: ${error.message}`)
+  await appendAudit('update_config', 'config', null, summary ?? 'Config updated', null, patch)
 }
 
 export async function writeTournaments(data, auditAction, summary) {
-  const config = await fetchConfig()
-  const octokit = getOctokit()
-  await writeFile(octokit, config, 'public/data/tournaments.json', data, `tournament: ${summary}`)
-  await appendAuditEntry(octokit, config, auditEntry(auditAction, 'tournament', null, summary, null, null))
+  const tournaments = Array.isArray(data) ? data : (data?.tournaments ?? [data])
+  await batchUpsert('tournaments', tournaments)
+  await appendAudit(auditAction ?? 'update_tournament', 'tournament', null, summary, null, null)
 }
 
 export async function writeAnnouncements(data, summary) {
-  const config = await fetchConfig()
-  const octokit = getOctokit()
-  await writeFile(octokit, config, 'public/data/announcements.json', data, `announce: ${summary}`)
-  await appendAuditEntry(octokit, config, auditEntry('update_announcements', 'announcement', null, summary, null, null))
+  const announcements = Array.isArray(data) ? data : (data?.announcements ?? [])
+  await syncTable('announcements', announcements, 'id')
+  await appendAudit('update_announcements', 'announcement', null, summary, null, null)
 }
 
 export async function writePaymentRequests(requests, summary) {
-  const config = await fetchConfig()
-  const octokit = getOctokit()
-  const payload = { schema_version: 1, requests }
-  await writeFile(octokit, config, 'public/data/payment_requests.json', payload, `payment_req: ${summary}`)
+  const rows = Array.isArray(requests) ? requests : (requests?.requests ?? [])
+  // Upsert only — never delete payment requests (concurrent submissions must be preserved).
+  if (rows.length > 0) await batchUpsert('payment_requests', rows)
 }
 
-export async function triggerCricHeroesSync(config, token) {
-  const octokit = new Octokit({ auth: token })
-  await octokit.actions.createWorkflowDispatch({
-    owner: config.repo_owner,
-    repo: config.repo_name,
-    workflow_id: 'sync-cricheroes.yml',
-    ref: config.data_branch,
-  })
+// triggerCricHeroesSync no longer needed — sync is triggered via GitHub Actions workflow_dispatch
+// Kept as a no-op stub to avoid import errors in any code that still references it
+export async function triggerCricHeroesSync() {
+  console.warn('triggerCricHeroesSync: CricHeroes sync is now triggered via GitHub Actions workflow_dispatch')
 }

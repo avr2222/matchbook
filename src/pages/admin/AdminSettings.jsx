@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTournaments, useConfig, usePlayers, useTransactions } from '../../hooks/useData'
-import { writeTournaments } from '../../api/dataWriter'
+import { writeTournaments, updateConfig } from '../../api/dataWriter'
 import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { calcBalanceStatus } from '../../utils/balanceCalculator'
@@ -20,7 +20,8 @@ export default function AdminSettings() {
 
   if (isLoading) return <PageSpinner />
 
-  const activeTId = tData?.active_tournament_id
+  // active_tournament_id lives in config, not in the tournaments fetch result
+  const activeTId = cfg?.active_tournament_id
   const activeTournament = tData?.tournaments?.find(t => t.id === activeTId)
 
   async function closeTournamentAndMigrate() {
@@ -47,16 +48,14 @@ export default function AdminSettings() {
         status: 'active', opening_balances,
       }
 
-      const updated = {
-        ...tData,
-        active_tournament_id: newId,
-        tournaments: tData.tournaments.map(t =>
-          t.id === activeTId ? { ...t, status: 'completed' } : t
-        ).concat(newTournament),
-      }
+      const updatedTournaments = tData.tournaments
+        .map(t => t.id === activeTId ? { ...t, status: 'completed' } : t)
+        .concat(newTournament)
 
-      await writeTournaments(updated, 'start_tournament', `Closed ${activeTournament?.name}, started ${newTournamentName}`)
+      await writeTournaments(updatedTournaments, 'start_tournament', `Closed ${activeTournament?.name}, started ${newTournamentName}`)
+      await updateConfig({ active_tournament_id: newId }, `Active tournament changed to ${newTournamentName}`)
       qc.invalidateQueries({ queryKey: ['tournaments'] })
+      qc.invalidateQueries({ queryKey: ['config'] })
       setShowMigrate(false)
       showToast(`Tournament migrated! Opening balances carried forward.`)
     } catch (e) {
@@ -106,12 +105,12 @@ export default function AdminSettings() {
       <div className="card">
         <h2 className="font-semibold text-gray-800 mb-3">Configuration</h2>
         <div className="space-y-1 text-sm font-mono text-gray-600 bg-gray-50 rounded-lg p-3">
-          <div>repo: {cfg?.repo_owner}/{cfg?.repo_name}</div>
-          <div>branch: {cfg?.data_branch}</div>
           <div>match_fee: ₹{cfg?.default_match_fee}</div>
-          <div>cricheroes_id: {cfg?.cricheroes_tournament_id}</div>
+          <div>cricheroes_id: {cfg?.cricheroes_tournament_id || '—'}</div>
+          <div>upi_id: {cfg?.admin_upi_id || '—'}</div>
+          <div>season_budget: ₹{cfg?.season_budget ?? 0}</div>
         </div>
-        <p className="text-xs text-gray-400 mt-2">Edit config.json in the repo to change these values.</p>
+        <p className="text-xs text-gray-400 mt-2">Edit via Supabase Table Editor → config table (row id=1).</p>
       </div>
 
       {showMigrate && isAdmin && (

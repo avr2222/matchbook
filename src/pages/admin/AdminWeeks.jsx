@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useWeeks, usePlayers, useAttendance, useConfig, useTransactions, useExpenses } from '../../hooks/useData'
 import { useIsAdmin } from '../../hooks/useIsAdmin'
-import { writeWeeks, writeAttendance, writeTransactions, writePlayers } from '../../api/dataWriter'
+import { writeWeeks, deleteWeekById, writeAttendance, writeTransactions, writePlayers } from '../../api/dataWriter'
 import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { calcBalanceStatus, typeEmoji } from '../../utils/balanceCalculator'
@@ -99,10 +99,8 @@ export default function AdminWeeks() {
       onConfirm: async () => {
         setSaving(true)
         try {
-          const updatedWeeks   = weeks.filter(w => w.week_id !== week.week_id)
-          const updatedRecords = records.filter(r => r.week_id !== week.week_id)
-          await writeWeeks(updatedWeeks, 'delete_week', `Deleted match ${week.label}`)
-          await writeAttendance(updatedRecords, `Cleared attendance for deleted match ${week.label}`)
+          // CASCADE on attendance + guest_visits — no need to delete them manually
+          await deleteWeekById(week.week_id, week.label)
           qc.invalidateQueries({ queryKey: ['weeks'] })
           qc.invalidateQueries({ queryKey: ['attendance'] })
           showToast('Match week deleted')

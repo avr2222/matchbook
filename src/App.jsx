@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { HashRouter, Routes, Route, Navigate, Link } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Navbar from './components/layout/Navbar'
@@ -5,6 +6,7 @@ import AdminSidebar, { AdminMobileNav } from './components/layout/AdminSidebar'
 import ProtectedRoute from './auth/ProtectedRoute'
 import { ToastProvider } from './components/ui/Toast'
 import { useIsAdmin } from './hooks/useIsAdmin'
+import { useAuthStore } from './store/authStore'
 
 import Dashboard      from './pages/public/Dashboard'
 import Players        from './pages/public/Players'
@@ -45,6 +47,9 @@ function AdminLayout({ children }) {
 }
 
 export default function App() {
+  const init = useAuthStore(s => s.init)
+  useEffect(() => { init() }, [init])
+
   return (
     <QueryClientProvider client={qc}>
       <HashRouter>

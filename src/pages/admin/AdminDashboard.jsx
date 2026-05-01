@@ -3,21 +3,18 @@ import { Link } from 'react-router-dom'
 import { usePlayers, useWeeks, useConfig, useAttendance, useMapping, useExpenses } from '../../hooks/useData'
 import BalanceBadge from '../../components/ui/BalanceBadge'
 import { PageSpinner } from '../../components/ui/Spinner'
-import { triggerCricHeroesSync } from '../../api/dataWriter'
-import { useAuthStore } from '../../store/authStore'
+import { useIsAdmin } from '../../hooks/useIsAdmin'
 import { showToast } from '../../components/ui/Toast'
 import { format, parseISO } from 'date-fns'
 
 export default function AdminDashboard() {
-  const { token } = useAuthStore()
+  const isAdmin = useIsAdmin()
   const { data: cfg }              = useConfig()
   const { data: pData, isLoading } = usePlayers()
   const { data: wData }            = useWeeks()
   const { data: aData }            = useAttendance()
   const { data: mapData }          = useMapping()
   const { data: eData }            = useExpenses()
-  const [syncing, setSyncing]      = useState(false)
-
   if (isLoading) return <PageSpinner />
 
   const activeTId   = cfg?.active_tournament_id
@@ -47,25 +44,19 @@ export default function AdminDashboard() {
   const totalSpent = expenses.reduce((s, e) => s + (e.amount ?? 0), 0)
   const budgetPct  = budget > 0 ? Math.min(100, Math.round((totalSpent / budget) * 100)) : 0
 
-  async function handleSync() {
-    setSyncing(true)
-    try {
-      await triggerCricHeroesSync(cfg, token)
-      showToast('CricHeroes sync triggered! Check GitHub Actions for progress.')
-    } catch (e) {
-      showToast('Failed to trigger sync: ' + e.message, 'error')
-    } finally {
-      setSyncing(false)
-    }
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
-        <button onClick={handleSync} disabled={syncing} className="btn-primary text-sm flex items-center gap-2">
-          {syncing ? '⏳ Syncing…' : '🔄 Sync CricHeroes'}
-        </button>
+        {isAdmin && (
+          <a
+            href="https://github.com/actions"
+            target="_blank" rel="noreferrer"
+            className="btn-primary text-sm flex items-center gap-2"
+          >
+            🔄 Run CricHeroes Sync
+          </a>
+        )}
       </div>
 
       {/* Warning banners */}
@@ -144,7 +135,7 @@ export default function AdminDashboard() {
             </>
           ) : (
             <p className="text-sm text-gray-400">
-              Set <code className="bg-gray-100 px-1 rounded text-xs">season_budget</code> in config.json to enable tracking.
+              Set <code className="bg-gray-100 px-1 rounded text-xs">season_budget</code> in the config table to enable tracking.
             </p>
           )}
         </div>

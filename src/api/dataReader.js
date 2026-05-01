@@ -1,48 +1,121 @@
-// Reads JSON data files.
-// On localhost (dev or local preview): reads from /matchbook/data/ served statically.
-// On GitHub Pages: reads from raw.githubusercontent.com for always-fresh data.
+// Reads data from Supabase PostgreSQL.
+// All functions return the same shape as the old JSON-file readers
+// so useData.js / admin pages require no changes.
 
-function isLocal() {
-  return typeof location !== 'undefined' &&
-    (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-}
-
-let _config = null
+import { supabase } from '../lib/supabase'
 
 export async function fetchConfig() {
-  if (_config) return _config
-  const res = await fetch('/matchbook/data/config.json', { cache: 'no-store' })
-  if (!res.ok) throw new Error('Failed to load config.json')
-  _config = await res.json()
-  return _config
+  const { data, error } = await supabase
+    .from('config')
+    .select('*')
+    .eq('id', 1)
+    .single()
+  if (error) throw new Error(`fetchConfig: ${error.message}`)
+  return data
 }
 
-export function clearConfig() {
-  _config = null
+// clearConfig() is a no-op with Supabase (no client-side cache to clear)
+export function clearConfig() {}
+
+export async function fetchPlayers() {
+  // player_balances view returns corpus_balance, total_paid, total_deducted computed from transactions
+  const { data, error } = await supabase
+    .from('player_balances')
+    .select('*')
+    .order('display_name')
+  if (error) throw new Error(`fetchPlayers: ${error.message}`)
+  return { schema_version: 1, players: data }
 }
 
-function rawUrl(config, filename) {
-  if (isLocal()) return `/matchbook/data/${filename}`
-  return `https://raw.githubusercontent.com/${config.repo_owner}/${config.repo_name}/${config.data_branch}/public/data/${filename}`
+export async function fetchWeeks() {
+  const { data, error } = await supabase
+    .from('weeks')
+    .select('*')
+    .order('match_date', { ascending: false })
+  if (error) throw new Error(`fetchWeeks: ${error.message}`)
+  return { schema_version: 1, weeks: data }
 }
 
-export async function fetchData(filename) {
-  const config = await fetchConfig()
-  const url = rawUrl(config, filename)
-  const res = await fetch(url, { cache: 'no-store' })
-  if (!res.ok) throw new Error(`Failed to load ${filename}: ${res.status}`)
-  return res.json()
+export async function fetchAttendance() {
+  const { data, error } = await supabase.from('attendance').select('*')
+  if (error) throw new Error(`fetchAttendance: ${error.message}`)
+  return { schema_version: 1, records: data }
 }
 
-export const fetchPlayers     = () => fetchData('players.json')
-export const fetchWeeks       = () => fetchData('weeks.json')
-export const fetchAttendance  = () => fetchData('attendance.json')
-export const fetchTransactions= () => fetchData('transactions.json')
-export const fetchExpenses    = () => fetchData('expenses.json')
-export const fetchGuestVisits = () => fetchData('guest_visits.json')
-export const fetchTournaments = () => fetchData('tournaments.json')
-export const fetchUsers       = () => fetchData('users.json')
-export const fetchAuditLog    = () => fetchData('audit_log.json')
-export const fetchCricHeroesMapping  = () => fetchData('cricheroes_mapping.json')
-export const fetchAnnouncements     = () => fetchData('announcements.json')
-export const fetchPaymentRequests   = () => fetchData('payment_requests.json')
+export async function fetchTransactions() {
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*')
+    .order('date', { ascending: false })
+  if (error) throw new Error(`fetchTransactions: ${error.message}`)
+  return { schema_version: 1, transactions: data }
+}
+
+export async function fetchExpenses() {
+  const { data, error } = await supabase
+    .from('expenses')
+    .select('*')
+    .order('date', { ascending: false })
+  if (error) throw new Error(`fetchExpenses: ${error.message}`)
+  return { schema_version: 1, expenses: data }
+}
+
+export async function fetchGuestVisits() {
+  const { data, error } = await supabase.from('guest_visits').select('*')
+  if (error) throw new Error(`fetchGuestVisits: ${error.message}`)
+  return { schema_version: 1, guest_visits: data }
+}
+
+export async function fetchTournaments() {
+  const { data, error } = await supabase
+    .from('tournaments')
+    .select('*')
+    .order('start_date', { ascending: false })
+  if (error) throw new Error(`fetchTournaments: ${error.message}`)
+  // active_tournament_id comes from config in the new model
+  return { schema_version: 1, tournaments: data, active_tournament_id: null }
+}
+
+export async function fetchAuditLog() {
+  const { data, error } = await supabase
+    .from('audit_log')
+    .select('*')
+    .order('timestamp', { ascending: false })
+    .limit(500)
+  if (error) throw new Error(`fetchAuditLog: ${error.message}`)
+  return { schema_version: 1, entries: data }
+}
+
+export async function fetchCricHeroesMapping() {
+  const { data, error } = await supabase
+    .from('cricheroes_mapping')
+    .select('mapping')
+    .eq('id', 1)
+    .single()
+  if (error) throw new Error(`fetchCricHeroesMapping: ${error.message}`)
+  return data?.mapping ?? {}
+}
+
+export async function fetchAnnouncements() {
+  const { data, error } = await supabase
+    .from('announcements')
+    .select('*')
+    .order('posted_on', { ascending: false })
+  if (error) throw new Error(`fetchAnnouncements: ${error.message}`)
+  return { schema_version: 1, announcements: data }
+}
+
+export async function fetchPaymentRequests() {
+  const { data, error } = await supabase
+    .from('payment_requests')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) throw new Error(`fetchPaymentRequests: ${error.message}`)
+  return { schema_version: 1, requests: data }
+}
+
+// Users are now managed by Supabase Auth — no separate users.json table.
+// Return a stub so any remaining useUsers() calls don't crash.
+export async function fetchUsers() {
+  return { users: [] }
+}

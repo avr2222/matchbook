@@ -2,7 +2,7 @@
 """
 CricHeroes Auto-Sync Script
 Fetches match results via the CricHeroes internal API (api.cricheroes.in),
-maps players to internal IDs, and updates the JSON data files.
+maps players to internal IDs, and writes directly to Supabase.
 
 No browser, no proxy, no Cloudflare needed — works directly from GitHub Actions.
 
@@ -10,22 +10,41 @@ Usage:
   python scripts/sync_cricheroes.py
 
 Environment variables:
-  GH_TOKEN  - GitHub token (set automatically by GitHub Actions)
+  SUPABASE_URL          - Supabase project URL
+  SUPABASE_SERVICE_KEY  - Service role key (bypasses RLS for writes)
 """
 
 import json
+import os
 import re
 import sys
 import time
 import difflib
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 import urllib.request
 import urllib.error
 
-DATA_DIR = Path(__file__).parent.parent / "public" / "data"
+try:
+    import requests
+except ImportError:
+    print("ERROR: 'requests' not installed. Run: pip install requests")
+    sys.exit(1)
 
-# CricHeroes internal API — same credentials used by their web/mobile app
+SUPABASE_URL = os.environ.get('SUPABASE_URL', '').rstrip('/')
+SUPABASE_KEY = os.environ.get('SUPABASE_SERVICE_KEY', '')
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    print("ERROR: Set SUPABASE_URL and SUPABASE_SERVICE_KEY environment variables.")
+    sys.exit(1)
+
+SB_HEADERS = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': f'Bearer {SUPABASE_KEY}',
+    'Content-Type': 'application/json',
+    'Prefer': 'resolution=merge-duplicates',
+}
+
+# CricHeroes internal API
 API_BASE = "https://api.cricheroes.in/api/v1"
 API_HEADERS = {
     "api-key":     "cr!CkH3r0s",
@@ -37,20 +56,54 @@ API_HEADERS = {
 }
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# ── Supabase helpers ──────────────────────────────────────────────────────────
 
-def load_json(filename):
-    path = DATA_DIR / filename
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
+def sb_get_all(table, select='*', filters=''):
+    """Fetch all rows from a table, paginating automatically."""
+    rows = []
+    limit = 1000
+    offset = 0
+    while True:
+        url = f'{SUPABASE_URL}/rest/v1/{table}?select={select}&limit={limit}&offset={offset}'
+        if filters:
+            url += f'&{filters}'
+        r = requests.get(url, headers={**SB_HEADERS, 'Prefer': 'count=none'})
+        r.raise_for_status()
+        batch = r.json()
+        rows.extend(batch)
+        if len(batch) < limit:
+            break
+        offset += limit
+    return rows
 
 
-def save_json(filename, data):
-    path = DATA_DIR / filename
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-    print(f"  Saved {filename}")
+def sb_get_one(table, select='*', filters=''):
+    url = f'{SUPABASE_URL}/rest/v1/{table}?select={select}&limit=1'
+    if filters:
+        url += f'&{filters}'
+    r = requests.get(url, headers={**SB_HEADERS, 'Prefer': 'count=none'})
+    r.raise_for_status()
+    data = r.json()
+    return data[0] if data else None
 
+
+def sb_upsert(table, rows, chunk=500):
+    if not rows:
+        return
+    rows_list = rows if isinstance(rows, list) else [rows]
+    for i in range(0, len(rows_list), chunk):
+        r = requests.post(
+            f'{SUPABASE_URL}/rest/v1/{table}',
+            headers=SB_HEADERS,
+            json=rows_list[i:i + chunk],
+        )
+        if not r.ok:
+            print(f"  ERROR upserting {table}: {r.status_code} {r.text[:400]}")
+            r.raise_for_status()
+    print(f"  Saved {len(rows_list)} rows → {table}")
+
+
+# ── CricHeroes API helpers ────────────────────────────────────────────────────
 
 def api_get(path, retries=3):
     url = path if path.startswith("http") else f"{API_BASE}/{path.lstrip('/')}"
@@ -67,9 +120,7 @@ def api_get(path, retries=3):
 
 
 def fuzzy_match(name, candidates, threshold=0.5):
-    """Return (best_player_id, confidence) using fuzzy string matching."""
-    best_score = 0.0
-    best_id = None
+    best_score, best_id = 0.0, None
     name_lower = name.lower().strip()
     for player in candidates:
         candidate = player["display_name"].lower().strip()
@@ -78,17 +129,13 @@ def fuzzy_match(name, candidates, threshold=0.5):
             score2 = difflib.SequenceMatcher(None, name_lower, player["cricheroes_name"].lower().strip()).ratio()
             score = max(score, score2)
         if score > best_score:
-            best_score = score
-            best_id = player["id"]
+            best_score, best_id = score, player["id"]
     if best_score >= threshold:
         return best_id, round(best_score, 3)
     return None, round(best_score, 3)
 
 
-# ── CricHeroes API calls ──────────────────────────────────────────────────────
-
 def get_tournament_matches(tournament_id):
-    """Fetch all past matches for the tournament via internal API."""
     ts = int(time.time() * 1000)
     path = f"match/get-tournament-matches/3/-1/-1?tournamentid={tournament_id}&status=3&pagesize=100&pageno=1&datetime={ts}"
     print(f"Fetching match list via CricHeroes API (tournament {tournament_id})")
@@ -101,7 +148,6 @@ def get_tournament_matches(tournament_id):
 
 
 def get_match_scorecard(match_id):
-    """Fetch scorecard for a match via internal API."""
     data = api_get(f"scorecard/v2/get-scorecard/{match_id}")
     if not data.get("status"):
         print(f"  Warning: API returned status=false for match {match_id}")
@@ -110,7 +156,6 @@ def get_match_scorecard(match_id):
 
 
 def extract_players_from_scorecard(scorecard_data):
-    """Extract {cricheroes_player_id: name} from API scorecard data."""
     seen = {}
     for team_key in ("team_a", "team_b"):
         team = scorecard_data.get(team_key, {})
@@ -125,35 +170,35 @@ def extract_players_from_scorecard(scorecard_data):
                 name = re.sub(r"\s*\(c\s*&\s*wk\)|\s*\(wk\)|\s*\(c\)", "", bowler.get("name", ""), flags=re.I).strip()
                 if pid and name:
                     seen[pid] = name
-    return seen  # { cricheroes_player_id: name }
+    return seen
 
 
 # ── Main sync logic ───────────────────────────────────────────────────────────
 
 def sync():
-    print("\n=== CricHeroes Sync ===")
+    print("\n=== CricHeroes Sync (Supabase) ===")
     print(f"Time: {datetime.now(timezone.utc).isoformat()}\n")
 
-    # Load all data files
-    config      = load_json("config.json")
-    players_raw = load_json("players.json")
-    weeks_raw   = load_json("weeks.json")
-    attend_raw  = load_json("attendance.json")
-    txns_raw    = load_json("transactions.json")
-    mapping_raw = load_json("cricheroes_mapping.json")
+    # ── Load all data from Supabase ──────────────────────────────────────────
+    config = sb_get_one('config', select='*', filters='id=eq.1')
+    if not config:
+        print("ERROR: config table is empty. Run the migration script first.")
+        sys.exit(1)
 
-    players      = players_raw["players"]
-    weeks        = weeks_raw["weeks"]
-    attendance   = attend_raw["records"]
-    transactions = txns_raw["transactions"]
-    mappings     = mapping_raw["player_mappings"]
-    unmatched    = mapping_raw.get("unmatched", [])
+    players    = sb_get_all('players')
+    weeks      = sb_get_all('weeks')
+    attendance = sb_get_all('attendance')
+
+    # Load mapping (single JSONB row)
+    mapping_row = sb_get_one('cricheroes_mapping', select='mapping', filters='id=eq.1')
+    mapping_data = mapping_row.get('mapping', {}) if mapping_row else {}
+    mappings     = mapping_data.get('player_mappings', [])
+    unmatched    = mapping_data.get('unmatched', [])
 
     active_tournament_id = config["active_tournament_id"]
     match_fee            = config.get("default_match_fee", 500)
-    tournament_url       = config["cricheroes_tournament_url"]
+    tournament_url       = config.get("cricheroes_tournament_url", "")
 
-    # Extract numeric tournament ID from URL (e.g. ".../tournament/1874258/...")
     m = re.search(r"/tournament/(\d+)/", tournament_url)
     if not m:
         raise ValueError(f"Cannot extract tournament ID from URL: {tournament_url}")
@@ -161,15 +206,14 @@ def sync():
 
     # Build lookup: cricheroes_player_id -> internal player_id
     ch_to_internal = {
-        m["cricheroes_player_id"]: m["player_id"]
-        for m in mappings
-        if m.get("confirmed") and m.get("player_id")
+        m_["cricheroes_player_id"]: m_["player_id"]
+        for m_ in mappings
+        if m_.get("confirmed") and m_.get("player_id")
     }
     for p in players:
         if p.get("cricheroes_player_id"):
             ch_to_internal.setdefault(str(p["cricheroes_player_id"]), p["id"])
 
-    # week_id format: W_YYYY_MM_DD
     existing_week_ids      = {w["week_id"] for w in weeks}
     existing_session_dates = {w["match_date"] for w in weeks if w.get("status") == "completed"}
 
@@ -186,29 +230,28 @@ def sync():
                 return True
         return False
 
-    # Fetch match list
     all_matches = get_tournament_matches(tournament_id)
 
-    # Group completed matches by session date (multiple mini-games per Sunday)
-    sessions = {}  # date -> [match, ...]
+    # Group by session date
+    sessions = {}
     for match in all_matches:
         match_date = match.get("match_start_time", "")[:10]
-        if not match_date:
-            continue
-        if date_already_covered(match_date):
+        if not match_date or date_already_covered(match_date):
             continue
         sessions.setdefault(match_date, []).append(match)
 
     print(f"\nNew sessions to sync: {len(sessions)} dates — {sorted(sessions.keys())}")
 
-    newly_unmatched = {}
-    changed = False
+    # Accumulate rows to upsert at the end
+    new_players    = []
+    new_weeks      = []
+    new_attendance = []
+    changed        = False
 
     for match_date, session_matches in sorted(sessions.items()):
         week_id = f"W_{match_date.replace('-', '_')}"
         print(f"\nProcessing session {match_date} ({len(session_matches)} game(s))")
 
-        # Collect all unique players across all games in this session
         all_session_ch_players = {}
         all_match_ids = []
         team_a = team_b = ""
@@ -225,24 +268,24 @@ def sync():
 
         print(f"  Total unique players this session: {len(all_session_ch_players)}")
 
-        # Add single week/session entry
         if week_id not in existing_week_ids:
-            weeks.append({
-                "week_id": week_id,
-                "tournament_id": active_tournament_id,
-                "match_date": match_date,
-                "label": datetime.strptime(match_date, "%Y-%m-%d").strftime("%b %d").lstrip("0"),
-                "venue": "Machaxi J Sports, Bengaluru",
-                "match_fee": match_fee,
-                "status": "completed",
-                "cricheroes_match_id": all_match_ids[0],
+            week_row = {
+                "week_id":              week_id,
+                "tournament_id":        active_tournament_id,
+                "match_date":           match_date,
+                "label":                datetime.strptime(match_date, "%Y-%m-%d").strftime("%b %d").lstrip("0"),
+                "venue":                "Machaxi J Sports, Bengaluru",
+                "match_fee":            match_fee,
+                "status":               "completed",
+                "cricheroes_match_id":  all_match_ids[0],
                 "cricheroes_match_ids": all_match_ids,
-                "team_a": team_a,
-                "team_b": team_b,
-                "result": "",
-                "players_count": len(all_session_ch_players),
-                "notes": f"{len(session_matches)} game(s)" if len(session_matches) > 1 else "",
-            })
+                "team_a":               team_a,
+                "team_b":               team_b,
+                "result":               "",
+                "players_count":        len(all_session_ch_players),
+                "notes":                f"{len(session_matches)} game(s)" if len(session_matches) > 1 else "",
+            }
+            new_weeks.append(week_row)
             existing_week_ids.add(week_id)
             existing_session_dates.add(match_date)
             changed = True
@@ -261,11 +304,11 @@ def sync():
                     ch_to_internal[ch_pid] = best_id
                     mappings.append({
                         "cricheroes_player_id": ch_pid,
-                        "cricheroes_name": ch_name,
-                        "player_id": best_id,
-                        "match_confidence": confidence,
-                        "match_method": "auto_fuzzy",
-                        "confirmed": True,
+                        "cricheroes_name":      ch_name,
+                        "player_id":            best_id,
+                        "match_confidence":     confidence,
+                        "match_method":         "auto_fuzzy",
+                        "confirmed":            True,
                     })
                     played_internal_ids.add(best_id)
                     changed = True
@@ -273,100 +316,96 @@ def sync():
                     print(f"  Low-confidence: '{ch_name}' (CH:{ch_pid}) -> {best_id} (conf={confidence}) — needs review")
                     mappings.append({
                         "cricheroes_player_id": ch_pid,
-                        "cricheroes_name": ch_name,
-                        "player_id": best_id,
-                        "match_confidence": confidence,
-                        "match_method": "auto_fuzzy",
-                        "confirmed": False,
+                        "cricheroes_name":      ch_name,
+                        "player_id":            best_id,
+                        "match_confidence":     confidence,
+                        "match_method":         "auto_fuzzy",
+                        "confirmed":            False,
                     })
                     changed = True
                 else:
-                    existing_ids = {p["id"] for p in players}
+                    existing_ids = {p["id"] for p in players} | {p["id"] for p in new_players}
                     guest_id = f"PLY_G_{ch_pid}"
                     if guest_id not in existing_ids:
                         print(f"  Auto-creating guest: '{ch_name}' (CH:{ch_pid}) -> {guest_id}")
-                        players.append({
-                            "id": guest_id,
-                            "display_name": ch_name,
-                            "type": "guest",
-                            "status": "active",
-                            "joined_date": match_date,
-                            "phone": "",
-                            "corpus_balance": 0,
-                            "total_paid": 0,
-                            "total_deducted": 0,
-                            "balance_status": "good",
-                            "github_username": "",
-                            "cricheroes_player_id": ch_pid,
-                            "cricheroes_name": ch_name,
-                            "guest_fee_mode": "free",
+                        guest_row = {
+                            "id":                    guest_id,
+                            "display_name":          ch_name,
+                            "type":                  "guest",
+                            "status":                "active",
+                            "joined_date":           match_date,
+                            "phone":                 "",
+                            "github_username":       "",
+                            "cricheroes_player_id":  ch_pid,
+                            "cricheroes_name":       ch_name,
+                            "guest_fee_mode":        "free",
                             "sponsored_by_player_id": None,
-                            "notes": "Auto-created from CricHeroes",
-                        })
+                            "notes":                 "Auto-created from CricHeroes",
+                        }
+                        new_players.append(guest_row)
+                        players.append(guest_row)  # keep in-memory list current
                         mappings.append({
                             "cricheroes_player_id": ch_pid,
-                            "cricheroes_name": ch_name,
-                            "player_id": guest_id,
-                            "match_confidence": 1.0,
-                            "match_method": "auto_guest",
-                            "confirmed": True,
+                            "cricheroes_name":      ch_name,
+                            "player_id":            guest_id,
+                            "match_confidence":     1.0,
+                            "match_method":         "auto_guest",
+                            "confirmed":            True,
                         })
                         ch_to_internal[ch_pid] = guest_id
                         changed = True
                     played_internal_ids.add(ch_to_internal.get(ch_pid, guest_id))
 
-        # Create attendance records
-        existing_att_ids = {r["id"] for r in attendance}
-        active_player_ids = {p["id"] for p in players if p["status"] == "active"}
+        # Build attendance records for every active player for this week
+        existing_att_ids   = {r["id"] for r in attendance}
+        active_player_ids  = {p["id"] for p in players if p.get("status") == "active"}
+        active_player_ids |= {p["id"] for p in new_players if p.get("status") == "active"}
 
         for pid in active_player_ids:
             att_id = f"ATT_{pid}_{week_id}"
             if att_id not in existing_att_ids:
-                attendance.append({
-                    "id": att_id,
-                    "player_id": pid,
-                    "week_id": week_id,
+                new_attendance.append({
+                    "id":            att_id,
+                    "player_id":     pid,
+                    "week_id":       week_id,
                     "tournament_id": active_tournament_id,
-                    "status": "played" if pid in played_internal_ids else "absent",
-                    "source": "cricheroes_sync",
-                    "fee_deducted": False,
+                    "status":        "played" if pid in played_internal_ids else "absent",
+                    "source":        "cricheroes_sync",
+                    "fee_deducted":  False,
                 })
                 changed = True
-
-    # Add newly unmatched to mapping file
-    existing_unmatched_ids = {u["cricheroes_player_id"] for u in unmatched}
-    for ch_pid, ch_name in newly_unmatched.items():
-        if ch_pid not in existing_unmatched_ids and ch_pid not in ch_to_internal:
-            unmatched.append({"cricheroes_player_id": ch_pid, "cricheroes_name": ch_name})
-            changed = True
 
     if not changed:
         print("\nNo changes detected. Everything up to date.")
         return
 
-    print("\nSaving updated data files…")
-    players_raw["players"]      = players
-    players_raw["last_updated"] = datetime.now(timezone.utc).isoformat()
-    save_json("players.json", players_raw)
+    # ── Write all changes to Supabase ────────────────────────────────────────
+    print("\nWriting changes to Supabase…")
 
-    weeks_raw["weeks"] = weeks
-    save_json("weeks.json", weeks_raw)
+    if new_players:
+        sb_upsert('players', new_players)
 
-    attend_raw["records"]      = attendance
-    attend_raw["last_updated"] = datetime.now(timezone.utc).isoformat()
-    save_json("attendance.json", attend_raw)
+    if new_weeks:
+        sb_upsert('weeks', new_weeks)
 
-    txns_raw["transactions"] = transactions
-    save_json("transactions.json", txns_raw)
+    if new_attendance:
+        sb_upsert('attendance', new_attendance)
 
-    mapping_raw["player_mappings"] = mappings
-    mapping_raw["unmatched"]       = unmatched
-    mapping_raw["last_sync"]       = datetime.now(timezone.utc).isoformat()
-    save_json("cricheroes_mapping.json", mapping_raw)
+    # Always update mapping so last_sync timestamp is current
+    updated_mapping = {
+        "player_mappings": mappings,
+        "unmatched":       unmatched,
+        "last_sync":       datetime.now(timezone.utc).isoformat(),
+    }
+    r = requests.post(
+        f'{SUPABASE_URL}/rest/v1/cricheroes_mapping',
+        headers=SB_HEADERS,
+        json={'id': 1, 'mapping': updated_mapping, 'updated_at': datetime.now(timezone.utc).isoformat()},
+    )
+    r.raise_for_status()
+    print("  Saved mapping → cricheroes_mapping")
 
     print(f"\nSync complete. {len(sessions)} session(s) processed.")
-    if newly_unmatched:
-        print(f"WARNING: {len(newly_unmatched)} unmatched player(s) — fix mapping in admin panel.")
 
 
 if __name__ == "__main__":
