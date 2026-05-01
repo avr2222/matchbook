@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { usePlayers, useWeeks, useAttendance, useTournaments, useConfig, useAnnouncements } from '../../hooks/useData'
+import { usePlayers, useWeeks, useAttendance, useTournaments, useConfig, useAnnouncements, useExpenses } from '../../hooks/useData'
 import { PageSpinner } from '../../components/ui/Spinner'
 import MatchPlayersModal from '../../components/ui/MatchPlayersModal'
 import { format, parseISO } from 'date-fns'
@@ -16,6 +16,7 @@ export default function Dashboard() {
   const { data: wData }   = useWeeks()
   const { data: aData }   = useAttendance()
   const { data: annData } = useAnnouncements()
+  const { data: eData }   = useExpenses()
 
   if (pLoad) return <PageSpinner />
 
@@ -47,6 +48,16 @@ export default function Dashboard() {
   const atRiskCount = statusCounts.urgent + statusCounts.overdue
   const upiId       = cfg?.admin_upi_id
   const threshold   = cfg?.corpus_low_threshold ?? 1000
+
+  const allExpenses    = (eData?.expenses ?? []).sort((a, b) => b.date.localeCompare(a.date))
+  const recentExpenses = allExpenses.slice(0, 5)
+  const totalExpenses  = allExpenses.reduce((s, e) => s + (e.amount ?? 0), 0)
+
+  const EXPENSE_LABELS = {
+    match_cost: 'Match Cost', ground_booking: 'Ground Booking', cricket_ball: 'Cricket Ball',
+    cricket_bat: 'Cricket Bat', equipment: 'Equipment', refreshments: 'Refreshments',
+    kit: 'Kit / Uniform', other: 'Other',
+  }
 
   const stats = [
     { label: 'Active Players',   value: allActive.length,                                       icon: '👥', to: '/players',            bg: 'from-blue-500 to-blue-600'    },
@@ -221,20 +232,21 @@ export default function Dashboard() {
         {!activeStatus && atRiskCount > 0 && (
           <div className="mt-3 bg-orange-50 border border-orange-100 rounded-xl px-3 py-2.5">
             <p className="text-xs font-semibold text-orange-700 mb-1.5">⚠️ {atRiskCount} player{atRiskCount > 1 ? 's' : ''} need to top up</p>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="divide-y divide-orange-100">
               {sortedCorpus
                 .filter(p => p.balance_status === 'urgent' || p.balance_status === 'overdue')
                 .map(p => (
                   <Link
                     key={p.id}
                     to={`/player/${p.id}`}
-                    className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${
-                      p.balance_status === 'overdue'
-                        ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                        : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
-                    } transition-colors`}
+                    className="flex items-center justify-between py-1.5 hover:opacity-80 transition-opacity"
                   >
-                    {p.display_name}
+                    <span className={`text-xs font-medium ${p.balance_status === 'overdue' ? 'text-red-700' : 'text-orange-700'}`}>
+                      {p.display_name}
+                    </span>
+                    <span className={`text-xs font-mono font-semibold ${p.balance_status === 'overdue' ? 'text-red-600' : 'text-orange-600'}`}>
+                      ₹{Math.round(p.corpus_balance ?? 0).toLocaleString('en-IN')}
+                    </span>
                   </Link>
                 ))
               }
@@ -283,6 +295,36 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {/* Recent Expenses */}
+      {recentExpenses.length > 0 && (
+        <div className="card mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-bold text-gray-900">Recent Expenses</h2>
+            <span className="text-xs text-gray-400">Season total: ₹{Math.round(totalExpenses).toLocaleString('en-IN')}</span>
+          </div>
+          <div className="space-y-1">
+            {recentExpenses.map(e => (
+              <div key={e.id} className="flex items-center justify-between text-sm px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center text-base shrink-0">🧾</div>
+                  <div>
+                    <span className="font-semibold text-gray-800">{e.description}</span>
+                    <div className="text-xs text-gray-400 mt-0.5">
+                      {format(parseISO(e.date), 'MMM d, yyyy')}
+                      {e.category && <span className="ml-1">· {EXPENSE_LABELS[e.category] ?? e.category}</span>}
+                      {e.paid_by && <span className="ml-1">· paid by {e.paid_by}</span>}
+                    </div>
+                  </div>
+                </div>
+                <span className="font-mono font-semibold text-red-600 shrink-0 ml-2">
+                  ₹{e.amount.toLocaleString('en-IN')}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <MatchPlayersModal
         week={(wData?.weeks ?? []).find(w => w.week_id === detail)}
