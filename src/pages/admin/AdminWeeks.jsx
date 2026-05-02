@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useWeeks, usePlayers, useAttendance, useConfig, useTransactions, useExpenses } from '../../hooks/useData'
 import { useIsAdmin } from '../../hooks/useIsAdmin'
+import { useCanWrite } from '../../hooks/useCanWrite'
 import { writeWeeks, deleteWeekById, writeAttendance, writeTransactions, writePlayers } from '../../api/dataWriter'
 import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
@@ -19,7 +20,8 @@ export default function AdminWeeks() {
   const { data: cfg }    = useConfig()
   const { data: eData }  = useExpenses()
 
-  const isAdmin = useIsAdmin()
+  const isAdmin   = useIsAdmin()
+  const canWrite  = useCanWrite()
   const [selected, setSelected]           = useState(null)
   const [attendanceMap, setAttendanceMap] = useState({})
   const [deductFromMap, setDeductFromMap] = useState({}) // player_id → corpus player_id to charge ('' = self)
@@ -273,8 +275,8 @@ export default function AdminWeeks() {
         {isAdmin && <button onClick={() => setShowNew(true)} className="btn-primary text-sm">+ Add Match</button>}
       </div>
 
-      <div className="card p-0 overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="card p-0 overflow-hidden overflow-x-auto">
+        <table className="w-full text-sm min-w-[640px]">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Date</th>
@@ -287,9 +289,12 @@ export default function AdminWeeks() {
           </thead>
           <tbody className="divide-y divide-gray-50">
             {weeks.map(w => {
-              const played    = records.filter(r => r.week_id === w.week_id && r.status === 'played').length
-              const weekExps  = expenses.filter(e => e.week_id === w.week_id)
-              const totalCost = weekExps.reduce((s, e) => s + e.amount, 0)
+              const played         = records.filter(r => r.week_id === w.week_id && r.status === 'played').length
+              const weekExps       = expenses.filter(e => e.week_id === w.week_id)
+              const totalCost      = weekExps.reduce((s, e) => s + e.amount, 0)
+              const deductionTotal = transactions
+                .filter(t => t.week_id === w.week_id && t.type === 'match_deduction')
+                .reduce((s, t) => s + (t.amount ?? 0), 0)
               return (
                 <tr
                   key={w.week_id}
@@ -310,9 +315,11 @@ export default function AdminWeeks() {
                     {w.status === 'completed' ? (
                       <div>
                         <span className="text-green-700 font-semibold">{played}</span>
-                        {weekExps.length > 0 && (
+                        {weekExps.length > 0 ? (
                           <div className="text-xs text-red-400 mt-0.5">₹{totalCost.toLocaleString('en-IN')}</div>
-                        )}
+                        ) : deductionTotal > 0 ? (
+                          <div className="text-xs text-blue-400 mt-0.5">₹{Math.round(deductionTotal).toLocaleString('en-IN')}</div>
+                        ) : null}
                       </div>
                     ) : '—'}
                   </td>
@@ -328,12 +335,12 @@ export default function AdminWeeks() {
                   </td>
                   <td className="px-4 py-3 text-center" onClick={e => e.stopPropagation()}>
                     <div className="flex items-center justify-center gap-2 flex-wrap">
-                      {isAdmin && (
+                      {canWrite && (
                         <button onClick={() => openAttendance(w.week_id)} className="text-blue-600 hover:underline text-xs font-medium">
                           Attendance
                         </button>
                       )}
-                      {isAdmin && (
+                      {canWrite && (
                         <button onClick={() => openResultEditor(w)} className="text-purple-600 hover:underline text-xs font-medium">
                           Result
                         </button>
@@ -401,7 +408,7 @@ export default function AdminWeeks() {
       )}
 
       {/* Attendance editor */}
-      {selected && selectedWeek && isAdmin && (
+      {selected && selectedWeek && canWrite && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between">

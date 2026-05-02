@@ -28,12 +28,12 @@ export default function Navbar() {
 
           {isAuthenticated ? (
             <>
-              {role === 'admin' && (
+              {(role === 'admin' || role === 'host') && (
                 <Link to="/admin" className="text-sm font-medium text-gray-500 hover:text-gray-900 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">
-                  Admin
+                  {role === 'host' ? '★ Host' : 'Admin'}
                 </Link>
               )}
-              {role === 'player' && (
+              {(role === 'player' || role === 'host') && (
                 <Link to="/my" className="text-sm font-medium text-gray-500 hover:text-gray-900 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">
                   My Portal
                 </Link>

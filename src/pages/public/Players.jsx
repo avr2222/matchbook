@@ -59,8 +59,8 @@ export default function Players() {
       </div>
 
       {/* Table card */}
-      <div className="card p-0 overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="card p-0 overflow-hidden overflow-x-auto">
+        <table className="w-full text-sm min-w-[480px]">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide w-8">#</th>
@@ -68,12 +68,13 @@ export default function Players() {
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide hidden sm:table-cell">Type</th>
               <th className="px-4 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wide">Balance</th>
               <th className="px-4 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wide">Status</th>
+              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wide hidden sm:table-cell">Pay</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
             {visible.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-12 text-gray-400">
+                <td colSpan={6} className="text-center py-12 text-gray-400">
                   <div className="text-3xl mb-2">🔍</div>
                   No players found.
                 </td>
@@ -108,6 +109,16 @@ export default function Players() {
                   <Link to={`/pay/${p.id}`}>
                     <BalanceBadge status={p.balance_status} />
                   </Link>
+                </td>
+                <td className="px-4 py-3.5 text-center hidden sm:table-cell">
+                  {p.type !== 'ppm' && (
+                    <Link
+                      to={`/pay/${p.id}`}
+                      className="text-xs px-2.5 py-1 bg-green-50 text-green-700 border border-green-200 rounded-full hover:bg-green-100 transition-colors font-medium"
+                    >
+                      Top Up
+                    </Link>
+                  )}
                 </td>
               </tr>
             ))}

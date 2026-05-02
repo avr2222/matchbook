@@ -7,6 +7,7 @@ import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { generateId, calcBalanceStatus } from '../../utils/balanceCalculator'
 import { useIsAdmin } from '../../hooks/useIsAdmin'
+import { useCanWrite } from '../../hooks/useCanWrite'
 import ConfirmModal from '../../components/ui/ConfirmModal'
 import { format, parseISO } from 'date-fns'
 
@@ -44,7 +45,8 @@ export default function AdminExpenses() {
   const { data: aData } = useAttendance()
   const { data: tData } = useTransactions()
   const [searchParams, setSearchParams] = useSearchParams()
-  const isAdmin = useIsAdmin()
+  const isAdmin  = useIsAdmin()
+  const canWrite = useCanWrite()
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving]     = useState(false)
   const [deletingId, setDeletingId] = useState(null)
@@ -215,7 +217,7 @@ export default function AdminExpenses() {
           <h1 className="text-xl font-bold text-gray-900">Expenses</h1>
           <p className="text-sm text-gray-500 mt-0.5">Total: ₹{total.toLocaleString('en-IN')}</p>
         </div>
-        {isAdmin && <button onClick={() => setShowForm(true)} className="btn-primary text-sm">+ Add Expense</button>}
+        {canWrite && <button onClick={() => setShowForm(true)} className="btn-primary text-sm">+ Add Expense</button>}
       </div>
 
       <div className="card p-0 overflow-hidden overflow-x-auto">
@@ -345,7 +347,7 @@ export default function AdminExpenses() {
         </div>
       )}
 
-      {showForm && isAdmin && (
+      {showForm && canWrite && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">

@@ -24,6 +24,9 @@ import AdminSettings  from './pages/admin/AdminSettings'
 import AdminExpenses       from './pages/admin/AdminExpenses'
 import AdminGuests          from './pages/admin/AdminGuests'
 import AdminAnnouncements   from './pages/admin/AdminAnnouncements'
+import AdminSignups         from './pages/admin/AdminSignups'
+import AdminPayments        from './pages/admin/AdminPayments'
+import Signup               from './pages/auth/Signup'
 
 const qc = new QueryClient()
 
@@ -63,6 +66,7 @@ export default function App() {
               <Route path="/player/:id"    element={<PlayerDetail />} />
               <Route path="/pay/:playerId" element={<PlayerPay />} />
               <Route path="/login"         element={<DeviceFlowLogin />} />
+              <Route path="/signup"        element={<Signup />} />
               <Route path="/unauthorized" element={
                 <div className="flex items-center justify-center h-64 text-gray-500">
                   Access denied. You don't have permission to view this page.
@@ -76,17 +80,21 @@ export default function App() {
                 </ProtectedRoute>
               } />
 
-              {/* Admin panel — readable by all, writes gated per-page by useIsAdmin() */}
-              <Route path="/admin"                element={<AdminLayout><AdminDashboard /></AdminLayout>} />
-              <Route path="/admin/players"        element={<AdminLayout><AdminPlayers /></AdminLayout>} />
-              <Route path="/admin/weeks"          element={<AdminLayout><AdminWeeks /></AdminLayout>} />
-              <Route path="/admin/transactions"   element={<AdminLayout><AdminTransactions /></AdminLayout>} />
-              <Route path="/admin/audit"          element={<AdminLayout><AdminAudit /></AdminLayout>} />
-              <Route path="/admin/mapping"        element={<AdminLayout><AdminMapping /></AdminLayout>} />
-              <Route path="/admin/settings"       element={<AdminLayout><AdminSettings /></AdminLayout>} />
-              <Route path="/admin/expenses"       element={<AdminLayout><AdminExpenses /></AdminLayout>} />
-              <Route path="/admin/guests"         element={<AdminLayout><AdminGuests /></AdminLayout>} />
-              <Route path="/admin/announcements"  element={<AdminLayout><AdminAnnouncements /></AdminLayout>} />
+              {/* Admin panel — requires admin login */}
+              <Route path="/admin"               element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/players"       element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminPlayers /></AdminLayout></ProtectedRoute>} />
+              {/* Hosts can access weeks + expenses (but delete buttons hidden inside) */}
+              <Route path="/admin/weeks"         element={<ProtectedRoute requiredRole="writer"><AdminLayout><AdminWeeks /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/expenses"      element={<ProtectedRoute requiredRole="writer"><AdminLayout><AdminExpenses /></AdminLayout></ProtectedRoute>} />
+              {/* Admin-only routes */}
+              <Route path="/admin/transactions"  element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminTransactions /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/audit"         element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminAudit /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/mapping"       element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminMapping /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/settings"      element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminSettings /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/guests"        element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminGuests /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/announcements" element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminAnnouncements /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/signups"       element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminSignups /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/payments"      element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminPayments /></AdminLayout></ProtectedRoute>} />
 
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

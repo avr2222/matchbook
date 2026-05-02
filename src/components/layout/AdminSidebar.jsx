@@ -1,23 +1,49 @@
 import { NavLink } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { useMapping } from '../../hooks/useData'
+import { useIsAdmin } from '../../hooks/useIsAdmin'
+import { supabase } from '../../lib/supabase'
+
+function usePendingCounts() {
+  const isAdmin = useIsAdmin()
+  return useQuery({
+    queryKey: ['pending_counts'],
+    queryFn: async () => {
+      const [signupsRes, paymentsRes] = await Promise.all([
+        supabase.from('user_signups').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('payment_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      ])
+      return { signups: signupsRes.count ?? 0, payments: paymentsRes.count ?? 0 }
+    },
+    enabled: isAdmin,
+    staleTime: 60_000,
+    refetchInterval: 120_000,
+  })
+}
 
 function useAdminLinks() {
   const { data: mapData } = useMapping()
-  const unmatchedCount = (mapData?.unmatched ?? []).length
-  const staleCount     = (mapData?.player_mappings ?? []).filter(m => !m.confirmed).length
-  const cricHeroesBadge = unmatchedCount + staleCount
-  return [
+  const { data: counts }  = usePendingCounts()
+  const isAdmin           = useIsAdmin()
+  const unmatchedCount    = (mapData?.unmatched ?? []).length
+  const staleCount        = (mapData?.player_mappings ?? []).filter(m => !m.confirmed).length
+  const cricHeroesBadge   = unmatchedCount + staleCount
+
+  const links = [
     { to: '/admin',                label: 'Overview',       icon: '🏠', end: true },
-    { to: '/admin/players',        label: 'Players',        icon: '👥' },
+    { to: '/admin/players',        label: 'Players',        icon: '👥', adminOnly: true },
     { to: '/admin/weeks',          label: 'Matches',        icon: '📅' },
-    { to: '/admin/transactions',   label: 'Payments',       icon: '💳' },
+    { to: '/admin/transactions',   label: 'Payments',       icon: '💳', adminOnly: true },
     { to: '/admin/expenses',       label: 'Expenses',       icon: '🧾' },
-    { to: '/admin/guests',         label: 'Guests',         icon: '👤' },
-    { to: '/admin/announcements',  label: 'Announcements',  icon: '📢' },
-    { to: '/admin/audit',          label: 'Audit Log',      icon: '📋' },
-    { to: '/admin/mapping',        label: 'CricHeroes',     icon: '🔗', badge: cricHeroesBadge },
-    { to: '/admin/settings',       label: 'Settings',       icon: '⚙️' },
+    { to: '/admin/guests',         label: 'Guests',         icon: '👤', adminOnly: true },
+    { to: '/admin/announcements',  label: 'Announcements',  icon: '📢', adminOnly: true },
+    { to: '/admin/audit',          label: 'Audit Log',      icon: '📋', adminOnly: true },
+    { to: '/admin/mapping',        label: 'CricHeroes',     icon: '🔗', badge: cricHeroesBadge, adminOnly: true },
+    { to: '/admin/signups',        label: 'Signups',        icon: '✍️',  badge: counts?.signups, adminOnly: true },
+    { to: '/admin/payments',       label: 'Pay Requests',   icon: '💰', badge: counts?.payments, adminOnly: true },
+    { to: '/admin/settings',       label: 'Settings',       icon: '⚙️', adminOnly: true },
   ]
+  return isAdmin ? links : links.filter(l => !l.adminOnly)
 }
 
 export function AdminMobileNav() {

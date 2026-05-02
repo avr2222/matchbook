@@ -159,3 +159,94 @@ export async function writePaymentRequests(requests, summary) {
 export async function triggerCricHeroesSync() {
   console.warn('triggerCricHeroesSync: CricHeroes sync is now triggered via GitHub Actions workflow_dispatch')
 }
+
+// ── Signup approval ────────────────────────────────────────────────────────
+
+export async function approveSignup(signupId, role) {
+  // 1. Fetch the signup to get auth_user_id and player_id
+  const { data: signup, error: fetchErr } = await supabase
+    .from('user_signups')
+    .select('auth_user_id, player_id, display_name')
+    .eq('id', signupId)
+    .single()
+  if (fetchErr) throw new Error(`Fetch signup: ${fetchErr.message}`)
+
+  // 2. Update signup status
+  const { error } = await supabase
+    .from('user_signups')
+    .update({ status: 'approved', requested_role: role })
+    .eq('id', signupId)
+  if (error) throw new Error(`Approve signup: ${error.message}`)
+
+  // 3. Link player record to auth account if one was claimed
+  if (signup.player_id && signup.auth_user_id) {
+    await supabase
+      .from('players')
+      .update({ auth_user_id: signup.auth_user_id })
+      .eq('id', signup.player_id)
+  }
+
+  await appendAudit('approve_signup', 'user_signup', signupId,
+    `Approved ${signup.display_name} as ${role}`, null, { role })
+}
+
+export async function rejectSignup(signupId) {
+  const { data: signup } = await supabase
+    .from('user_signups')
+    .select('display_name')
+    .eq('id', signupId)
+    .single()
+
+  const { error } = await supabase
+    .from('user_signups')
+    .update({ status: 'rejected' })
+    .eq('id', signupId)
+  if (error) throw new Error(`Reject signup: ${error.message}`)
+  await appendAudit('reject_signup', 'user_signup', signupId,
+    `Rejected ${signup?.display_name}`, null, null)
+}
+
+// ── Payment request confirmation ────────────────────────────────────────────
+
+export async function confirmPayment(requestId) {
+  const { data: req, error: fetchErr } = await supabase
+    .from('payment_requests')
+    .select('*')
+    .eq('id', requestId)
+    .single()
+  if (fetchErr) throw new Error(`Fetch payment request: ${fetchErr.message}`)
+
+  // Insert corpus_payment transaction
+  const txnId = `TXN_PAY_${req.player_id}_${Date.now()}`
+  const { error: txnErr } = await supabase.from('transactions').insert({
+    id: txnId,
+    player_id: req.player_id,
+    type: 'corpus_payment',
+    direction: 'credit',
+    amount: req.amount,
+    date: new Date().toISOString().slice(0, 10),
+    description: `Corpus Top-up${req.upi_ref ? ` | Ref: ${req.upi_ref}` : ''}`,
+    recorded_by: 'admin',
+    receipt_ref: req.upi_ref || '',
+  })
+  if (txnErr) throw new Error(`Insert transaction: ${txnErr.message}`)
+
+  // Mark request confirmed
+  const { error: updErr } = await supabase
+    .from('payment_requests')
+    .update({ status: 'confirmed', paid_at: new Date().toISOString() })
+    .eq('id', requestId)
+  if (updErr) throw new Error(`Confirm payment request: ${updErr.message}`)
+
+  await appendAudit('confirm_payment', 'payment_request', requestId,
+    `Confirmed ₹${req.amount} payment for ${req.player_id}`, null, null)
+}
+
+export async function rejectPayment(requestId) {
+  const { error } = await supabase
+    .from('payment_requests')
+    .update({ status: 'rejected' })
+    .eq('id', requestId)
+  if (error) throw new Error(`Reject payment: ${error.message}`)
+  await appendAudit('reject_payment', 'payment_request', requestId, 'Payment rejected', null, null)
+}

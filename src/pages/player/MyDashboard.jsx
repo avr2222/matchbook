@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { usePlayers, useWeeks, useAttendance, useTransactions, useConfig, useAnnouncements, usePaymentRequests } from '../../hooks/useData'
 import { writePaymentRequests } from '../../api/dataWriter'
@@ -229,6 +230,14 @@ export default function MyDashboard() {
           <div className="pb-1"><BalanceBadge status={player.balance_status} /></div>
         </div>
         {player.type !== 'ppm' && <PayNowButton player={player} config={cfg} />}
+        {player.type !== 'ppm' && player.balance_status === 'good' && (
+          <Link
+            to={`/pay/${playerId}`}
+            className="mt-3 flex items-center justify-center gap-2 bg-white/15 hover:bg-white/25 backdrop-blur-sm text-white font-semibold rounded-2xl px-4 py-2.5 transition-all text-sm"
+          >
+            💳 Top Up Balance
+          </Link>
+        )}
       </div>
 
       <div className="px-4 space-y-4">

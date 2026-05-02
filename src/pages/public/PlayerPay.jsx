@@ -1,12 +1,21 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { usePlayers, useWeeks, useConfig } from '../../hooks/useData'
+import { supabase } from '../../lib/supabase'
 import BalanceBadge from '../../components/ui/BalanceBadge'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { format, parseISO } from 'date-fns'
 
+// Creates a pending payment_requests row and opens the UPI app.
+// On return, shows a form to capture the UPI transaction ID.
 function UpiPaySection({ player, config }) {
-  const [copied, setCopied] = useState(false)
+  const [amount, setAmount]             = useState(null)
+  const [pendingReqId, setPendingReqId] = useState(null)
+  const [upiRef, setUpiRef]             = useState('')
+  const [refSaved, setRefSaved]         = useState(false)
+  const [copied, setCopied]             = useState(false)
+  const [saving, setSaving]             = useState(false)
+
   const upiId     = config?.admin_upi_id
   const threshold = config?.corpus_low_threshold ?? 1000
   const balance   = player.corpus_balance ?? 0
@@ -17,10 +26,49 @@ function UpiPaySection({ player, config }) {
 
   const needed    = Math.max(threshold - balance, 500)
   const suggested = Math.ceil(needed / 500) * 500
+  const chosen    = amount ?? suggested
   const isMobile  = /Android|iPhone|iPad/i.test(navigator.userAgent)
-  const name      = encodeURIComponent(config?.team_name ?? 'Cricket Team')
-  const note      = encodeURIComponent(`Corpus Topup - ${player.display_name}`)
-  const upiHref   = `upi://pay?pa=${upiId}&pn=${name}&am=${suggested}&cu=INR&tn=${note}`
+  const teamName  = config?.team_name ?? 'Cricket Team'
+  const note      = `Corpus Topup - ${player.display_name}`
+  const upiHref   = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(teamName)}&am=${chosen}&cu=INR&tn=${encodeURIComponent(note)}`
+
+  async function handlePayNow() {
+    setSaving(true)
+    try {
+      const reqId = `PREQ_${Date.now()}`
+      await supabase.from('payment_requests').insert({
+        id: reqId,
+        player_id: player.id,
+        amount: chosen,
+        amount_requested: chosen,
+        status: 'pending',
+        upi_ref: '',
+        notes: `UPI Topup initiated — ${player.display_name}`,
+      })
+      setPendingReqId(reqId)
+      // Open UPI app
+      window.location.href = upiHref
+    } catch (e) {
+      console.error('Failed to record payment intent', e)
+      // Still open UPI even if DB write failed
+      window.location.href = upiHref
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function saveUpiRef() {
+    if (!upiRef.trim() || !pendingReqId) return
+    setSaving(true)
+    try {
+      await supabase.from('payment_requests').update({ upi_ref: upiRef.trim() }).eq('id', pendingReqId)
+      setRefSaved(true)
+    } catch (e) {
+      console.error('Failed to save UPI ref', e)
+    } finally {
+      setSaving(false)
+    }
+  }
 
   function copy() {
     navigator.clipboard?.writeText(upiId).then(() => {
@@ -32,20 +80,44 @@ function UpiPaySection({ player, config }) {
   return (
     <div className="space-y-4">
       <div className="text-center">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Suggested Top-up</p>
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Top-up Amount</p>
         <div className="text-4xl font-extrabold text-gray-900">
-          ₹{suggested.toLocaleString('en-IN')}
+          ₹{chosen.toLocaleString('en-IN')}
         </div>
-        <p className="text-xs text-gray-400 mt-1">to reach <span className="text-emerald-600 font-semibold">Good</span> standing</p>
+        <p className="text-xs text-gray-400 mt-1">
+          {balance < threshold
+            ? `to reach `
+            : `optional top-up — `}
+          <span className="text-emerald-600 font-semibold">Good</span> standing
+        </p>
       </div>
 
+      {/* Amount selector */}
+      <div className="flex gap-2 justify-center flex-wrap">
+        {[suggested, suggested + 500, suggested + 1000].map(a => (
+          <button
+            key={a}
+            onClick={() => setAmount(a)}
+            className={`px-3 py-1.5 rounded-full text-sm font-semibold border transition-all ${
+              chosen === a
+                ? 'bg-green-600 text-white border-green-600'
+                : 'border-gray-200 text-gray-600 hover:border-green-300'
+            }`}
+          >
+            ₹{a.toLocaleString('en-IN')}
+          </button>
+        ))}
+      </div>
+
+      {/* Pay button */}
       {isMobile ? (
-        <a
-          href={upiHref}
-          className="btn-primary w-full text-center block text-base py-3.5 rounded-2xl"
+        <button
+          onClick={handlePayNow}
+          disabled={saving}
+          className="btn-primary w-full text-base py-3.5 rounded-2xl"
         >
-          💳 Pay via UPI App
-        </a>
+          {saving ? 'Opening…' : `💳 Pay ₹${chosen.toLocaleString('en-IN')} via UPI`}
+        </button>
       ) : (
         <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 space-y-2">
           <p className="text-xs font-bold text-emerald-700 uppercase tracking-widest">Pay to UPI ID</p>
@@ -62,8 +134,57 @@ function UpiPaySection({ player, config }) {
               {copied ? '✓ Copied' : 'Copy'}
             </button>
           </div>
+          <p className="text-xs text-gray-500 font-medium">
+            Use note: <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded">{note}</span>
+          </p>
           <p className="text-xs text-gray-400">Open any UPI app and pay, or open this page on your phone to pay in one tap.</p>
+          {!pendingReqId && (
+            <button
+              onClick={handlePayNow}
+              disabled={saving}
+              className="text-xs text-green-600 font-semibold hover:underline"
+            >
+              {saving ? 'Recording…' : 'Record payment intent →'}
+            </button>
+          )}
         </div>
+      )}
+
+      {/* UPI Ref capture — shown after opening UPI app */}
+      {pendingReqId && !refSaved && (
+        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 space-y-2">
+          <p className="text-xs font-bold text-blue-700 uppercase tracking-widest">After Paying</p>
+          <p className="text-sm text-blue-800">Enter your UPI Transaction ID so admin can verify:</p>
+          <div className="flex gap-2">
+            <input
+              className="input flex-1 text-sm font-mono"
+              placeholder="e.g. 4123456789012"
+              value={upiRef}
+              onChange={e => setUpiRef(e.target.value)}
+            />
+            <button
+              onClick={saveUpiRef}
+              disabled={saving || !upiRef.trim()}
+              className="btn-primary text-sm py-1.5 px-3 shrink-0"
+            >
+              {saving ? '…' : 'Save'}
+            </button>
+          </div>
+          <p className="text-xs text-blue-500">This is optional but helps admin confirm faster.</p>
+        </div>
+      )}
+
+      {refSaved && (
+        <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-3 text-center">
+          <p className="text-sm font-semibold text-emerald-700">✓ Payment reference saved!</p>
+          <p className="text-xs text-emerald-600 mt-1">Admin will confirm and credit your account shortly.</p>
+        </div>
+      )}
+
+      {pendingReqId && !refSaved && (
+        <p className="text-xs text-center text-gray-400">
+          ⏳ Payment pending admin confirmation. Your balance updates once confirmed.
+        </p>
       )}
     </div>
   )
@@ -141,14 +262,14 @@ export default function PlayerPay() {
             <UpiPaySection player={player} config={cfg} />
           </div>
         ) : (
-          <div className="card text-center mb-4 shadow-md">
+          <div className="card shadow-md mb-4">
             {showTopUp ? (
-              <div className="text-left">
+              <div>
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3 text-center">Top Up</p>
                 <UpiPaySection player={player} config={cfg} />
               </div>
             ) : (
-              <div className="py-4 space-y-3">
+              <div className="py-4 space-y-3 text-center">
                 <div className="text-4xl">✅</div>
                 <p className="font-bold text-emerald-700 text-lg">You're all good!</p>
                 <p className="text-sm text-gray-400">Your corpus balance is healthy. No action needed.</p>
