@@ -22,7 +22,9 @@ export default function AdminWeeks() {
   const isAdmin = useIsAdmin()
   const [selected, setSelected]           = useState(null)
   const [attendanceMap, setAttendanceMap] = useState({})
-  const [guestSponsorMap, setGuestSponsorMap] = useState({}) // { guest_player_id: corpus_player_id }
+  const [deductFromMap, setDeductFromMap] = useState({}) // player_id → corpus player_id to charge ('' = self)
+  const [localMatchFee, setLocalMatchFee] = useState(0)  // editable per-player match fee for this session
+  const [snacksTotal, setSnacksTotal]     = useState(0)  // total snacks cost split among players who played
   const [detail, setDetail]               = useState(null)
   const [showNew, setShowNew]             = useState(false)
   const [newWeek, setNewWeek]             = useState({
@@ -46,13 +48,17 @@ export default function AdminWeeks() {
   const selectedWeek = weeks.find(w => w.week_id === selected)
 
   function openAttendance(weekId) {
+    const week = weeks.find(w => w.week_id === weekId)
     const weekRecords = records.filter(r => r.week_id === weekId)
     const init = Object.fromEntries(weekRecords.map(r => [r.player_id, r.status]))
-    const sponsorInit = Object.fromEntries(
+    // deductFromMap: only store overrides (non-self); empty string means "deduct from self"
+    const deductInit = Object.fromEntries(
       weekRecords.filter(r => r.sponsor_player_id).map(r => [r.player_id, r.sponsor_player_id])
     )
     setAttendanceMap(init)
-    setGuestSponsorMap(sponsorInit)
+    setDeductFromMap(deductInit)
+    setLocalMatchFee(week?.match_fee ?? cfg?.default_match_fee ?? 500)
+    setSnacksTotal(0)
     setSelected(weekId)
   }
 
@@ -116,17 +122,30 @@ export default function AdminWeeks() {
   async function saveAttendance(week) {
     setSaving(true)
     try {
+      const fee = parseFloat(localMatchFee) || week.match_fee
+      const snacks = parseFloat(snacksTotal) || 0
+
+      // Update week's match_fee if admin changed it
+      const weekChanged = fee !== week.match_fee
+      if (weekChanged) {
+        await writeWeeks(
+          weeks.map(w => w.week_id === week.week_id ? { ...w, match_fee: fee } : w),
+          'edit_week', `Updated match fee for ${week.label}`
+        )
+        qc.invalidateQueries({ queryKey: ['weeks'] })
+      }
+
       const existingOther = records.filter(r => r.week_id !== week.week_id)
       const newRecords = players.map(p => {
+        const chargeId = deductFromMap[p.id] || null  // null = self (default)
         const rec = {
           id: `ATT_${p.id}_${week.week_id}`,
           player_id: p.id, week_id: week.week_id,
           tournament_id: activeTId,
           status: attendanceMap[p.id] ?? 'absent',
           source: 'admin', fee_deducted: false,
-        }
-        if (p.type === 'guest' && guestSponsorMap[p.id]) {
-          rec.sponsor_player_id = guestSponsorMap[p.id]
+          // store override for any player type (guest or corpus with a sponsor)
+          sponsor_player_id: chargeId,
         }
         return rec
       })
@@ -139,34 +158,37 @@ export default function AdminWeeks() {
 
       if (cfg?.auto_deduct_on_sync && !alreadyDeducted) {
         const played = players.filter(p => attendanceMap[p.id] === 'played')
+        const playedCorpusCount = played.filter(p => p.type !== 'ppm').length
+        const snacksPerPlayer = playedCorpusCount > 0 ? snacks / playedCorpusCount : 0
         const allPlayers = pData?.players ?? []
 
-        // Build balance change map: player_id → amount to deduct
-        // Guests without sponsor: skip (no corpus deduction)
-        // Guests with sponsor: charge sponsor instead
-        // PPM: skip
+        // Build deduction map: corpus_player_id → total amount
+        // - PPM: skip (they pay separately)
+        // - corpus/new: deduct from self unless deductFromMap says otherwise
+        // - guest: deduct from deductFromMap[guest.id] if set, else skip
         const balanceChanges = {}
         played.forEach(p => {
           if (p.type === 'ppm') return
-          if (p.type === 'guest') {
-            const sponsorId = guestSponsorMap[p.id]
-            if (sponsorId) balanceChanges[sponsorId] = (balanceChanges[sponsorId] ?? 0) + week.match_fee
-            return
-          }
-          balanceChanges[p.id] = (balanceChanges[p.id] ?? 0) + week.match_fee
+          const chargeId = deductFromMap[p.id] || p.id
+          if (p.type === 'guest' && !deductFromMap[p.id]) return  // unsponsored guest: skip
+          const amount = fee + snacksPerPlayer
+          balanceChanges[chargeId] = (balanceChanges[chargeId] ?? 0) + amount
         })
 
         const newTxns = Object.entries(balanceChanges).map(([playerId, amount]) => {
-          const isGuestSponsor = played.some(p => p.type === 'guest' && guestSponsorMap[p.id] === playerId)
+          const sponsoredGuests = played.filter(p => p.type === 'guest' && (deductFromMap[p.id] || '') === playerId)
+          const hasOverride     = played.some(p => p.id !== playerId && (deductFromMap[p.id] || '') === playerId)
+          const desc = [
+            `Match fee - ${week.label}`,
+            hasOverride || sponsoredGuests.length > 0 ? `(incl. guest/proxy)` : '',
+            snacksPerPlayer > 0 ? `+ snacks ₹${snacksPerPlayer.toFixed(0)}` : '',
+          ].filter(Boolean).join(' ')
           return {
             id: `TXN_DEDUCT_${week.week_id}_${playerId}`,
             player_id: playerId, tournament_id: activeTId,
-            type: 'match_deduction', amount,
+            type: 'match_deduction', amount: Math.round(amount * 100) / 100,
             direction: 'debit', date: week.match_date, week_id: week.week_id,
-            description: isGuestSponsor
-              ? `Match fee (incl. guest) - ${week.label}`
-              : `Match fee - ${week.label}`,
-            recorded_by: 'admin', receipt_ref: '',
+            description: desc, recorded_by: 'admin', receipt_ref: '',
           }
         })
 
@@ -186,7 +208,8 @@ export default function AdminWeeks() {
         showToast(alreadyDeducted ? 'Attendance updated (deductions already applied)' : 'Attendance saved')
       }
       setSelected(null)
-      setGuestSponsorMap({})
+      setDeductFromMap({})
+      setSnacksTotal(0)
     } catch (e) {
       showToast(e.message, 'error')
     } finally {
@@ -367,10 +390,34 @@ export default function AdminWeeks() {
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between">
               <div>
                 <h2 className="font-semibold">Attendance — {format(parseISO(selectedWeek.match_date), 'MMM d, yyyy')}</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Fee: ₹{selectedWeek.match_fee} per player</p>
+                <p className="text-xs text-gray-400 mt-0.5">{selectedWeek.label}</p>
               </div>
               <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
+
+            {/* Fee fields */}
+            <div className="px-6 py-3 border-b border-gray-100 grid grid-cols-2 gap-3">
+              <div>
+                <label className="label text-xs">Match Fee per Player (₹)</label>
+                <input
+                  className="input text-sm"
+                  type="number" min="0"
+                  value={localMatchFee}
+                  onChange={e => setLocalMatchFee(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="label text-xs">Snacks / Extras Total (₹)</label>
+                <input
+                  className="input text-sm"
+                  type="number" min="0"
+                  value={snacksTotal}
+                  placeholder="0 — split among played"
+                  onChange={e => setSnacksTotal(e.target.value)}
+                />
+              </div>
+            </div>
+
             <div className="px-6 py-2 flex gap-2">
               <button onClick={() => setAttendanceMap(Object.fromEntries(players.map(p => [p.id, 'played'])))} className="btn-secondary text-xs py-1">Mark All</button>
               <button onClick={() => setAttendanceMap(Object.fromEntries(players.map(p => [p.id, 'absent'])))} className="btn-secondary text-xs py-1">Clear All</button>
@@ -380,16 +427,31 @@ export default function AdminWeeks() {
               attendanceMap={attendanceMap}
               onToggle={toggleStatus}
               corpusPlayers={corpusPlayers}
-              guestSponsorMap={guestSponsorMap}
-              onSponsorChange={(guestId, sponsorId) =>
-                setGuestSponsorMap(m => ({ ...m, [guestId]: sponsorId }))
+              deductFromMap={deductFromMap}
+              onDeductFromChange={(playerId, chargeId) =>
+                setDeductFromMap(m => ({ ...m, [playerId]: chargeId }))
               }
             />
-            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2">
-              <button onClick={() => setSelected(null)} className="btn-secondary">Cancel</button>
-              <button onClick={() => saveAttendance(selectedWeek)} disabled={saving} className="btn-primary">
-                {saving ? 'Saving…' : 'Confirm & Deduct'}
-              </button>
+            <div className="px-6 py-4 border-t border-gray-100">
+              {/* Summary */}
+              {(() => {
+                const playedCount = players.filter(p => attendanceMap[p.id] === 'played' && p.type !== 'ppm').length
+                const fee = parseFloat(localMatchFee) || selectedWeek.match_fee
+                const snacks = parseFloat(snacksTotal) || 0
+                const perPlayer = fee + (playedCount > 0 ? snacks / playedCount : 0)
+                return playedCount > 0 ? (
+                  <p className="text-xs text-gray-500 mb-3">
+                    {playedCount} corpus players × ₹{perPlayer.toFixed(0)} = ₹{(perPlayer * playedCount).toFixed(0)} total deduction
+                    {snacks > 0 && ` (incl. ₹${(snacks / playedCount).toFixed(0)}/player snacks)`}
+                  </p>
+                ) : null
+              })()}
+              <div className="flex justify-end gap-2">
+                <button onClick={() => setSelected(null)} className="btn-secondary">Cancel</button>
+                <button onClick={() => saveAttendance(selectedWeek)} disabled={saving} className="btn-primary">
+                  {saving ? 'Saving…' : 'Confirm & Deduct'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -468,14 +530,16 @@ export default function AdminWeeks() {
   )
 }
 
-function AttendanceList({ players, attendanceMap, onToggle, corpusPlayers, guestSponsorMap, onSponsorChange }) {
-  const guestPlayers = players.filter(p => p.type === 'guest')
+function AttendanceList({ players, attendanceMap, onToggle, corpusPlayers, deductFromMap, onDeductFromChange }) {
+  const guestPlayers   = players.filter(p => p.type === 'guest')
   const regularPlayers = players.filter(p => p.type !== 'guest')
 
   const renderPlayer = (p) => {
     const status    = attendanceMap[p.id] ?? 'absent'
     const isGuest   = p.type === 'guest'
-    const sponsorId = guestSponsorMap?.[p.id] ?? ''
+    const isCorpus  = p.type === 'corpus' || p.type === 'new'
+    const isPPM     = p.type === 'ppm'
+    const chargeId  = deductFromMap?.[p.id] ?? ''
 
     return (
       <div key={p.id} className={`py-2.5 ${isGuest ? 'bg-purple-50/50' : ''}`}>
@@ -492,18 +556,26 @@ function AttendanceList({ players, attendanceMap, onToggle, corpusPlayers, guest
             {status === 'played' ? '✅ Played' : 'Absent'}
           </button>
         </div>
-        {isGuest && status === 'played' && (
+
+        {/* Deduct-from selector: shown for played corpus/new and guests */}
+        {status === 'played' && !isPPM && (
           <div className="mt-1.5 ml-6 flex items-center gap-2">
-            <span className="text-xs text-purple-500 font-medium">Fee charged to:</span>
+            <span className={`text-xs font-medium ${isGuest ? 'text-purple-500' : 'text-blue-500'}`}>
+              {isGuest ? 'Fee charged to:' : 'Deduct from:'}
+            </span>
             <select
-              className="input text-xs py-1 w-44"
-              value={sponsorId}
-              onChange={e => onSponsorChange(p.id, e.target.value)}
+              className="input text-xs py-1 w-48"
+              value={chargeId}
+              onChange={e => onDeductFromChange(p.id, e.target.value)}
             >
-              <option value="">Guest pays directly</option>
-              {corpusPlayers.map(cp => (
-                <option key={cp.id} value={cp.id}>{cp.display_name}</option>
-              ))}
+              {isCorpus && <option value="">Self ({p.display_name})</option>}
+              {isGuest  && <option value="">Guest pays directly</option>}
+              {corpusPlayers
+                .filter(cp => cp.id !== p.id)  // exclude self (already shown above)
+                .map(cp => (
+                  <option key={cp.id} value={cp.id}>{cp.display_name}</option>
+                ))
+              }
             </select>
           </div>
         )}
@@ -517,7 +589,7 @@ function AttendanceList({ players, attendanceMap, onToggle, corpusPlayers, guest
       {guestPlayers.length > 0 && (
         <>
           <div className="py-2 text-xs font-bold text-purple-500 uppercase tracking-widest">
-            Guests — select who pays their fee
+            Guests
           </div>
           {guestPlayers.map(renderPlayer)}
         </>
