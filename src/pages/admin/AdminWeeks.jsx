@@ -55,9 +55,18 @@ export default function AdminWeeks() {
     const deductInit = Object.fromEntries(
       weekRecords.filter(r => r.sponsor_player_id).map(r => [r.player_id, r.sponsor_player_id])
     )
+    // Pre-fill total cost from existing match_deduction transactions for this week
+    const existingDeductionTotal = transactions
+      .filter(t => t.week_id === weekId && t.type === 'match_deduction')
+      .reduce((sum, t) => sum + (t.amount ?? 0), 0)
+    const playedCount = weekRecords.filter(r => r.status === 'played').length
+    const prefillCost = existingDeductionTotal > 0
+      ? Math.round(existingDeductionTotal)
+      : (week?.match_fee && playedCount > 0 ? Math.round(week.match_fee * playedCount) : 0)
+
     setAttendanceMap(init)
     setDeductFromMap(deductInit)
-    setTotalMatchCost(0)
+    setTotalMatchCost(prefillCost)
     setFreePlayerIds(new Set())
     setSelected(weekId)
   }
@@ -432,24 +441,35 @@ export default function AdminWeeks() {
               onToggleFree={toggleFree}
             />
             <div className="px-6 py-4 border-t border-gray-100">
-              {/* Summary */}
               {(() => {
                 const total = parseFloat(totalMatchCost) || 0
                 const paidCount = players.filter(p => attendanceMap[p.id] === 'played' && p.type !== 'ppm' && !freePlayerIds.has(p.id)).length
                 const freeCount = players.filter(p => attendanceMap[p.id] === 'played' && p.type !== 'ppm' && freePlayerIds.has(p.id)).length
                 const perPlayer = paidCount > 0 ? total / paidCount : 0
-                return total > 0 && paidCount > 0 ? (
-                  <p className="text-xs text-gray-500 mb-3">
-                    ₹{total.toFixed(0)} ÷ {paidCount} paid{freeCount > 0 ? ` (${freeCount} free)` : ''} = ₹{perPlayer.toFixed(0)}/player
-                  </p>
-                ) : null
+                const alreadyDeducted = transactions.some(
+                  t => t.week_id === selectedWeek?.week_id && t.type === 'match_deduction'
+                )
+                return (
+                  <>
+                    {alreadyDeducted && (
+                      <p className="text-xs text-amber-600 bg-amber-50 rounded px-3 py-2 mb-3">
+                        Deductions already applied for this match. Saving will update attendance only — no new charges.
+                      </p>
+                    )}
+                    {total > 0 && paidCount > 0 && !alreadyDeducted && (
+                      <p className="text-xs text-gray-500 mb-3">
+                        ₹{total.toFixed(0)} ÷ {paidCount} paid{freeCount > 0 ? ` (${freeCount} free)` : ''} = ₹{perPlayer.toFixed(0)}/player
+                      </p>
+                    )}
+                    <div className="flex justify-end gap-2">
+                      <button onClick={() => setSelected(null)} className="btn-secondary">Cancel</button>
+                      <button onClick={() => saveAttendance(selectedWeek)} disabled={saving} className="btn-primary">
+                        {saving ? 'Saving…' : alreadyDeducted ? 'Update Attendance' : 'Confirm & Deduct'}
+                      </button>
+                    </div>
+                  </>
+                )
               })()}
-              <div className="flex justify-end gap-2">
-                <button onClick={() => setSelected(null)} className="btn-secondary">Cancel</button>
-                <button onClick={() => saveAttendance(selectedWeek)} disabled={saving} className="btn-primary">
-                  {saving ? 'Saving…' : 'Confirm & Deduct'}
-                </button>
-              </div>
             </div>
           </div>
         </div>
