@@ -77,6 +77,9 @@ export async function deleteWeekById(weekId, label) {
   // CASCADE on attendance + guest_visits handles child rows automatically.
   const { error } = await supabase.from('weeks').delete().eq('week_id', weekId)
   if (error) throw new Error(`weeks delete: ${error.message}`)
+  // Verify deletion persisted — RLS silently blocks deletes (returns 204, 0 rows affected)
+  const { data: stillExists } = await supabase.from('weeks').select('week_id').eq('week_id', weekId).maybeSingle()
+  if (stillExists) throw new Error('Delete was blocked — you may not have admin permissions. Log out and log back in.')
   await appendAudit('delete_week', 'week', weekId, `Deleted match ${label}`, null, null)
 }
 
