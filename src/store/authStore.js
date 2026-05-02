@@ -2,12 +2,15 @@ import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
 
 function deriveState(session) {
-  const meta = session?.user?.user_metadata ?? {}
+  // is_admin is set via raw_app_meta_data (server-side, stable)
+  // player_id may come from either metadata source
+  const appMeta  = session?.user?.app_metadata  ?? {}
+  const userMeta = session?.user?.user_metadata ?? {}
   return {
     session,
     isAuthenticated: !!session,
-    role: meta.is_admin ? 'admin' : (session ? 'player' : null),
-    playerId: meta.player_id ?? null,
+    role: appMeta.is_admin ? 'admin' : (session ? 'player' : null),
+    playerId: userMeta.player_id ?? appMeta.player_id ?? null,
   }
 }
 
