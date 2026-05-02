@@ -5,13 +5,13 @@ Fixes:
   2. Ashok(Raaga) mismatch: override fuzzy match to PLY_033 (Ashok adapala) not PLY_016
   3. Verification name overrides: Karthik Reddy = PLY_009 (Kranthi), Ashok(Raaga) = PLY_033
 """
-import openpyxl, sys, difflib, requests, datetime, re
+import openpyxl, sys, difflib, requests, datetime, re, os
 from collections import defaultdict
 
 sys.stdout.reconfigure(encoding='utf-8')
 
-BASE = 'https://tzcernzuwtwgrsattjaw.supabase.co/rest/v1'
-KEY  = 'sb_secret_nyfXWpX2nEWP8azMu-Ip5A_iON9D5if'
+BASE = os.environ['SUPABASE_URL'].rstrip('/') + '/rest/v1'
+KEY  = os.environ['SUPABASE_SERVICE_KEY']
 H    = {
     'apikey': KEY, 'Authorization': f'Bearer {KEY}',
     'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates',
