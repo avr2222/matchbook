@@ -89,17 +89,14 @@ export async function deleteWeekById(weekId, label) {
 
 export async function softDeleteTransactions(ids, summary) {
   if (!ids || ids.length === 0) return
-  const deletedAt = new Date().toISOString()
-  const { data, error } = await supabase
-    .from('transactions')
-    .update({ deleted_at: deletedAt })
-    .in('id', ids)
-    .select('id')
-  if (error) throw new Error(`transactions soft-delete: ${error.message}`)
-  if (!data || data.length === 0)
+  const { error } = await supabase.from('transactions').delete().in('id', ids)
+  if (error) throw new Error(`transactions delete: ${error.message}`)
+  // Verify at least one row was actually removed — RLS silently returns 0 rows when blocked
+  const { data: remaining } = await supabase.from('transactions').select('id').in('id', ids)
+  if (remaining && remaining.length === ids.length)
     throw new Error('Delete was blocked — admin permissions required. Log out and log back in.')
   await appendAudit('delete_transactions', 'transaction', null,
-    summary ?? `Soft-deleted ${ids.length} transactions`, null, null)
+    summary ?? `Deleted ${ids.length} transactions`, null, null)
 }
 
 export async function writeAttendance(records, summary) {

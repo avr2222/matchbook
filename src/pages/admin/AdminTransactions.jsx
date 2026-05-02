@@ -233,19 +233,28 @@ export default function AdminTransactions() {
   }
 
   async function saveEditTxn() {
+    if (!editTxnForm.player_id || parseFloat(editTxnForm.amount) <= 0) {
+      showToast('Player and a positive amount are required', 'error')
+      return
+    }
     setSaving(true)
     try {
       const updated = {
         ...editTxn,
-        date: editTxnForm.date,
+        player_id:   editTxnForm.player_id,
+        type:        editTxnForm.type,
+        amount:      parseFloat(editTxnForm.amount),
+        direction:   editTxnForm.direction,
+        date:        editTxnForm.date,
         description: editTxnForm.description,
         receipt_ref: editTxnForm.receipt_ref,
-        week_id: editTxnForm.week_id || null,
+        week_id:     editTxnForm.week_id || null,
       }
       const updatedList = allTxns.map(t => t.id === editTxn.id ? updated : t)
       await writeTransactions(updatedList, 'edit_transaction', editTxn.id,
-        `Edited transaction ${editTxn.id}: ${editTxnForm.description}`, editTxn, updated)
+        `Edited transaction ${editTxn.id}`, editTxn, updated)
       qc.invalidateQueries({ queryKey: ['transactions'] })
+      qc.invalidateQueries({ queryKey: ['players'] })
       setEditTxn(null)
       showToast('Transaction updated')
     } catch (e) {
@@ -492,7 +501,7 @@ export default function AdminTransactions() {
                     {isAdmin && (
                       <div className="flex items-center justify-center gap-2">
                         <button
-                          onClick={() => { setEditTxn(t); setEditTxnForm({ date: t.date, description: t.description ?? '', receipt_ref: t.receipt_ref ?? '', week_id: t.week_id ?? '' }) }}
+                          onClick={() => { setEditTxn(t); setEditTxnForm({ player_id: t.player_id, type: t.type, amount: t.amount, direction: t.direction, date: t.date, description: t.description ?? '', receipt_ref: t.receipt_ref ?? '', week_id: t.week_id ?? '' }) }}
                           className="text-blue-500 hover:underline text-xs"
                         >
                           Edit
@@ -572,13 +581,32 @@ export default function AdminTransactions() {
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
-              <div>
-                <h2 className="font-semibold">Edit Transaction</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Amount and player cannot be changed — use Reverse to correct those.</p>
-              </div>
+              <h2 className="font-semibold">Edit Transaction</h2>
               <button onClick={() => setEditTxn(null)} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <div className="px-6 py-4 space-y-3">
+              <div>
+                <label className="label">Player</label>
+                <select className="input" value={editTxnForm.player_id} onChange={e => setEditTxnForm(f => ({ ...f, player_id: e.target.value }))}>
+                  <option value="">Select player…</option>
+                  {players.map(p => <option key={p.id} value={p.id}>{p.display_name}</option>)}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="label">Type</label>
+                  <select className="input" value={editTxnForm.type} onChange={e => {
+                    const dir = TYPES.find(t => t.value === e.target.value)?.dir ?? editTxnForm.direction
+                    setEditTxnForm(f => ({ ...f, type: e.target.value, direction: dir }))
+                  }}>
+                    {TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="label">Amount (₹)</label>
+                  <input className="input" type="number" min="0.01" step="0.01" value={editTxnForm.amount} onChange={e => setEditTxnForm(f => ({ ...f, amount: e.target.value }))} />
+                </div>
+              </div>
               <div>
                 <label className="label">Date</label>
                 <input className="input" type="date" value={editTxnForm.date} onChange={e => setEditTxnForm(f => ({ ...f, date: e.target.value }))} />
