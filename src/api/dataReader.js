@@ -36,6 +36,7 @@ export async function fetchWeeks() {
   const { data, error } = await supabase
     .from('weeks')
     .select('*')
+    .neq('status', 'deleted')
     .order('match_date', { ascending: false })
   if (error) throw new Error(`fetchWeeks: ${error.message}`)
   return { schema_version: 1, weeks: data }
@@ -51,6 +52,7 @@ export async function fetchTransactions() {
   const { data, error } = await supabase
     .from('transactions')
     .select('*')
+    .is('deleted_at', null)
     .order('date', { ascending: false })
   if (error) throw new Error(`fetchTransactions: ${error.message}`)
   return { schema_version: 1, transactions: data }

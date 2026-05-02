@@ -74,13 +74,32 @@ export async function writeWeeks(weeks, auditAction, summary) {
 }
 
 export async function deleteWeekById(weekId, label) {
-  // CASCADE on attendance + guest_visits handles child rows automatically.
-  const { error } = await supabase.from('weeks').delete().eq('week_id', weekId)
+  // Soft delete — marks status='deleted' so data is recoverable.
+  // Using UPDATE+select() lets us detect silent RLS failures (0 rows = blocked).
+  const { data, error } = await supabase
+    .from('weeks')
+    .update({ status: 'deleted' })
+    .eq('week_id', weekId)
+    .select('week_id')
   if (error) throw new Error(`weeks delete: ${error.message}`)
-  // Verify deletion persisted — RLS silently blocks deletes (returns 204, 0 rows affected)
-  const { data: stillExists } = await supabase.from('weeks').select('week_id').eq('week_id', weekId).maybeSingle()
-  if (stillExists) throw new Error('Delete was blocked — you may not have admin permissions. Log out and log back in.')
+  if (!data || data.length === 0)
+    throw new Error('Delete was blocked — admin permissions required. Log out and log back in.')
   await appendAudit('delete_week', 'week', weekId, `Deleted match ${label}`, null, null)
+}
+
+export async function softDeleteTransactions(ids, summary) {
+  if (!ids || ids.length === 0) return
+  const deletedAt = new Date().toISOString()
+  const { data, error } = await supabase
+    .from('transactions')
+    .update({ deleted_at: deletedAt })
+    .in('id', ids)
+    .select('id')
+  if (error) throw new Error(`transactions soft-delete: ${error.message}`)
+  if (!data || data.length === 0)
+    throw new Error('Delete was blocked — admin permissions required. Log out and log back in.')
+  await appendAudit('delete_transactions', 'transaction', null,
+    summary ?? `Soft-deleted ${ids.length} transactions`, null, null)
 }
 
 export async function writeAttendance(records, summary) {

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTransactions, usePlayers, useWeeks, useConfig, usePaymentRequests } from '../../hooks/useData'
-import { writeTransactions, writePlayers, writePaymentRequests } from '../../api/dataWriter'
+import { writeTransactions, writePlayers, writePaymentRequests, softDeleteTransactions } from '../../api/dataWriter'
 import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { calcBalanceStatus, generateId } from '../../utils/balanceCalculator'
@@ -44,6 +44,7 @@ export default function AdminTransactions() {
   const [confirmData, setConfirmData] = useState(null)
   const [editTxn, setEditTxn]         = useState(null)
   const [editTxnForm, setEditTxnForm] = useState(null)
+  const [selectedIds, setSelectedIds] = useState(new Set())
 
   // Filters
   const [filterPlayer, setFilterPlayer] = useState('')
@@ -254,6 +255,30 @@ export default function AdminTransactions() {
     }
   }
 
+  function deleteSelected() {
+    const ids = [...selectedIds]
+    if (!ids.length) return
+    setConfirmData({
+      message: `Soft-delete ${ids.length} selected transaction${ids.length > 1 ? 's' : ''}? They will be hidden from all views and excluded from balances. This can only be undone from the database.`,
+      confirmLabel: `Delete ${ids.length}`,
+      danger: true,
+      onConfirm: async () => {
+        setSaving(true)
+        try {
+          await softDeleteTransactions(ids, `Bulk soft-deleted ${ids.length} transactions`)
+          qc.invalidateQueries({ queryKey: ['transactions'] })
+          qc.invalidateQueries({ queryKey: ['players'] })
+          setSelectedIds(new Set())
+          showToast(`${ids.length} transaction${ids.length > 1 ? 's' : ''} deleted`)
+        } catch (e) {
+          showToast(e.message, 'error')
+        } finally {
+          setSaving(false)
+        }
+      },
+    })
+  }
+
   async function saveBulk() {
     const validRows = bulkRows.filter(r => r.player_id && parseFloat(r.amount) > 0)
     if (!validRows.length) { showToast('Add at least one valid row', 'error'); return }
@@ -317,6 +342,22 @@ export default function AdminTransactions() {
   const hasFilters   = filterPlayer || filterType || filterFrom || filterTo
   const pendingReqs  = (reqData?.requests ?? []).filter(r => r.status === 'pending')
 
+  function toggleSelect(id) {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAll() {
+    if (transactions.every(t => selectedIds.has(t.id))) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(transactions.map(t => t.id)))
+    }
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -326,8 +367,13 @@ export default function AdminTransactions() {
             <span className="ml-2 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5">{pendingReqs.length}</span>
           )}
         </h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <button onClick={exportCSV} className="btn-secondary text-sm">↓ CSV</button>
+          {isAdmin && selectedIds.size > 0 && (
+            <button onClick={deleteSelected} className="btn-danger text-sm">
+              Delete {selectedIds.size} selected
+            </button>
+          )}
           {isAdmin && <button onClick={() => setShowBulk(true)} className="btn-secondary text-sm">Bulk Record</button>}
           {isAdmin && <button onClick={() => setShowForm(true)} className="btn-primary text-sm">+ Record Payment</button>}
         </div>
@@ -399,6 +445,17 @@ export default function AdminTransactions() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
+              {isAdmin && (
+                <th className="pl-4 pr-2 py-3 w-8">
+                  <input
+                    type="checkbox"
+                    className="rounded"
+                    checked={transactions.length > 0 && transactions.every(t => selectedIds.has(t.id))}
+                    onChange={toggleSelectAll}
+                    title="Select all visible"
+                  />
+                </th>
+              )}
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Date</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Player</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Type</th>
@@ -409,11 +466,21 @@ export default function AdminTransactions() {
           </thead>
           <tbody className="divide-y divide-gray-100">
             {transactions.length === 0 ? (
-              <tr><td colSpan={6} className="text-center py-10 text-gray-400">No transactions found.</td></tr>
+              <tr><td colSpan={isAdmin ? 7 : 6} className="text-center py-10 text-gray-400">No transactions found.</td></tr>
             ) : transactions.map(t => {
               const player = players.find(p => p.id === t.player_id)
               return (
-                <tr key={t.id} className="hover:bg-gray-50">
+                <tr key={t.id} className={`hover:bg-gray-50 ${selectedIds.has(t.id) ? 'bg-red-50' : ''}`}>
+                  {isAdmin && (
+                    <td className="pl-4 pr-2 py-3 w-8">
+                      <input
+                        type="checkbox"
+                        className="rounded"
+                        checked={selectedIds.has(t.id)}
+                        onChange={() => toggleSelect(t.id)}
+                      />
+                    </td>
+                  )}
                   <td className="px-4 py-3 text-gray-500">{format(parseISO(t.date), 'MMM d, yyyy')}</td>
                   <td className="px-4 py-3 font-medium text-gray-800">{player?.display_name ?? t.player_id}</td>
                   <td className="px-4 py-3 text-gray-500">{TYPES.find(x => x.value === t.type)?.label ?? t.type}</td>
