@@ -64,6 +64,17 @@ export default function PlayerDetail() {
           </div>
         </div>
 
+        {player.type !== 'ppm' && player.type !== 'guest' && (
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <Link
+              to={`/pay/${player.id}`}
+              className="w-full btn-primary text-sm flex items-center justify-center gap-2"
+            >
+              💳 Top Up Balance
+            </Link>
+          </div>
+        )}
+
         {txns.length > 0 && (
           <div className="flex gap-4 mt-4 pt-4 border-t border-gray-100 text-sm">
             <div>

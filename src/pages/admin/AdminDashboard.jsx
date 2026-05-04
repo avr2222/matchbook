@@ -50,7 +50,7 @@ export default function AdminDashboard() {
         <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
         {isAdmin && (
           <a
-            href="https://github.com/actions"
+            href={`https://github.com/${import.meta.env.VITE_GITHUB_REPO ?? ''}/actions/workflows/sync-cricheroes.yml`}
             target="_blank" rel="noreferrer"
             className="btn-primary text-sm flex items-center gap-2"
           >
