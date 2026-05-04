@@ -242,7 +242,7 @@ export default function AdminExpenses() {
               return (
                 <div key={w.week_id} className="px-4 py-2.5 flex items-center justify-between text-sm">
                   <div>
-                    <span className="font-medium text-gray-800">{w.label}</span>
+                    <span className="font-medium text-gray-800">{format(parseISO(w.match_date), 'MMM d')}</span>
                     <span className="ml-2 text-xs text-gray-400">{format(parseISO(w.match_date), 'MMM d, yyyy')}</span>
                   </div>
                   {d ? (

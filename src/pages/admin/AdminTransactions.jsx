@@ -179,7 +179,7 @@ export default function AdminTransactions() {
       const newTxn  = {
         id: txnId, player_id: req.player_id, tournament_id: activeTId,
         type: 'corpus_payment', amount: req.amount, direction: 'credit',
-        date: req.submitted_on, week_id: null,
+        date: req.created_at?.slice(0, 10) ?? new Date().toISOString().slice(0, 10), week_id: null,
         description: `UPI payment — ref: ${req.upi_ref}`,
         recorded_by: 'admin', receipt_ref: req.upi_ref,
       }

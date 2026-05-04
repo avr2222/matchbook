@@ -49,24 +49,24 @@ function useAdminLinks() {
 export function AdminMobileNav() {
   const links = useAdminLinks()
   return (
-    <nav className="md:hidden overflow-x-auto flex gap-1 pb-1 -mx-4 px-4">
+    <nav className="md:hidden grid grid-cols-4 gap-1.5 mb-2">
       {links.map(({ to, label, icon, end, badge }) => (
         <NavLink
           key={to}
           to={to}
           end={end}
           className={({ isActive }) =>
-            `flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0 relative ${
+            `relative flex flex-col items-center gap-0.5 px-1 py-2 rounded-xl text-center transition-colors ${
               isActive
                 ? 'bg-green-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                : 'bg-gray-100 text-gray-600 active:bg-gray-200'
             }`
           }
         >
-          <span>{icon}</span>
-          <span>{label}</span>
+          <span className="text-lg leading-none">{icon}</span>
+          <span className="text-[10px] font-medium leading-tight line-clamp-1">{label}</span>
           {badge > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
+            <span className="absolute top-1 right-1 bg-red-500 text-white text-[9px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center leading-none">
               {badge > 9 ? '!' : badge}
             </span>
           )}

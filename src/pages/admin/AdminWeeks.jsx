@@ -376,20 +376,6 @@ export default function AdminWeeks() {
                           Attendance
                         </button>
                       )}
-                      {canWrite && (
-                        <button onClick={() => openResultEditor(w)} className="text-purple-600 hover:underline text-xs font-medium">
-                          Result
-                        </button>
-                      )}
-                      <a
-                        href={`https://wa.me/?text=${encodeURIComponent(
-                          `🏏 Match on ${format(parseISO(w.match_date), 'MMM d')} at ${w.venue?.split(',')[0] ?? 'TBD'}. Fee: ₹${w.match_fee}. ${w.result ? 'Result: ' + w.result : ''}`
-                        )}`}
-                        target="_blank" rel="noreferrer"
-                        className="text-green-600 hover:underline text-xs font-medium"
-                      >
-                        Share
-                      </a>
                       {isAdmin && w.status === 'scheduled' && (
                         <button onClick={() => deleteWeek(w)} className="text-red-500 hover:underline text-xs font-medium">
                           Delete
