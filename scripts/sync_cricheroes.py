@@ -30,8 +30,8 @@ except ImportError:
     print("ERROR: 'requests' not installed. Run: pip install requests")
     sys.exit(1)
 
-SUPABASE_URL = os.environ.get('SUPABASE_URL', '').rstrip('/')
-SUPABASE_KEY = os.environ.get('SUPABASE_SERVICE_KEY', '')
+SUPABASE_URL = os.environ.get('SUPABASE_URL', '').strip().rstrip('/')
+SUPABASE_KEY = os.environ.get('SUPABASE_SERVICE_KEY', '').strip()
 
 if not SUPABASE_URL or not SUPABASE_KEY:
     print("ERROR: Set SUPABASE_URL and SUPABASE_SERVICE_KEY environment variables.")
