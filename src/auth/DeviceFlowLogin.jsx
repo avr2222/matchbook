@@ -7,7 +7,7 @@ import { useAuthStore } from '../store/authStore'
 function normalizeLogin(input) {
   const stripped = input.replace(/\D/g, '')
   if (/^\d{10,}$/.test(stripped)) {
-    return `${stripped}@matchbook.local`
+    return `${stripped}@matchbook.app`
   }
   return input.trim()
 }

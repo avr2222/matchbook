@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 
 const SECURITY_QUESTIONS = [
@@ -13,7 +13,6 @@ const SECURITY_QUESTIONS = [
 ]
 
 export default function Signup() {
-  const navigate = useNavigate()
   const [step, setStep] = useState('form')  // 'form' | 'success'
 
   const [displayName, setDisplayName]   = useState('')
@@ -66,7 +65,7 @@ export default function Signup() {
 
     setLoading(true)
     const cleanPhone = phone.replace(/\D/g, '')
-    const syntheticEmail = `${cleanPhone}@matchbook.local`
+    const syntheticEmail = `${cleanPhone}@matchbook.app`
 
     try {
       // 1. Create Supabase auth account
