@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useWeeks, usePlayers, useAttendance, useConfig, useTransactions, useExpenses } from '../../hooks/useData'
 import { useIsAdmin } from '../../hooks/useIsAdmin'
 import { useCanWrite } from '../../hooks/useCanWrite'
-import { writeWeeks, deleteWeekById, writeAttendance, writeTransactions, writePlayers } from '../../api/dataWriter'
+import { writeWeeks, deleteWeekById, writeAttendance, writeTransactions, writePlayers, softDeleteTransactions } from '../../api/dataWriter'
 import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { calcBalanceStatus, typeEmoji } from '../../utils/balanceCalculator'
@@ -24,9 +24,11 @@ export default function AdminWeeks() {
   const canWrite  = useCanWrite()
   const [selected, setSelected]           = useState(null)
   const [attendanceMap, setAttendanceMap] = useState({})
-  const [deductFromMap, setDeductFromMap] = useState({}) // player_id → corpus player_id to charge ('' = self)
-  const [totalMatchCost, setTotalMatchCost] = useState(0) // total match cost split among paid players
-  const [freePlayerIds, setFreePlayerIds]   = useState(new Set()) // played but not charged
+  const [deductFromMap, setDeductFromMap] = useState({})
+  const [totalMatchCost, setTotalMatchCost] = useState(0)
+  const [freePlayerIds, setFreePlayerIds]   = useState(new Set())
+  const [ppmPaidIds, setPpmPaidIds]         = useState(new Set())
+  const [reapplyDeductions, setReapplyDeductions] = useState(false)
   const [detail, setDetail]               = useState(null)
   const [showNew, setShowNew]             = useState(false)
   const [newWeek, setNewWeek]             = useState({
@@ -66,10 +68,20 @@ export default function AdminWeeks() {
       ? Math.round(existingDeductionTotal)
       : (week?.match_fee && playedCount > 0 ? Math.round(week.match_fee * playedCount) : 0)
 
+    // Pre-fill ppmPaidIds from existing match_deduction txns for PPM players
+    const ppmPlayers = new Set(players.filter(p => p.type === 'ppm').map(p => p.id))
+    const ppmAlreadyPaid = new Set(
+      transactions
+        .filter(t => t.week_id === weekId && t.type === 'match_deduction' && ppmPlayers.has(t.player_id))
+        .map(t => t.player_id)
+    )
+
     setAttendanceMap(init)
     setDeductFromMap(deductInit)
     setTotalMatchCost(prefillCost)
     setFreePlayerIds(new Set())
+    setPpmPaidIds(ppmAlreadyPaid)
+    setReapplyDeductions(false)
     setSelected(weekId)
   }
 
@@ -173,28 +185,35 @@ export default function AdminWeeks() {
       await writeAttendance([...existingOther, ...newRecords], `Attendance for ${week.label}`)
       qc.invalidateQueries({ queryKey: ['attendance'] })
 
-      const alreadyDeducted = transactions.some(
+      const existingDeductTxns = transactions.filter(
         t => t.week_id === week.week_id && t.type === 'match_deduction'
       )
+      const alreadyDeducted = existingDeductTxns.length > 0
 
-      if (cfg?.auto_deduct_on_sync && !alreadyDeducted) {
+      const shouldApply = cfg?.auto_deduct_on_sync && (!alreadyDeducted || reapplyDeductions)
+
+      if (shouldApply) {
         const allPlayers = pData?.players ?? []
 
-        // Build deduction map: corpus_player_id → total amount
-        // - PPM: skip (pay separately)
-        // - Free players: skip (played but not charged)
-        // - corpus/new: deduct from self unless deductFromMap says otherwise
-        // - guest: deduct from deductFromMap[guest.id] if set, else skip
+        // If reapplying, delete old deduction transactions first
+        if (reapplyDeductions && alreadyDeducted) {
+          await softDeleteTransactions(
+            existingDeductTxns.map(t => t.id),
+            `Re-apply deductions for ${week.label}`
+          )
+        }
+
+        // Corpus/new/guest deductions (same as before)
         const balanceChanges = {}
         played.forEach(p => {
           if (p.type === 'ppm') return
-          if (freePlayerIds.has(p.id)) return  // Free — played but not charged
+          if (freePlayerIds.has(p.id)) return
           const chargeId = deductFromMap[p.id] || p.id
-          if (p.type === 'guest' && !deductFromMap[p.id]) return  // unsponsored guest: skip
+          if (p.type === 'guest' && !deductFromMap[p.id]) return
           balanceChanges[chargeId] = (balanceChanges[chargeId] ?? 0) + perPlayerFee
         })
 
-        const newTxns = Object.entries(balanceChanges).map(([playerId, amount]) => {
+        const corpusTxns = Object.entries(balanceChanges).map(([playerId, amount]) => {
           const sponsoredGuests = played.filter(p => p.type === 'guest' && (deductFromMap[p.id] || '') === playerId)
           const hasOverride     = played.some(p => p.id !== playerId && (deductFromMap[p.id] || '') === playerId)
           const desc = [
@@ -210,6 +229,20 @@ export default function AdminWeeks() {
           }
         })
 
+        // PPM players who were marked as paid — record payment but don't touch corpus balance
+        const ppmTxns = played
+          .filter(p => p.type === 'ppm' && ppmPaidIds.has(p.id))
+          .map(p => ({
+            id: `TXN_DEDUCT_${week.week_id}_${p.id}`,
+            player_id: p.id, tournament_id: activeTId,
+            type: 'match_deduction', amount: Math.round(perPlayerFee * 100) / 100,
+            direction: 'debit', date: week.match_date, week_id: week.week_id,
+            description: `Match fee - ${week.label} (cash)`,
+            recorded_by: 'admin', receipt_ref: '',
+          }))
+
+        const newTxns = [...corpusTxns, ...ppmTxns]
+
         const updatedPlayers = allPlayers.map(p => {
           const deductAmount = balanceChanges[p.id]
           if (!deductAmount) return p
@@ -217,17 +250,20 @@ export default function AdminWeeks() {
           return { ...p, corpus_balance: Math.round(bal * 100) / 100, balance_status: calcBalanceStatus(bal, cfg) }
         })
 
-        await writeTransactions([...transactions, ...newTxns], 'mark_attendance', week.week_id, `Match deductions for ${week.label}`, null, null)
+        // Upsert only the new/updated transactions (don't re-upsert entire history)
+        await writeTransactions(newTxns, 'mark_attendance', week.week_id, `Match deductions for ${week.label}`, null, null)
         await writePlayers(updatedPlayers, 'bulk_attendance', week.week_id, `Balances updated for ${week.label}`, null, null)
         qc.invalidateQueries({ queryKey: ['transactions'] })
         qc.invalidateQueries({ queryKey: ['players'] })
-        showToast('Attendance saved and deductions applied')
+        showToast(reapplyDeductions ? 'Deductions re-applied with updated attendance' : 'Attendance saved and deductions applied')
       } else {
         showToast(alreadyDeducted ? 'Attendance updated (deductions already applied)' : 'Attendance saved')
       }
       setSelected(null)
       setDeductFromMap({})
       setFreePlayerIds(new Set())
+      setPpmPaidIds(new Set())
+      setReapplyDeductions(false)
       setTotalMatchCost(0)
     } catch (e) {
       showToast(e.message, 'error')
@@ -446,6 +482,12 @@ export default function AdminWeeks() {
               }
               freePlayerIds={freePlayerIds}
               onToggleFree={toggleFree}
+              ppmPaidIds={ppmPaidIds}
+              onTogglePpmPaid={id => setPpmPaidIds(prev => {
+                const next = new Set(prev)
+                if (next.has(id)) next.delete(id); else next.add(id)
+                return next
+              })}
             />
             <div className="px-6 py-4 border-t border-gray-100">
               {(() => {
@@ -458,20 +500,26 @@ export default function AdminWeeks() {
                 )
                 return (
                   <>
-                    {alreadyDeducted && (
-                      <p className="text-xs text-amber-600 bg-amber-50 rounded px-3 py-2 mb-3">
-                        Deductions already applied for this match. Saving will update attendance only — no new charges.
-                      </p>
-                    )}
-                    {total > 0 && paidCount > 0 && !alreadyDeducted && (
+                    {total > 0 && paidCount > 0 && (
                       <p className="text-xs text-gray-500 mb-3">
                         ₹{total.toFixed(0)} ÷ {paidCount} paid{freeCount > 0 ? ` (${freeCount} free)` : ''} = ₹{perPlayer.toFixed(0)}/player
                       </p>
                     )}
+                    {alreadyDeducted && (
+                      <label className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 rounded px-3 py-2 mb-3 cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={reapplyDeductions}
+                          onChange={e => setReapplyDeductions(e.target.checked)}
+                          className="accent-amber-600"
+                        />
+                        Re-apply deductions — deletes existing charges and recalculates from current attendance
+                      </label>
+                    )}
                     <div className="flex justify-end gap-2">
                       <button onClick={() => setSelected(null)} className="btn-secondary">Cancel</button>
                       <button onClick={() => saveAttendance(selectedWeek)} disabled={saving} className="btn-primary">
-                        {saving ? 'Saving…' : alreadyDeducted ? 'Update Attendance' : 'Confirm & Deduct'}
+                        {saving ? 'Saving…' : reapplyDeductions ? 'Re-apply & Save' : alreadyDeducted ? 'Update Attendance' : 'Confirm & Deduct'}
                       </button>
                     </div>
                   </>
@@ -555,7 +603,7 @@ export default function AdminWeeks() {
   )
 }
 
-function AttendanceList({ players, attendanceMap, onToggle, corpusPlayers, deductFromMap, onDeductFromChange, freePlayerIds, onToggleFree }) {
+function AttendanceList({ players, attendanceMap, onToggle, corpusPlayers, deductFromMap, onDeductFromChange, freePlayerIds, onToggleFree, ppmPaidIds, onTogglePpmPaid }) {
   const guestPlayers   = players.filter(p => p.type === 'guest')
   const regularPlayers = players.filter(p => p.type !== 'guest')
 
@@ -581,6 +629,22 @@ function AttendanceList({ players, attendanceMap, onToggle, corpusPlayers, deduc
             {status === 'played' ? '✅ Played' : 'Absent'}
           </button>
         </div>
+
+        {/* PPM: Paid? toggle */}
+        {status === 'played' && isPPM && (
+          <div className="mt-1.5 ml-6">
+            <button
+              onClick={() => onTogglePpmPaid(p.id)}
+              className={`px-2.5 py-0.5 rounded text-xs font-semibold transition-colors ${
+                ppmPaidIds?.has(p.id)
+                  ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                  : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+              }`}
+            >
+              {ppmPaidIds?.has(p.id) ? '💵 Paid (cash)' : '💵 Mark as Paid?'}
+            </button>
+          </div>
+        )}
 
         {/* Free toggle + Deduct-from selector: shown for played non-PPM players */}
         {status === 'played' && !isPPM && (

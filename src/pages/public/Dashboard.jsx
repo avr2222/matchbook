@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { usePlayers, useWeeks, useAttendance, useTournaments, useConfig, useAnnouncements, useExpenses } from '../../hooks/useData'
+import { usePlayers, useWeeks, useAttendance, useTournaments, useConfig, useAnnouncements, useExpenses, useTransactions } from '../../hooks/useData'
 import { PageSpinner } from '../../components/ui/Spinner'
 import MatchPlayersModal from '../../components/ui/MatchPlayersModal'
 import { format, parseISO } from 'date-fns'
@@ -17,6 +17,7 @@ export default function Dashboard() {
   const { data: aData }   = useAttendance()
   const { data: annData } = useAnnouncements()
   const { data: eData }   = useExpenses()
+  const { data: txnData } = useTransactions()
 
   if (pLoad) return <PageSpinner />
 
@@ -49,9 +50,34 @@ export default function Dashboard() {
   const upiId       = cfg?.admin_upi_id
   const threshold   = cfg?.corpus_low_threshold ?? 1000
 
-  const allExpenses    = (eData?.expenses ?? []).sort((a, b) => b.date.localeCompare(a.date))
-  const recentExpenses = allExpenses.slice(0, 5)
-  const totalExpenses  = allExpenses.reduce((s, e) => s + (e.amount ?? 0), 0)
+  const allExpenses   = eData?.expenses ?? []
+  const totalExpenses = allExpenses.reduce((s, e) => s + (e.amount ?? 0), 0)
+
+  // Group match_deduction transactions by week → one summary entry per match
+  const allWeeks = wData?.weeks ?? []
+  const deductionByWeek = {}
+  ;(txnData?.transactions ?? [])
+    .filter(t => t.type === 'match_deduction')
+    .forEach(t => {
+      if (!deductionByWeek[t.week_id]) {
+        const week = allWeeks.find(w => w.week_id === t.week_id)
+        deductionByWeek[t.week_id] = { date: t.date, label: week?.label ?? t.week_id, total: 0, count: 0 }
+      }
+      deductionByWeek[t.week_id].total += t.amount ?? 0
+      deductionByWeek[t.week_id].count += 1
+    })
+  const deductionEntries = Object.entries(deductionByWeek).map(([weekId, d]) => ({
+    id: `deduct_${weekId}`,
+    _type: 'deduction',
+    description: `Match fees — ${d.label}`,
+    date: d.date,
+    amount: d.total,
+    count: d.count,
+  }))
+
+  const recentActivity = [...allExpenses.map(e => ({ ...e, _type: 'expense' })), ...deductionEntries]
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 7)
 
   const EXPENSE_LABELS = {
     match_cost: 'Match Cost', ground_booking: 'Ground Booking', cricket_ball: 'Cricket Ball',
@@ -296,32 +322,42 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Recent Expenses */}
-      {recentExpenses.length > 0 && (
+      {/* Recent Financial Activity */}
+      {recentActivity.length > 0 && (
         <div className="card mt-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-gray-900">Recent Expenses</h2>
             <span className="text-xs text-gray-400">Season total: ₹{Math.round(totalExpenses).toLocaleString('en-IN')}</span>
           </div>
           <div className="space-y-1">
-            {recentExpenses.map(e => (
-              <div key={e.id} className="flex items-center justify-between text-sm px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center text-base shrink-0">🧾</div>
-                  <div>
-                    <span className="font-semibold text-gray-800">{e.description}</span>
-                    <div className="text-xs text-gray-400 mt-0.5">
-                      {format(parseISO(e.date), 'MMM d, yyyy')}
-                      {e.category && <span className="ml-1">· {EXPENSE_LABELS[e.category] ?? e.category}</span>}
-                      {e.paid_by && <span className="ml-1">· paid by {e.paid_by}</span>}
+            {recentActivity.map(e => {
+              const isDeduction = e._type === 'deduction'
+              return (
+                <div key={e.id} className="flex items-center justify-between text-sm px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-base shrink-0 ${isDeduction ? 'bg-blue-50' : 'bg-red-50'}`}>
+                      {isDeduction ? '🏏' : '🧾'}
+                    </div>
+                    <div>
+                      <span className="font-semibold text-gray-800">{e.description}</span>
+                      <div className="text-xs text-gray-400 mt-0.5">
+                        {format(parseISO(e.date), 'MMM d, yyyy')}
+                        {isDeduction
+                          ? <span className="ml-1">· {e.count} players</span>
+                          : <>
+                              {e.category && <span className="ml-1">· {EXPENSE_LABELS[e.category] ?? e.category}</span>}
+                              {e.paid_by && <span className="ml-1">· paid by {e.paid_by}</span>}
+                            </>
+                        }
+                      </div>
                     </div>
                   </div>
+                  <span className={`font-mono font-semibold shrink-0 ml-2 ${isDeduction ? 'text-blue-600' : 'text-red-600'}`}>
+                    ₹{Math.round(e.amount).toLocaleString('en-IN')}
+                  </span>
                 </div>
-                <span className="font-mono font-semibold text-red-600 shrink-0 ml-2">
-                  ₹{e.amount.toLocaleString('en-IN')}
-                </span>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}
