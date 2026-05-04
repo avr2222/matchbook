@@ -10,6 +10,7 @@ export const STATUS_LABEL = {
   collect_soon: 'Collect Soon',
   urgent:       'Urgent',
   overdue:      'Overdue',
+  'n/a':        '',
 }
 
 export const STATUS_CLASS = {
@@ -17,6 +18,7 @@ export const STATUS_CLASS = {
   collect_soon: 'badge-collect',
   urgent:       'badge-urgent',
   overdue:      'badge-overdue',
+  'n/a':        'hidden',
 }
 
 export const STATUS_DOT = {
@@ -24,6 +26,7 @@ export const STATUS_DOT = {
   collect_soon: 'bg-yellow-500',
   urgent:       'bg-orange-500',
   overdue:      'bg-red-500',
+  'n/a':        'bg-gray-300',
 }
 
 export function playerBalance(player, transactions, tournamentId) {

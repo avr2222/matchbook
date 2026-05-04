@@ -27,7 +27,9 @@ export async function fetchPlayers() {
   const cfg = cfgRes.data ?? {}
   const players = playersRes.data.map(p => ({
     ...p,
-    balance_status: calcBalanceStatus(p.corpus_balance ?? 0, cfg),
+    balance_status: (p.type === 'ppm' || p.type === 'guest')
+      ? 'n/a'
+      : calcBalanceStatus(p.corpus_balance ?? 0, cfg),
   }))
   return { schema_version: 1, players }
 }

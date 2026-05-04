@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { usePlayers, useWeeks, useTransactions } from '../../hooks/useData'
 import { format, parseISO } from 'date-fns'
@@ -13,6 +14,8 @@ const STATUS_COLOR = {
 export default function PlayerDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+
+  useEffect(() => { window.scrollTo(0, 0) }, [id])
   const { data: pData, isLoading } = usePlayers()
   const { data: wData }   = useWeeks()
   const { data: txnData } = useTransactions()

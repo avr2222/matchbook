@@ -210,6 +210,19 @@ export default function AdminExpenses() {
   const total = expenses.reduce((s, e) => s + e.amount, 0)
   const preview = perPlayerPreview()
 
+  // Match Fee Collections panel
+  const activeTId = cfg?.active_tournament_id
+  const completedWeeks = (wData?.weeks ?? [])
+    .filter(w => w.tournament_id === activeTId && w.status === 'completed')
+    .sort((a, b) => b.match_date.localeCompare(a.match_date))
+    .slice(0, 8)
+  const deductByWeek = {}
+  ;(tData?.transactions ?? []).filter(t => t.type === 'match_deduction').forEach(t => {
+    if (!deductByWeek[t.week_id]) deductByWeek[t.week_id] = { total: 0, count: 0 }
+    deductByWeek[t.week_id].total += t.amount ?? 0
+    deductByWeek[t.week_id].count += 1
+  })
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -219,6 +232,37 @@ export default function AdminExpenses() {
         </div>
         {canWrite && <button onClick={() => setShowForm(true)} className="btn-primary text-sm">+ Add Expense</button>}
       </div>
+
+      {completedWeeks.length > 0 && (
+        <div className="card">
+          <h2 className="font-semibold text-gray-800 mb-3">Match Fee Collections</h2>
+          <div className="divide-y divide-gray-100 -mx-4 -mb-4">
+            {completedWeeks.map(w => {
+              const d = deductByWeek[w.week_id]
+              return (
+                <div key={w.week_id} className="px-4 py-2.5 flex items-center justify-between text-sm">
+                  <div>
+                    <span className="font-medium text-gray-800">{w.label}</span>
+                    <span className="ml-2 text-xs text-gray-400">{format(parseISO(w.match_date), 'MMM d, yyyy')}</span>
+                  </div>
+                  {d ? (
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-gray-500">{d.count} players</span>
+                      <span className="font-mono text-gray-700">₹{Math.round(d.total).toLocaleString('en-IN')}</span>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">Applied ✓</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">Not applied</span>
+                      <a href="#/admin/weeks" className="text-xs text-blue-500 hover:underline">Go to Weeks →</a>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="card p-0 overflow-hidden overflow-x-auto">
         <table className="w-full text-sm">
