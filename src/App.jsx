@@ -32,9 +32,11 @@ const qc = new QueryClient()
 
 function AdminLayout({ children }) {
   const isAdmin = useIsAdmin()
+  const role = useAuthStore(s => s.role)
+  const canWrite = role === 'admin' || role === 'host'
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-3">
-      {!isAdmin && (
+      {!canWrite && (
         <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 text-sm text-amber-800">
           <span>👁️ View-only — you can browse but not make changes.</span>
           <Link to="/login" className="font-medium underline">Log in as admin →</Link>
@@ -80,8 +82,8 @@ export default function App() {
                 </ProtectedRoute>
               } />
 
-              {/* Admin panel — requires admin login */}
-              <Route path="/admin"               element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
+              {/* Admin panel — overview accessible to host + admin */}
+              <Route path="/admin"               element={<ProtectedRoute requiredRole="writer"><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/players"       element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminPlayers /></AdminLayout></ProtectedRoute>} />
               {/* Hosts can access weeks + expenses (but delete buttons hidden inside) */}
               <Route path="/admin/weeks"         element={<ProtectedRoute requiredRole="writer"><AdminLayout><AdminWeeks /></AdminLayout></ProtectedRoute>} />

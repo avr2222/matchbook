@@ -16,6 +16,7 @@ export default function ProtectedRoute({ children, requiredRole }) {
   }
 
   if (requiredRole === 'player' && role === 'admin') return <Navigate to="/admin" replace />
+  if (requiredRole === 'player' && role === 'host') return children
   if (requiredRole && role !== requiredRole) return <Navigate to="/unauthorized" replace />
   return children
 }
