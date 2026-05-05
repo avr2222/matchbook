@@ -61,6 +61,18 @@ export const useAuthStore = create((set) => ({
     set(deriveState(data.session, signup))
   },
 
+  claimPlayer: async (selectedPlayerId) => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) throw new Error('Not authenticated')
+    const { error } = await supabase
+      .from('user_signups')
+      .update({ player_id: selectedPlayerId })
+      .eq('auth_user_id', session.user.id)
+    if (error) throw new Error(error.message)
+    const signup = await fetchUserSignup(session)
+    set(deriveState(session, signup))
+  },
+
   logout: async () => {
     await supabase.auth.signOut()
     set({ session: null, role: null, isAuthenticated: false, playerId: null, displayName: null })

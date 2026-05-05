@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useQueryClient, useQuery } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
-import { approveSignup, rejectSignup } from '../../api/dataWriter'
+import { approveSignup, rejectSignup, updateSignupPlayer } from '../../api/dataWriter'
+import { usePlayers } from '../../hooks/useData'
 import { showToast } from '../../components/ui/Toast'
 import { format, parseISO } from 'date-fns'
 
@@ -29,8 +30,29 @@ const STATUS_BADGE = {
 export default function AdminSignups() {
   const qc = useQueryClient()
   const { data: signups = [], isLoading } = useSignups()
-  const [busy, setBusy] = useState(null)  // signupId being processed
-  const [filter, setFilter] = useState('pending')
+  const { data: pData } = usePlayers()
+  const [busy, setBusy]           = useState(null)
+  const [filter, setFilter]       = useState('pending')
+  const [editingId, setEditingId] = useState(null)
+  const [editPlayerId, setEditPlayerId] = useState('')
+  const [editBusy, setEditBusy]   = useState(false)
+
+  const allPlayers = pData?.players ?? []
+
+  async function savePlayerLink(signup) {
+    setEditBusy(true)
+    try {
+      await updateSignupPlayer(signup.id, editPlayerId || null)
+      qc.invalidateQueries({ queryKey: ['user_signups'] })
+      qc.invalidateQueries({ queryKey: ['players'] })
+      setEditingId(null)
+      showToast('Player link updated')
+    } catch (e) {
+      showToast(e.message, 'error')
+    } finally {
+      setEditBusy(false)
+    }
+  }
 
   async function handleApprove(signup, role) {
     setBusy(signup.id)
@@ -100,6 +122,11 @@ export default function AdminSignups() {
           {visible.map(s => {
             const claimedPlayer = s.players
             const isBusy = busy === s.id
+            // Players available for linking: unclaimed + currently linked
+            const linkable = allPlayers.filter(p =>
+              p.status === 'active' && p.type !== 'guest' &&
+              (!p.auth_user_id || p.id === s.player_id)
+            )
             return (
               <div key={s.id} className="card space-y-3">
                 <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -115,11 +142,50 @@ export default function AdminSignups() {
                         </span>
                       )}
                     </div>
-                    <div className="text-sm text-gray-500 mt-0.5 space-x-3">
+                    <div className="text-sm text-gray-500 mt-0.5 flex items-center gap-3 flex-wrap">
                       <span>📱 {s.phone}</span>
-                      {claimedPlayer && (
-                        <span>🎯 Claims: <span className="font-medium text-gray-700">{claimedPlayer.display_name}</span></span>
-                      )}
+                      <span className="flex items-center gap-1.5">
+                        🎯
+                        {editingId === s.id ? (
+                          <span className="flex items-center gap-1.5">
+                            <select
+                              className="input text-xs py-0.5 h-7"
+                              value={editPlayerId}
+                              onChange={e => setEditPlayerId(e.target.value)}
+                            >
+                              <option value="">— No player —</option>
+                              {linkable.map(p => (
+                                <option key={p.id} value={p.id}>{p.display_name}</option>
+                              ))}
+                            </select>
+                            <button
+                              onClick={() => savePlayerLink(s)}
+                              disabled={editBusy}
+                              className="text-xs text-green-600 font-semibold hover:underline"
+                            >
+                              {editBusy ? '…' : 'Save'}
+                            </button>
+                            <button
+                              onClick={() => setEditingId(null)}
+                              className="text-xs text-gray-400 hover:text-gray-600"
+                            >
+                              Cancel
+                            </button>
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1.5">
+                            <span className="font-medium text-gray-700">
+                              {claimedPlayer?.display_name ?? '—'}
+                            </span>
+                            <button
+                              onClick={() => { setEditingId(s.id); setEditPlayerId(s.player_id ?? '') }}
+                              className="text-xs text-blue-500 hover:underline"
+                            >
+                              Edit
+                            </button>
+                          </span>
+                        )}
+                      </span>
                     </div>
                     <div className="text-xs text-gray-400 mt-1">
                       Signed up {s.created_at ? format(parseISO(s.created_at), 'MMM d, yyyy h:mm a') : '—'}

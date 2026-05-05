@@ -150,13 +150,65 @@ export default function MyDashboard() {
   const { data: annData }          = useAnnouncements()
   const { data: reqData }          = usePaymentRequests()
 
+  const claimPlayer = useAuthStore(s => s.claimPlayer)
+  const [claimId, setClaimId]       = useState('')
+  const [claiming, setClaiming]     = useState(false)
+  const [claimError, setClaimError] = useState('')
+
+  async function handleClaim() {
+    if (!claimId) return
+    setClaiming(true)
+    setClaimError('')
+    try {
+      await claimPlayer(claimId)
+    } catch (e) {
+      setClaimError(e.message)
+    } finally {
+      setClaiming(false)
+    }
+  }
+
   if (isLoading) return <PageSpinner />
 
-  const player = pData?.players?.find(p => p.id === playerId)
-  if (!player) return <div className="p-8 text-gray-500">Player profile not found.</div>
+  const allPlayers = pData?.players ?? []
+  const player = allPlayers.find(p => p.id === playerId)
+
+  if (!player) {
+    const unclaimed = allPlayers.filter(p =>
+      p.status === 'active' && p.type !== 'guest' && !p.auth_user_id
+    )
+    return (
+      <div className="max-w-lg mx-auto px-4 py-12">
+        <div className="card text-center space-y-4">
+          <div className="text-4xl">🏏</div>
+          <h2 className="font-bold text-gray-900 text-lg">Link your player name</h2>
+          <p className="text-sm text-gray-500">
+            Select your name from the list to see your balance and match history.
+          </p>
+          <select
+            className="input"
+            value={claimId}
+            onChange={e => setClaimId(e.target.value)}
+          >
+            <option value="">— Select your name —</option>
+            {unclaimed.map(p => (
+              <option key={p.id} value={p.id}>{p.display_name}</option>
+            ))}
+          </select>
+          {claimError && <p className="text-sm text-red-500">{claimError}</p>}
+          <button
+            onClick={handleClaim}
+            disabled={!claimId || claiming}
+            className="btn-primary w-full"
+          >
+            {claiming ? 'Linking…' : 'Link my name'}
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   const activeTId    = cfg?.active_tournament_id
-  const allPlayers   = pData?.players ?? []
   const allRecords   = aData?.records ?? []
   const myAttendance = allRecords.filter(r => r.player_id === playerId && r.tournament_id === activeTId)
 

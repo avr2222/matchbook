@@ -10,6 +10,7 @@ import { format, parseISO } from 'date-fns'
 // On return, shows a form to capture the UPI transaction ID.
 function UpiPaySection({ player, config }) {
   const [amount, setAmount]             = useState(null)
+  const [customAmt, setCustomAmt]       = useState('')
   const [pendingReqId, setPendingReqId] = useState(null)
   const [upiRef, setUpiRef]             = useState('')
   const [refSaved, setRefSaved]         = useState(false)
@@ -97,9 +98,9 @@ function UpiPaySection({ player, config }) {
         {[suggested, suggested + 500, suggested + 1000].map(a => (
           <button
             key={a}
-            onClick={() => setAmount(a)}
+            onClick={() => { setAmount(a); setCustomAmt('') }}
             className={`px-3 py-1.5 rounded-full text-sm font-semibold border transition-all ${
-              chosen === a
+              chosen === a && !customAmt
                 ? 'bg-green-600 text-white border-green-600'
                 : 'border-gray-200 text-gray-600 hover:border-green-300'
             }`}
@@ -107,6 +108,24 @@ function UpiPaySection({ player, config }) {
             ₹{a.toLocaleString('en-IN')}
           </button>
         ))}
+      </div>
+
+      {/* Custom amount */}
+      <div className="relative">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">₹</span>
+        <input
+          type="number"
+          min="100"
+          step="100"
+          placeholder="Or enter custom amount"
+          className="input pl-7 text-sm"
+          value={customAmt}
+          onChange={e => {
+            setCustomAmt(e.target.value)
+            const v = parseInt(e.target.value, 10)
+            setAmount(!isNaN(v) && v >= 100 ? v : null)
+          }}
+        />
       </div>
 
       {/* Pay button */}

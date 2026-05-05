@@ -206,6 +206,33 @@ export async function rejectSignup(signupId) {
     `Rejected ${signup?.display_name}`, null, null)
 }
 
+export async function updateSignupPlayer(signupId, playerId) {
+  const { data: signup } = await supabase
+    .from('user_signups')
+    .select('auth_user_id, player_id')
+    .eq('id', signupId)
+    .single()
+
+  // Unlink old player's auth_user_id
+  if (signup?.player_id) {
+    await supabase.from('players').update({ auth_user_id: null }).eq('id', signup.player_id)
+  }
+
+  const { error } = await supabase
+    .from('user_signups')
+    .update({ player_id: playerId || null })
+    .eq('id', signupId)
+  if (error) throw new Error(error.message)
+
+  // Link new player to this auth account
+  if (playerId && signup?.auth_user_id) {
+    await supabase.from('players').update({ auth_user_id: signup.auth_user_id }).eq('id', playerId)
+  }
+
+  await appendAudit('update_player_link', 'user_signup', signupId,
+    `Updated player link to ${playerId ?? 'none'}`, null, { playerId })
+}
+
 // ── Payment request confirmation ────────────────────────────────────────────
 
 export async function confirmPayment(requestId) {
