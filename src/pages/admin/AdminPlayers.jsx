@@ -360,15 +360,25 @@ export default function AdminPlayers() {
                 </td>
                 <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{typeEmoji(p.type)} {typeLabel(p.type)}</td>
                 <td className="px-4 py-3 text-right font-mono whitespace-nowrap">
-                  {p.type === 'ppm' ? 'PPM' : `₹${fmt(p.corpus_balance)}`}
+                  {p.type === 'ppm'
+                    ? (p.corpus_balance < 0
+                        ? <span className="text-red-600 font-semibold">₹{fmt(Math.abs(p.corpus_balance))} owed</span>
+                        : <span className="text-gray-400">PPM</span>)
+                    : `₹${fmt(p.corpus_balance)}`}
                 </td>
                 <td className="px-4 py-3 text-right font-mono text-green-700 whitespace-nowrap">
-                  {p.type === 'ppm' ? '—' : `₹${fmt(p.total_paid)}`}
+                  ₹{fmt(p.total_paid)}
                 </td>
                 <td className="px-4 py-3 text-right font-mono text-red-500 whitespace-nowrap">
-                  {p.type === 'ppm' ? '—' : `₹${fmt(p.total_deducted)}`}
+                  ₹{fmt(p.total_deducted)}
                 </td>
-                <td className="px-4 py-3 text-center"><BalanceBadge status={p.balance_status} /></td>
+                <td className="px-4 py-3 text-center">
+                  {p.type === 'ppm'
+                    ? (p.corpus_balance < 0
+                        ? <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-700">₹{fmt(Math.abs(p.corpus_balance))} pending</span>
+                        : <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">✓ Paid</span>)
+                    : <BalanceBadge status={p.balance_status} />}
+                </td>
                 <td className="px-4 py-3 text-center text-gray-400 text-xs">{p.github_username || '—'}</td>
                 <td className="px-4 py-3 text-center whitespace-nowrap">
                   {(p.type === 'corpus' || p.type === 'new') && (
