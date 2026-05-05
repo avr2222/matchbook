@@ -112,17 +112,18 @@ function UpiPaySection({ player, config }) {
 
       {/* Custom amount */}
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">₹</span>
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium pointer-events-none">₹</span>
         <input
-          type="number"
-          min="100"
-          step="100"
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
           placeholder="Or enter custom amount"
           className="input pl-7 text-sm"
           value={customAmt}
           onChange={e => {
-            setCustomAmt(e.target.value)
-            const v = parseInt(e.target.value, 10)
+            const raw = e.target.value.replace(/[^0-9]/g, '')
+            setCustomAmt(raw)
+            const v = parseInt(raw, 10)
             setAmount(!isNaN(v) && v >= 100 ? v : null)
           }}
         />
