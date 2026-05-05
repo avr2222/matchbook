@@ -8,6 +8,7 @@ import { format, parseISO } from 'date-fns'
 export default function Dashboard() {
   const [detail, setDetail]         = useState(null)
   const [payPlayer, setPayPlayer]   = useState('')
+  const [payAmt, setPayAmt]         = useState('')
   const [copied, setCopied]         = useState(false)
   const [activeStatus, setActiveStatus] = useState(null) // 'good'|'collect_soon'|'urgent'|'overdue'
   const { data: cfg }     = useConfig()
@@ -92,6 +93,15 @@ export default function Dashboard() {
     { label: 'Season',           value: seasonName,                                             icon: '🏆', to: '/admin',               bg: 'from-purple-500 to-violet-600' },
   ]
 
+  const selectedP    = payPlayer ? corpusPlayers.find(p => p.id === payPlayer) : null
+  const payNeeded    = selectedP ? Math.max(threshold - (selectedP.corpus_balance ?? 0), 500) : 500
+  const paySuggested = selectedP ? Math.ceil(payNeeded / 500) * 500 : 500
+  const payFinal     = payAmt && parseInt(payAmt, 10) >= 100 ? parseInt(payAmt, 10) : paySuggested
+  const isMobile     = /Android|iPhone|iPad/i.test(navigator.userAgent)
+  const payName      = encodeURIComponent(cfg?.team_name ?? 'Cricket Team')
+  const payNote      = selectedP ? encodeURIComponent(`Corpus Topup - ${selectedP.display_name}`) : ''
+  const upiHref      = selectedP ? `upi://pay?pa=${upiId}&pn=${payName}&am=${payFinal}&cu=INR&tn=${payNote}` : ''
+
   return (
     <div className="max-w-5xl mx-auto px-4 pb-12">
 
@@ -99,29 +109,35 @@ export default function Dashboard() {
       {upiId && (
         <div className="rounded-3xl mt-6 mb-4 bg-gradient-to-br from-emerald-600 to-green-500 px-5 py-5 text-white shadow-lg">
           <p className="text-sm font-bold text-white/80 uppercase tracking-widest mb-3">Top Up Your Corpus</p>
-          <div className="flex gap-2 items-center">
-            <select
-              className="flex-1 bg-white/20 backdrop-blur-sm text-white rounded-xl px-3 py-2.5 text-sm font-medium outline-none border border-white/20 focus:border-white/60 transition-colors"
-              value={payPlayer}
-              onChange={e => { setPayPlayer(e.target.value); setCopied(false) }}
-            >
-              <option value="" disabled className="text-gray-800">Select your name…</option>
-              {sortedCorpus.map(p => (
-                <option key={p.id} value={p.id} className="text-gray-800">{p.display_name}</option>
-              ))}
-            </select>
-            {payPlayer && (() => {
-              const p = corpusPlayers.find(pl => pl.id === payPlayer)
-              if (!p) return null
-              const needed    = Math.max(threshold - (p.corpus_balance ?? 0), 500)
-              const suggested = Math.ceil(needed / 500) * 500
-              const name      = encodeURIComponent(cfg?.team_name ?? 'Cricket Team')
-              const note      = encodeURIComponent(`Corpus Topup - ${p.display_name}`)
-              const upiHref   = `upi://pay?pa=${upiId}&pn=${name}&am=${suggested}&cu=INR&tn=${note}`
-              const isMobile  = /Android|iPhone|iPad/i.test(navigator.userAgent)
-              return isMobile ? (
+
+          <select
+            className="w-full bg-white/20 backdrop-blur-sm text-white rounded-xl px-3 py-2.5 text-sm font-medium outline-none border border-white/20 focus:border-white/60 transition-colors mb-2"
+            value={payPlayer}
+            onChange={e => { setPayPlayer(e.target.value); setCopied(false); setPayAmt('') }}
+          >
+            <option value="" disabled className="text-gray-800">Select your name…</option>
+            {sortedCorpus.map(p => (
+              <option key={p.id} value={p.id} className="text-gray-800">{p.display_name}</option>
+            ))}
+          </select>
+
+          {selectedP && (
+            <div className="flex gap-2 items-center">
+              <div className="relative flex-1">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60 text-sm font-medium pointer-events-none">₹</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  placeholder={`Suggested: ₹${paySuggested.toLocaleString('en-IN')}`}
+                  className="w-full bg-white/20 backdrop-blur-sm text-white placeholder-white/50 rounded-xl pl-7 pr-3 py-2.5 text-sm outline-none border border-white/20 focus:border-white/60 transition-colors"
+                  value={payAmt}
+                  onChange={e => setPayAmt(e.target.value.replace(/[^0-9]/g, ''))}
+                />
+              </div>
+              {isMobile ? (
                 <a href={upiHref} className="shrink-0 bg-white text-emerald-700 font-bold text-sm px-4 py-2.5 rounded-xl shadow hover:bg-green-50 transition-colors">
-                  Pay ₹{suggested.toLocaleString('en-IN')} →
+                  Pay ₹{payFinal.toLocaleString('en-IN')} →
                 </a>
               ) : (
                 <button
@@ -130,21 +146,16 @@ export default function Dashboard() {
                 >
                   {copied ? '✓ Copied!' : 'Copy UPI'}
                 </button>
-              )
-            })()}
-          </div>
-          {payPlayer && (() => {
-            const p = corpusPlayers.find(pl => pl.id === payPlayer)
-            if (!p) return null
-            const needed    = Math.max(threshold - (p.corpus_balance ?? 0), 500)
-            const suggested = Math.ceil(needed / 500) * 500
-            return (
-              <p className="text-xs text-white/70 mt-2">
-                Balance: ₹{(p.corpus_balance ?? 0).toLocaleString('en-IN')} · Suggested top-up: ₹{suggested.toLocaleString('en-IN')}
-                {!(/Android|iPhone|iPad/i.test(navigator.userAgent)) && <span className="ml-1">· UPI: {upiId}</span>}
-              </p>
-            )
-          })()}
+              )}
+            </div>
+          )}
+
+          {selectedP && (
+            <p className="text-xs text-white/70 mt-2">
+              Balance: ₹{(selectedP.corpus_balance ?? 0).toLocaleString('en-IN')} · Suggested: ₹{paySuggested.toLocaleString('en-IN')}
+              {!isMobile && <span className="ml-1">· UPI: {upiId}</span>}
+            </p>
+          )}
         </div>
       )}
 

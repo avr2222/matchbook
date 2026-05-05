@@ -29,6 +29,7 @@ import AdminAnnouncements   from './pages/admin/AdminAnnouncements'
 import AdminSignups         from './pages/admin/AdminSignups'
 import AdminPayments        from './pages/admin/AdminPayments'
 import Signup               from './pages/auth/Signup'
+import ForgotPassword       from './pages/auth/ForgotPassword'
 
 const qc = new QueryClient()
 
@@ -72,7 +73,8 @@ export default function App() {
               <Route path="/player/:id"    element={<PlayerDetail />} />
               <Route path="/pay/:playerId" element={<PlayerPay />} />
               <Route path="/login"         element={<DeviceFlowLogin />} />
-              <Route path="/signup"        element={<Signup />} />
+              <Route path="/signup"          element={<Signup />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/unauthorized" element={
                 <div className="flex items-center justify-center h-64 text-gray-500">
                   Access denied. You don't have permission to view this page.

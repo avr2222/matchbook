@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTournaments, useConfig, usePlayers, useTransactions } from '../../hooks/useData'
 import { writeTournaments, updateConfig } from '../../api/dataWriter'
@@ -17,6 +17,43 @@ export default function AdminSettings() {
   const [saving, setSaving] = useState(false)
   const [showMigrate, setShowMigrate] = useState(false)
   const [newTournamentName, setNewTournamentName] = useState('')
+  const [form, setForm] = useState(null)
+  const [cfgSaving, setCfgSaving] = useState(false)
+
+  useEffect(() => {
+    if (cfg && !form) {
+      setForm({
+        team_name:               cfg.team_name ?? '',
+        admin_upi_id:            cfg.admin_upi_id ?? '',
+        default_match_fee:       cfg.default_match_fee ?? 0,
+        corpus_low_threshold:    cfg.corpus_low_threshold ?? 1000,
+        corpus_urgent_threshold: cfg.corpus_urgent_threshold ?? 500,
+        corpus_overdue_threshold:cfg.corpus_overdue_threshold ?? 0,
+        season_budget:           cfg.season_budget ?? 0,
+      })
+    }
+  }, [cfg, form])
+
+  async function saveConfig() {
+    if (!form) return
+    setCfgSaving(true)
+    try {
+      await updateConfig(form, 'Config updated via settings')
+      qc.invalidateQueries({ queryKey: ['config'] })
+      showToast('Settings saved')
+    } catch (e) {
+      showToast(e.message, 'error')
+    } finally {
+      setCfgSaving(false)
+    }
+  }
+
+  function field(key) {
+    return { value: form?.[key] ?? '', onChange: e => setForm(f => ({ ...f, [key]: e.target.value })) }
+  }
+  function numField(key) {
+    return { value: form?.[key] ?? '', onChange: e => setForm(f => ({ ...f, [key]: parseFloat(e.target.value) || 0 })) }
+  }
 
   if (isLoading) return <PageSpinner />
 
@@ -69,6 +106,58 @@ export default function AdminSettings() {
     <div className="space-y-6 max-w-2xl">
       <h1 className="text-xl font-bold text-gray-900">Settings</h1>
 
+      {/* Team Settings */}
+      {form && (
+        <div className="card">
+          <h2 className="font-semibold text-gray-800 mb-4">Team Settings</h2>
+          <div className="space-y-3">
+            <div>
+              <label className="label">Team Name</label>
+              <input className="input" {...field('team_name')} />
+            </div>
+            <div>
+              <label className="label">UPI ID</label>
+              <input className="input font-mono" {...field('admin_upi_id')} placeholder="yourname@upi" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="label">Default Match Fee (₹)</label>
+                <input className="input" type="number" min="0" {...numField('default_match_fee')} />
+              </div>
+              <div>
+                <label className="label">Season Budget (₹)</label>
+                <input className="input" type="number" min="0" {...numField('season_budget')} />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="label">Low Threshold (₹)</label>
+                <input className="input" type="number" min="0" {...numField('corpus_low_threshold')} />
+              </div>
+              <div>
+                <label className="label">Urgent Threshold (₹)</label>
+                <input className="input" type="number" min="0" {...numField('corpus_urgent_threshold')} />
+              </div>
+              <div>
+                <label className="label">Overdue Threshold (₹)</label>
+                <input className="input" type="number" min="0" {...numField('corpus_overdue_threshold')} />
+              </div>
+            </div>
+            <div className="pt-1 space-y-1 text-xs text-gray-400 bg-gray-50 rounded-lg p-2">
+              <div>active_tournament_id: <span className="font-mono text-gray-600">{cfg?.active_tournament_id ?? '—'}</span></div>
+              <div>default_ppm_rate: <span className="font-mono text-gray-600">₹{cfg?.default_ppm_rate ?? '—'}</span></div>
+            </div>
+          </div>
+          <button
+            onClick={saveConfig}
+            disabled={cfgSaving}
+            className="btn-primary mt-4"
+          >
+            {cfgSaving ? 'Saving…' : 'Save Settings'}
+          </button>
+        </div>
+      )}
+
       {/* Current tournament */}
       <div className="card">
         <h2 className="font-semibold text-gray-800 mb-3">Current Tournament</h2>
@@ -99,18 +188,6 @@ export default function AdminSettings() {
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Config info */}
-      <div className="card">
-        <h2 className="font-semibold text-gray-800 mb-3">Configuration</h2>
-        <div className="space-y-1 text-sm font-mono text-gray-600 bg-gray-50 rounded-lg p-3">
-          <div>match_fee: ₹{cfg?.default_match_fee}</div>
-          <div>cricheroes_id: {cfg?.cricheroes_tournament_id || '—'}</div>
-          <div>upi_id: {cfg?.admin_upi_id || '—'}</div>
-          <div>season_budget: ₹{cfg?.season_budget ?? 0}</div>
-        </div>
-        <p className="text-xs text-gray-400 mt-2">Edit via Supabase Table Editor → config table (row id=1).</p>
       </div>
 
       {showMigrate && isAdmin && (
