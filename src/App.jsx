@@ -7,6 +7,8 @@ import ProtectedRoute from './auth/ProtectedRoute'
 import { ToastProvider } from './components/ui/Toast'
 import { useIsAdmin } from './hooks/useIsAdmin'
 import { useAuthStore } from './store/authStore'
+import { useAdminNotifications } from './hooks/useAdminNotifications'
+import { usePushSubscription } from './hooks/usePushSubscription'
 
 import Dashboard      from './pages/public/Dashboard'
 import Players        from './pages/public/Players'
@@ -34,6 +36,7 @@ function AdminLayout({ children }) {
   const isAdmin = useIsAdmin()
   const role = useAuthStore(s => s.role)
   const canWrite = role === 'admin' || role === 'host'
+  useAdminNotifications()
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-3">
       {!canWrite && (
@@ -54,6 +57,7 @@ function AdminLayout({ children }) {
 export default function App() {
   const init = useAuthStore(s => s.init)
   useEffect(() => { init() }, [init])
+  usePushSubscription()
 
   return (
     <QueryClientProvider client={qc}>

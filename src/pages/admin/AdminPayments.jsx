@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { confirmPayment, rejectPayment } from '../../api/dataWriter'
 import { usePlayers } from '../../hooks/useData'
 import { showToast } from '../../components/ui/Toast'
+import ConfirmModal from '../../components/ui/ConfirmModal'
 import { format, parseISO } from 'date-fns'
 
 function usePaymentRequestsFull() {
@@ -33,37 +34,54 @@ export default function AdminPayments() {
   const { data: pData } = usePlayers()
   const [busy, setBusy] = useState(null)
   const [filter, setFilter] = useState('pending')
+  const [confirmData, setConfirmData] = useState(null)
 
   const playerMap = Object.fromEntries((pData?.players ?? []).map(p => [p.id, p]))
 
-  async function handleConfirm(req) {
-    if (!confirm(`Confirm ₹${req.amount?.toLocaleString('en-IN')} from ${playerMap[req.player_id]?.display_name ?? req.player_id}?`)) return
-    setBusy(req.id)
-    try {
-      await confirmPayment(req.id)
-      qc.invalidateQueries({ queryKey: ['payment_requests_full'] })
-      qc.invalidateQueries({ queryKey: ['transactions'] })
-      qc.invalidateQueries({ queryKey: ['players'] })
-      showToast('Payment confirmed — corpus_payment transaction created')
-    } catch (e) {
-      showToast(e.message, 'error')
-    } finally {
-      setBusy(null)
-    }
+  function handleConfirm(req) {
+    const name = playerMap[req.player_id]?.display_name ?? req.player_id
+    setConfirmData({
+      title: 'Confirm Payment',
+      message: `Credit ₹${req.amount?.toLocaleString('en-IN')} to ${name}'s corpus account?`,
+      confirmLabel: '✓ Confirm Payment',
+      danger: false,
+      onConfirm: async () => {
+        setBusy(req.id)
+        try {
+          await confirmPayment(req.id)
+          qc.invalidateQueries({ queryKey: ['payment_requests_full'] })
+          qc.invalidateQueries({ queryKey: ['transactions'] })
+          qc.invalidateQueries({ queryKey: ['players'] })
+          showToast('Payment confirmed — corpus credited')
+        } catch (e) {
+          showToast(e.message, 'error')
+        } finally {
+          setBusy(null)
+        }
+      },
+    })
   }
 
-  async function handleReject(req) {
-    if (!confirm('Reject this payment request?')) return
-    setBusy(req.id)
-    try {
-      await rejectPayment(req.id)
-      qc.invalidateQueries({ queryKey: ['payment_requests_full'] })
-      showToast('Payment request rejected')
-    } catch (e) {
-      showToast(e.message, 'error')
-    } finally {
-      setBusy(null)
-    }
+  function handleReject(req) {
+    const name = playerMap[req.player_id]?.display_name ?? req.player_id
+    setConfirmData({
+      title: 'Reject Payment',
+      message: `Reject ₹${req.amount?.toLocaleString('en-IN')} payment request from ${name}? This cannot be undone.`,
+      confirmLabel: 'Reject',
+      danger: true,
+      onConfirm: async () => {
+        setBusy(req.id)
+        try {
+          await rejectPayment(req.id)
+          qc.invalidateQueries({ queryKey: ['payment_requests_full'] })
+          showToast('Payment request rejected')
+        } catch (e) {
+          showToast(e.message, 'error')
+        } finally {
+          setBusy(null)
+        }
+      },
+    })
   }
 
   const pending = requests.filter(r => r.status === 'pending').length
@@ -173,6 +191,8 @@ export default function AdminPayments() {
           </table>
         </div>
       )}
+
+      {confirmData && <ConfirmModal {...confirmData} onClose={() => setConfirmData(null)} />}
     </div>
   )
 }

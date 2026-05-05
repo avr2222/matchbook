@@ -58,3 +58,32 @@ self.addEventListener('fetch', e => {
     })
   )
 })
+
+// ── Web Push ──────────────────────────────────────────────────────────────────
+
+self.addEventListener('push', (event) => {
+  const data = event.data?.json() ?? {}
+  event.waitUntil(
+    self.registration.showNotification(data.title ?? 'Matchbook', {
+      body:    data.body ?? '',
+      icon:    '/matchbook/icon-192.png',
+      badge:   '/matchbook/icon-192.png',
+      data:    { url: data.url ?? '/matchbook/' },
+      vibrate: [200, 100, 200],
+    })
+  )
+})
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const url = event.notification.data?.url ?? '/matchbook/'
+  event.waitUntil(
+    self.clients
+      .matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clients) => {
+        const existing = clients.find(c => c.url.includes('/matchbook/') && 'focus' in c)
+        if (existing) { existing.focus(); existing.navigate(url) }
+        else self.clients.openWindow(url)
+      })
+  )
+})

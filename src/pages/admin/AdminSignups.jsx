@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { approveSignup, rejectSignup, updateSignupPlayer } from '../../api/dataWriter'
 import { usePlayers } from '../../hooks/useData'
 import { showToast } from '../../components/ui/Toast'
+import ConfirmModal from '../../components/ui/ConfirmModal'
 import { format, parseISO } from 'date-fns'
 
 function useSignups() {
@@ -36,6 +37,7 @@ export default function AdminSignups() {
   const [editingId, setEditingId] = useState(null)
   const [editPlayerId, setEditPlayerId] = useState('')
   const [editBusy, setEditBusy]   = useState(false)
+  const [confirmData, setConfirmData] = useState(null)
 
   const allPlayers = pData?.players ?? []
 
@@ -67,18 +69,25 @@ export default function AdminSignups() {
     }
   }
 
-  async function handleReject(signup) {
-    if (!confirm(`Reject signup from ${signup.display_name}?`)) return
-    setBusy(signup.id)
-    try {
-      await rejectSignup(signup.id)
-      qc.invalidateQueries({ queryKey: ['user_signups'] })
-      showToast(`${signup.display_name}'s signup rejected`)
-    } catch (e) {
-      showToast(e.message, 'error')
-    } finally {
-      setBusy(null)
-    }
+  function handleReject(signup) {
+    setConfirmData({
+      title: 'Reject Signup',
+      message: `Reject signup request from ${signup.display_name}? They will not be able to access the app.`,
+      confirmLabel: 'Reject',
+      danger: true,
+      onConfirm: async () => {
+        setBusy(signup.id)
+        try {
+          await rejectSignup(signup.id)
+          qc.invalidateQueries({ queryKey: ['user_signups'] })
+          showToast(`${signup.display_name}'s signup rejected`)
+        } catch (e) {
+          showToast(e.message, 'error')
+        } finally {
+          setBusy(null)
+        }
+      },
+    })
   }
 
   const pending  = signups.filter(s => s.status === 'pending').length
@@ -240,6 +249,8 @@ export default function AdminSignups() {
           })}
         </div>
       )}
+
+      {confirmData && <ConfirmModal {...confirmData} onClose={() => setConfirmData(null)} />}
     </div>
   )
 }
