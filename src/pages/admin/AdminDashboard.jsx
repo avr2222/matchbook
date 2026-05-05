@@ -1,21 +1,80 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { usePlayers, useWeeks, useConfig, useAttendance, useMapping, useExpenses } from '../../hooks/useData'
 import BalanceBadge from '../../components/ui/BalanceBadge'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { useIsAdmin } from '../../hooks/useIsAdmin'
+import { useAuthStore } from '../../store/authStore'
 import { showToast } from '../../components/ui/Toast'
+import { supabase } from '../../lib/supabase'
 import { format, parseISO } from 'date-fns'
 
 export default function AdminDashboard() {
-  const isAdmin = useIsAdmin()
+  const isAdmin    = useIsAdmin()
+  const role       = useAuthStore(s => s.role)
+  const myName     = useAuthStore(s => s.displayName)
+  const canWrite   = role === 'admin' || role === 'host'
+  const qc         = useQueryClient()
+
+  const [collectPlayer, setCollectPlayer] = useState('')
+  const [collectAmt, setCollectAmt]       = useState('')
+  const [collectNote, setCollectNote]     = useState('')
+  const [collectBusy, setCollectBusy]     = useState(false)
+
   const { data: cfg }              = useConfig()
   const { data: pData, isLoading } = usePlayers()
   const { data: wData }            = useWeeks()
   const { data: aData }            = useAttendance()
   const { data: mapData }          = useMapping()
   const { data: eData }            = useExpenses()
+
+  const { data: hostCollections = [] } = useQuery({
+    queryKey: ['host_collections_pending'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('payment_requests')
+        .select('*')
+        .eq('status', 'pending')
+        .like('notes', '[HOST]%')
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return data ?? []
+    },
+    enabled: canWrite,
+    staleTime: 30_000,
+  })
+
   if (isLoading) return <PageSpinner />
+
+  async function handleCollect() {
+    const amount = parseInt(collectAmt, 10)
+    if (!collectPlayer || !amount || amount < 1) return
+    setCollectBusy(true)
+    try {
+      const noteStr = `[HOST] Collected by ${myName ?? 'host'}${collectNote.trim() ? ' — ' + collectNote.trim() : ''}`
+      const { error } = await supabase.from('payment_requests').insert({
+        id: `PREQ_HOST_${Date.now()}`,
+        player_id: collectPlayer,
+        amount,
+        amount_requested: amount,
+        status: 'pending',
+        upi_ref: '',
+        notes: noteStr,
+      })
+      if (error) throw new Error(error.message)
+      showToast('Cash collection recorded — awaiting admin confirmation')
+      setCollectPlayer('')
+      setCollectAmt('')
+      setCollectNote('')
+      qc.invalidateQueries({ queryKey: ['host_collections_pending'] })
+      qc.invalidateQueries({ queryKey: ['pending_counts'] })
+    } catch (e) {
+      showToast(e.message, 'error')
+    } finally {
+      setCollectBusy(false)
+    }
+  }
 
   const activeTId   = cfg?.active_tournament_id
   const players     = (pData?.players ?? []).filter(p => p.status === 'active')
@@ -27,7 +86,6 @@ export default function AdminDashboard() {
   const staleMaps   = (mapData?.player_mappings ?? []).filter(m => !m.confirmed).length
   const expenses    = eData?.expenses ?? []
   const recentWeeks   = [...completed].sort((a, b) => b.match_date.localeCompare(a.match_date)).slice(0, 3)
-  const totalMatches  = completed.reduce((s, w) => s + (w.cricheroes_match_ids?.length ?? 1), 0)
 
   // Corpus health — how many more matches the pool can cover per player
   const corpusPlayers   = players.filter(p => p.type === 'corpus' || p.type === 'new')
@@ -95,6 +153,87 @@ export default function AdminDashboard() {
           </Link>
         ))}
       </div>
+
+      {/* Collect Cash — visible to host + admin */}
+      {canWrite && (
+        <div className="card space-y-3">
+          <h2 className="font-semibold text-gray-800">💰 Collect Cash Payment</h2>
+
+          <select
+            className="input"
+            value={collectPlayer}
+            onChange={e => setCollectPlayer(e.target.value)}
+          >
+            <option value="">Select player…</option>
+            {players
+              .filter(p => p.type !== 'guest')
+              .sort((a, b) => a.display_name.localeCompare(b.display_name))
+              .map(p => (
+                <option key={p.id} value={p.id}>
+                  {p.display_name}{p.type === 'ppm' ? ' (PPM)' : ''}
+                </option>
+              ))}
+          </select>
+
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">₹</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="Amount"
+                className="input pl-7"
+                value={collectAmt}
+                onChange={e => setCollectAmt(e.target.value.replace(/[^0-9]/g, ''))}
+              />
+            </div>
+            <input
+              type="text"
+              placeholder="Note (optional)"
+              className="input flex-1"
+              value={collectNote}
+              onChange={e => setCollectNote(e.target.value)}
+            />
+          </div>
+
+          <button
+            onClick={handleCollect}
+            disabled={!collectPlayer || !collectAmt || collectBusy}
+            className="btn-primary w-full"
+          >
+            {collectBusy ? 'Recording…' : 'Record Collection'}
+          </button>
+
+          {/* Pending host collections */}
+          {hostCollections.length > 0 && (
+            <div className="pt-3 border-t border-gray-100 space-y-2">
+              <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">
+                ⏳ Pending Admin Confirmation
+              </p>
+              {hostCollections.map(req => {
+                const p = players.find(pl => pl.id === req.player_id)
+                return (
+                  <div key={req.id} className="flex items-center justify-between text-sm">
+                    <div>
+                      <span className="font-medium text-gray-800">{p?.display_name ?? req.player_id}</span>
+                      {req.notes && (
+                        <span className="ml-2 text-xs text-gray-400">{req.notes.replace('[HOST] ', '')}</span>
+                      )}
+                    </div>
+                    <span className="font-mono font-semibold text-green-700">
+                      ₹{(req.amount ?? 0).toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                )
+              })}
+              <p className="text-xs text-gray-400">
+                Total: ₹{hostCollections.reduce((s, r) => s + (r.amount ?? 0), 0).toLocaleString('en-IN')} — admin confirms after receiving cash transfer
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Corpus health + season budget */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
