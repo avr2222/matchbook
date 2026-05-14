@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { usePlayers, useConfig, useLeaderboard } from '../../hooks/useData'
 import { PageSpinner } from '../../components/ui/Spinner'
 
@@ -40,7 +41,7 @@ export default function Leaderboard() {
       }
     }
     const s = statsMap[perf.player_id]
-    s.matches++
+    s.matches += perf.match_count || 1
     s.runs        += perf.runs        || 0
     s.balls_faced += perf.balls_faced || 0
     s.fours       += perf.fours       || 0
@@ -138,8 +139,10 @@ export default function Leaderboard() {
               {batters.map((s, i) => (
                 <tr key={s.player_id} className={i === 0 ? 'font-semibold' : ''}>
                   <td className="py-2 text-gray-400 text-xs">{i + 1}</td>
-                  <td className="py-2 pr-2 font-medium text-gray-900 max-w-[120px] truncate">
-                    {playerMap[s.player_id]?.display_name ?? s.player_id}
+                  <td className="py-2 pr-2 font-medium max-w-[120px] truncate">
+                    <Link to={`/player/${s.player_id}`} className="text-gray-900 hover:text-green-700 hover:underline">
+                      {playerMap[s.player_id]?.display_name ?? s.player_id}
+                    </Link>
                   </td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-500">{s.matches}</td>
                   <td className="py-2 pr-2 text-right tabular-nums font-bold text-green-700">{s.runs}</td>
@@ -177,8 +180,10 @@ export default function Leaderboard() {
               {bowlers.map((s, i) => (
                 <tr key={s.player_id} className={i === 0 ? 'font-semibold' : ''}>
                   <td className="py-2 text-gray-400 text-xs">{i + 1}</td>
-                  <td className="py-2 pr-2 font-medium text-gray-900 max-w-[130px] truncate">
-                    {playerMap[s.player_id]?.display_name ?? s.player_id}
+                  <td className="py-2 pr-2 font-medium max-w-[130px] truncate">
+                    <Link to={`/player/${s.player_id}`} className="text-gray-900 hover:text-green-700 hover:underline">
+                      {playerMap[s.player_id]?.display_name ?? s.player_id}
+                    </Link>
                   </td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-500">{s.matches}</td>
                   <td className="py-2 pr-2 text-right tabular-nums font-bold text-purple-700">{s.wickets}</td>
@@ -214,9 +219,9 @@ export default function Leaderboard() {
                   {i + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-sm text-gray-900 truncate">
+                  <Link to={`/player/${s.player_id}`} className="font-semibold text-sm text-gray-900 hover:text-green-700 hover:underline truncate block">
                     {playerMap[s.player_id]?.display_name ?? s.player_id}
-                  </div>
+                  </Link>
                   <div className="text-xs text-gray-500">
                     {s.runs}r · {s.wickets}w · {s.catches}c
                   </div>

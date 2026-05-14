@@ -179,6 +179,7 @@ def _empty_perf():
         "dismissal": "", "batting_pos": None,
         "wickets": 0, "runs_given": 0, "balls_bowled": 0, "maidens": 0,
         "catches": 0, "run_outs": 0, "stumpings": 0,
+        "match_count": 0,
     }
 
 
@@ -489,6 +490,7 @@ def sync():
                         sp["dismissal"] = stats["dismissal"]
                     if sp["batting_pos"] is None and stats["batting_pos"] is not None:
                         sp["batting_pos"] = stats["batting_pos"]
+                    sp["match_count"] += 1  # one individual game per scorecard entry
 
             for internal_id, stats in session_perfs.items():
                 new_performances.append({
