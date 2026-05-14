@@ -20,6 +20,10 @@ CREATE TABLE IF NOT EXISTS match_performances (
   catches       INTEGER DEFAULT 0,
   run_outs      INTEGER DEFAULT 0,
   stumpings     INTEGER DEFAULT 0,
+  match_count   INTEGER DEFAULT 1,
+  wides         INTEGER DEFAULT 0,
+  no_balls      INTEGER DEFAULT 0,
+  potm_count    INTEGER DEFAULT 0,
   created_at    TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(player_id, week_id)
 );

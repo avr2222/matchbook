@@ -38,10 +38,11 @@ export default function Leaderboard() {
         player_id: perf.player_id,
         matches: 0, runs: 0, balls_faced: 0, fours: 0, sixes: 0, high_score: 0,
         wickets: 0, runs_given: 0, balls_bowled: 0, maidens: 0, catches: 0,
+        run_outs: 0, stumpings: 0, wides: 0, no_balls: 0, potm_count: 0,
       }
     }
     const s = statsMap[perf.player_id]
-    s.matches += perf.match_count || 1
+    s.matches    += perf.match_count || 1
     s.runs        += perf.runs        || 0
     s.balls_faced += perf.balls_faced || 0
     s.fours       += perf.fours       || 0
@@ -52,6 +53,11 @@ export default function Leaderboard() {
     s.balls_bowled+= perf.balls_bowled|| 0
     s.maidens     += perf.maidens     || 0
     s.catches     += perf.catches     || 0
+    s.run_outs    += perf.run_outs    || 0
+    s.stumpings   += perf.stumpings   || 0
+    s.wides       += perf.wides       || 0
+    s.no_balls    += perf.no_balls    || 0
+    s.potm_count  += perf.potm_count  || 0
   }
 
   const allStats = Object.values(statsMap)
@@ -78,10 +84,35 @@ export default function Leaderboard() {
     .filter(s => s.mvp_score > 0)
     .sort((a, b) => b.mvp_score - a.mvp_score)
 
+  // Awards tab
+  const MIN_BAT = 40, MIN_BOWL = 30
+  const topPotm      = [...allStats].filter(s => s.potm_count > 0).sort((a,b) => b.potm_count - a.potm_count)[0]
+  const sixMachine   = [...allStats].filter(s => s.sixes > 0).sort((a,b) => b.sixes - a.sixes)[0]
+  const wicketWiz    = [...allStats].filter(s => s.wickets > 0).sort((a,b) => b.wickets - a.wickets)[0]
+  const lightningBat = [...allStats].filter(s => s.balls_faced >= MIN_BAT).sort((a,b) => (b.runs/b.balls_faced)-(a.runs/a.balls_faced))[0]
+  const economyKing  = [...allStats].filter(s => s.balls_bowled >= MIN_BOWL).sort((a,b) => (a.runs_given/a.balls_bowled)-(b.runs_given/b.balls_bowled))[0]
+  const maidenMaster = [...allStats].filter(s => s.maidens > 0).sort((a,b) => b.maidens - a.maidens)[0]
+  const catchKing    = [...allStats].filter(s => (s.catches+s.run_outs+s.stumpings) > 0).sort((a,b) => (b.catches+b.run_outs+b.stumpings)-(a.catches+a.run_outs+a.stumpings))[0]
+  const workhorse    = [...allStats].filter(s => s.balls_bowled > 0).sort((a,b) => b.balls_bowled - a.balls_bowled)[0]
+  const duckKing     = (() => {
+    const dm = {}
+    for (const p of perfs) {
+      const d = (p.dismissal || '').toLowerCase()
+      if (p.runs === 0 && d && d !== 'not out') dm[p.player_id] = (dm[p.player_id] || 0) + 1
+    }
+    const e = Object.entries(dm).sort((a,b) => b[1]-a[1])
+    return e.length ? { player_id: e[0][0], ducks: e[0][1] } : null
+  })()
+  const slowcoach    = [...allStats].filter(s => s.balls_faced >= MIN_BAT).sort((a,b) => (a.runs/a.balls_faced)-(b.runs/b.balls_faced))[0]
+  const wideMan      = [...allStats].filter(s => s.wides > 0).sort((a,b) => b.wides - a.wides)[0]
+  const noBallKing   = [...allStats].filter(s => s.no_balls > 0).sort((a,b) => b.no_balls - a.no_balls)[0]
+  const costlyBowler = [...allStats].filter(s => s.balls_bowled >= MIN_BOWL).sort((a,b) => (b.runs_given/b.balls_bowled)-(a.runs_given/a.balls_bowled))[0]
+
   const tabs = [
     { id: 'batting', label: 'Batting' },
     { id: 'bowling', label: 'Bowling' },
     { id: 'mvp',     label: 'MVP' },
+    { id: 'awards',  label: 'Awards' },
   ]
 
   return (
@@ -235,6 +266,68 @@ export default function Leaderboard() {
           </div>
         </div>
       )}
+
+      {!perfLoading && !isEmpty && tab === 'awards' && (() => {
+        function ACard({ emoji, title, pid, stat, unit, variant = 'default' }) {
+          if (!pid) return null
+          const bg  = variant === 'gold'  ? 'bg-amber-50 border-amber-200'
+                    : variant === 'spoon' ? 'bg-slate-50 border-slate-200'
+                    : 'bg-gray-50 border-gray-100'
+          const sc  = variant === 'gold'  ? 'text-amber-600'
+                    : variant === 'spoon' ? 'text-slate-500'
+                    : 'text-green-700'
+          return (
+            <Link to={`/player/${pid}`} className={`rounded-xl border p-3 hover:brightness-95 transition-all block ${bg}`}>
+              <div className="text-xl mb-1">{emoji}</div>
+              <div className="text-xs text-gray-500 font-medium mb-0.5">{title}</div>
+              <div className="font-semibold text-gray-900 text-sm truncate">{playerMap[pid]?.display_name ?? '—'}</div>
+              <div className={`text-base font-extrabold ${sc}`}>{stat}</div>
+              <div className="text-xs text-gray-400">{unit}</div>
+            </Link>
+          )
+        }
+        return (
+          <div className="space-y-5">
+            {/* Season Champions */}
+            <div className="card">
+              <h2 className="font-bold text-gray-900 mb-1">Season Champions</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
+                <ACard emoji="🌟" title="Season MVP"      pid={mvps[0]?.player_id}       stat={mvps[0]?.mvp_score.toFixed(0)}  unit="pts"     variant="gold" />
+                <ACard emoji="🏅" title="Most POTM Wins"  pid={topPotm?.player_id}        stat={topPotm?.potm_count}            unit="times"   variant="gold" />
+                <ACard emoji="🏏" title="Top Scorer"      pid={batters[0]?.player_id}     stat={batters[0]?.runs}               unit="runs"    variant="gold" />
+                <ACard emoji="🎯" title="Wicket Wizard"   pid={wicketWiz?.player_id}      stat={wicketWiz?.wickets}             unit="wickets" variant="gold" />
+                <ACard emoji="💥" title="Six Machine"     pid={sixMachine?.player_id}     stat={sixMachine?.sixes}              unit="sixes"   variant="gold" />
+              </div>
+            </div>
+
+            {/* Skill Awards */}
+            <div className="card">
+              <h2 className="font-bold text-gray-900 mb-1">Skill Awards</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
+                <ACard emoji="⚡" title="Lightning Bat"   pid={lightningBat?.player_id}   stat={lightningBat ? (lightningBat.runs/lightningBat.balls_faced*100).toFixed(1) : null}  unit={`SR (min ${MIN_BAT} balls)`} />
+                <ACard emoji="🔒" title="Economy King"    pid={economyKing?.player_id}    stat={economyKing ? economy(economyKing.runs_given, economyKing.balls_bowled) : null}       unit={`econ (min ${MIN_BOWL} balls)`} />
+                <ACard emoji="🎖️" title="Maiden Master"  pid={maidenMaster?.player_id}   stat={maidenMaster?.maidens}          unit="maidens" />
+                <ACard emoji="🧤" title="Catch King"      pid={catchKing?.player_id}      stat={catchKing ? catchKing.catches+catchKing.run_outs+catchKing.stumpings : null}         unit="dismissals" />
+                <ACard emoji="🏃" title="Workhorse"       pid={workhorse?.player_id}      stat={workhorse ? overs(workhorse.balls_bowled) : null}                                    unit="overs" />
+              </div>
+            </div>
+
+            {/* Wooden Spoons */}
+            <div className="card">
+              <h2 className="font-bold text-gray-900 mb-1">Wooden Spoons 🥄</h2>
+              <p className="text-xs text-gray-400 mb-3">The not-so-glorious records…</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <ACard emoji="🦆" title="Duck King"       pid={duckKing?.player_id}       stat={duckKing?.ducks}                unit="golden ducks" variant="spoon" />
+                <ACard emoji="🐢" title="Slowcoach"       pid={slowcoach?.player_id}      stat={slowcoach ? (slowcoach.runs/slowcoach.balls_faced*100).toFixed(1) : null}            unit={`SR (min ${MIN_BAT} balls)`}  variant="spoon" />
+                <ACard emoji="💨" title="Wide Man"        pid={wideMan?.player_id}        stat={wideMan?.wides ?? '—'}          unit="wides"        variant="spoon" />
+                <ACard emoji="⚾" title="No-Ball King"    pid={noBallKing?.player_id}     stat={noBallKing?.no_balls ?? '—'}    unit="no balls"     variant="spoon" />
+                <ACard emoji="💸" title="Costly Bowler"   pid={costlyBowler?.player_id}   stat={costlyBowler ? economy(costlyBowler.runs_given, costlyBowler.balls_bowled) : null}   unit={`econ (min ${MIN_BOWL} balls)`} variant="spoon" />
+              </div>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
+

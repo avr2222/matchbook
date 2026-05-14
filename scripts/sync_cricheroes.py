@@ -179,7 +179,7 @@ def _empty_perf():
         "dismissal": "", "batting_pos": None,
         "wickets": 0, "runs_given": 0, "balls_bowled": 0, "maidens": 0,
         "catches": 0, "run_outs": 0, "stumpings": 0,
-        "match_count": 0,
+        "match_count": 0, "wides": 0, "no_balls": 0, "potm_count": 0,
     }
 
 
@@ -225,6 +225,8 @@ def extract_performances_from_scorecard(scorecard_data, ch_to_internal):
                 p["runs_given"]   += int(bowler.get("runs", 0) or 0)
                 p["balls_bowled"] += balls
                 p["maidens"]      += int(bowler.get("maidens", 0) or 0)
+                p["wides"]        += int(bowler.get("wides",    bowler.get("wide",    0)) or 0)
+                p["no_balls"]     += int(bowler.get("no_balls", bowler.get("no_ball", 0)) or 0)
     return perfs
 
 
@@ -358,7 +360,20 @@ def sync():
             team_a = match.get("team_a", team_a)
             team_b = match.get("team_b", team_b)
             scorecard_data = get_match_scorecard(match_id)
-            all_scorecard_data.append(scorecard_data)
+            # Extract Player of the Match from scorecard root
+            potm_ch_id = str(scorecard_data.get("man_of_match_player_id") or
+                             scorecard_data.get("man_of_match_id") or "").strip()
+            potm_name  = str(scorecard_data.get("man_of_match") or
+                             scorecard_data.get("man_of_match_name") or "").strip()
+            potm_internal_id = ch_to_internal.get(potm_ch_id)
+            if not potm_internal_id and potm_name:
+                active_list = [p for p in players if p["status"] == "active"]
+                potm_internal_id, conf = fuzzy_match(potm_name, active_list)
+                if conf < 0.7:
+                    potm_internal_id = None
+            if potm_name:
+                print(f"  POTM: '{potm_name}' -> {potm_internal_id or 'unmapped'}")
+            all_scorecard_data.append((scorecard_data, potm_internal_id))
             ch_players = extract_players_from_scorecard(scorecard_data)
             all_session_ch_players.update(ch_players)
             print(f"  Match {match_id}: {len(ch_players)} players")
@@ -477,20 +492,23 @@ def sync():
         # Extract and aggregate batting/bowling stats for this session
         if need_performances and existing_perf_week_ids is not None:
             session_perfs = {}
-            for sd in all_scorecard_data:
+            for sd_tuple in all_scorecard_data:
+                sd, potm_id = sd_tuple if isinstance(sd_tuple, tuple) else (sd_tuple, None)
                 for internal_id, stats in extract_performances_from_scorecard(sd, ch_to_internal).items():
                     if internal_id not in session_perfs:
                         session_perfs[internal_id] = _empty_perf()
                     sp = session_perfs[internal_id]
                     for k in ("runs", "balls_faced", "fours", "sixes", "wickets",
                               "runs_given", "balls_bowled", "maidens", "catches",
-                              "run_outs", "stumpings"):
+                              "run_outs", "stumpings", "wides", "no_balls"):
                         sp[k] += stats[k]
                     if not sp["dismissal"] and stats["dismissal"]:
                         sp["dismissal"] = stats["dismissal"]
                     if sp["batting_pos"] is None and stats["batting_pos"] is not None:
                         sp["batting_pos"] = stats["batting_pos"]
                     sp["match_count"] += 1  # one individual game per scorecard entry
+                if potm_id and potm_id in session_perfs:
+                    session_perfs[potm_id]["potm_count"] += 1
 
             for internal_id, stats in session_perfs.items():
                 new_performances.append({
