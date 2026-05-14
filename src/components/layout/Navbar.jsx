@@ -25,6 +25,9 @@ export default function Navbar() {
           <Link to="/players" className="text-sm font-medium text-gray-500 hover:text-gray-900 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">
             Players
           </Link>
+          <Link to="/leaderboard" className="text-sm font-medium text-gray-500 hover:text-gray-900 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+            Stats
+          </Link>
 
           {isAuthenticated ? (
             <>

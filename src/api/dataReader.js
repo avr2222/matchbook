@@ -122,6 +122,15 @@ export async function fetchPaymentRequests() {
   return { schema_version: 1, requests: data }
 }
 
+export async function fetchMatchPerformances({ playerId, tournamentId } = {}) {
+  let query = supabase.from('match_performances').select('*')
+  if (playerId)     query = query.eq('player_id', playerId)
+  if (tournamentId) query = query.eq('tournament_id', tournamentId)
+  const { data, error } = await query
+  if (error) throw new Error(`fetchMatchPerformances: ${error.message}`)
+  return { schema_version: 1, performances: data ?? [] }
+}
+
 // Users are now managed by Supabase Auth — no separate users.json table.
 // Return a stub so any remaining useUsers() calls don't crash.
 export async function fetchUsers() {

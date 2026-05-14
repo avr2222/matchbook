@@ -266,6 +266,19 @@ BEGIN
 END $$;
 
 -- ============================================================
+-- Data API Grants (required from Oct 2026 for all projects)
+-- GRANTs control PostgREST visibility; RLS controls row access.
+-- ============================================================
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
+
+-- Default privileges so every future table is automatically covered
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO anon;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO authenticated;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO service_role;
+
+-- ============================================================
 -- After running this file:
 -- 1. Auth → Users → create your admin account
 -- 2. Run this SQL to grant admin:

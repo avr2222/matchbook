@@ -17,7 +17,7 @@ BEGIN
       'table',      TG_TABLE_NAME,
       'record',     to_jsonb(NEW),
       'old_record', CASE WHEN TG_OP = 'UPDATE' THEN to_jsonb(OLD) ELSE NULL END
-    )::text
+    )
   );
   RETURN NEW;
 END;

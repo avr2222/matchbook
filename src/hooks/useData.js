@@ -3,7 +3,7 @@ import {
   fetchPlayers, fetchWeeks, fetchAttendance, fetchTransactions,
   fetchExpenses, fetchGuestVisits, fetchTournaments, fetchUsers,
   fetchAuditLog, fetchCricHeroesMapping, fetchConfig, fetchAnnouncements,
-  fetchPaymentRequests,
+  fetchPaymentRequests, fetchMatchPerformances,
 } from '../api/dataReader'
 
 const STALE = 30_000 // 30s
@@ -21,3 +21,9 @@ export const useAuditLog    = () => useQuery({ queryKey: ['audit_log'],    query
 export const useMapping          = () => useQuery({ queryKey: ['ch_mapping'],        queryFn: fetchCricHeroesMapping, staleTime: STALE })
 export const useAnnouncements    = () => useQuery({ queryKey: ['announcements'],     queryFn: fetchAnnouncements,     staleTime: STALE })
 export const usePaymentRequests  = () => useQuery({ queryKey: ['payment_requests'],  queryFn: fetchPaymentRequests,   staleTime: STALE })
+
+export const useMatchPerformances = (playerId) =>
+  useQuery({ queryKey: ['match_performances', playerId], queryFn: () => fetchMatchPerformances({ playerId }), staleTime: STALE })
+
+export const useLeaderboard = (tournamentId) =>
+  useQuery({ queryKey: ['leaderboard', tournamentId], queryFn: () => fetchMatchPerformances({ tournamentId }), staleTime: STALE, enabled: !!tournamentId })

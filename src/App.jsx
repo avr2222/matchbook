@@ -30,6 +30,7 @@ import AdminSignups         from './pages/admin/AdminSignups'
 import AdminPayments        from './pages/admin/AdminPayments'
 import Signup               from './pages/auth/Signup'
 import ForgotPassword       from './pages/auth/ForgotPassword'
+import Leaderboard          from './pages/public/Leaderboard'
 
 const qc = new QueryClient()
 
@@ -72,6 +73,7 @@ export default function App() {
               <Route path="/players"       element={<Players />} />
               <Route path="/player/:id"    element={<PlayerDetail />} />
               <Route path="/pay/:playerId" element={<PlayerPay />} />
+              <Route path="/leaderboard"  element={<Leaderboard />} />
               <Route path="/login"         element={<DeviceFlowLogin />} />
               <Route path="/signup"          element={<Signup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />

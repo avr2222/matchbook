@@ -173,6 +173,60 @@ def extract_players_from_scorecard(scorecard_data):
     return seen
 
 
+def _empty_perf():
+    return {
+        "runs": 0, "balls_faced": 0, "fours": 0, "sixes": 0,
+        "dismissal": "", "batting_pos": None,
+        "wickets": 0, "runs_given": 0, "balls_bowled": 0, "maidens": 0,
+        "catches": 0, "run_outs": 0, "stumpings": 0,
+    }
+
+
+def extract_performances_from_scorecard(scorecard_data, ch_to_internal):
+    """Extract per-player batting/bowling stats from one match scorecard.
+    Returns {internal_player_id: stats_dict}. Unmapped CricHeroes players are skipped.
+    """
+    perfs = {}
+    for team_key in ("team_a", "team_b"):
+        team = scorecard_data.get(team_key, {})
+        for innings in team.get("scorecard", []):
+            for i, batter in enumerate(innings.get("batting", []), 1):
+                ch_pid = str(batter.get("player_id", ""))
+                internal_id = ch_to_internal.get(ch_pid)
+                if not internal_id:
+                    continue
+                if internal_id not in perfs:
+                    perfs[internal_id] = _empty_perf()
+                p = perfs[internal_id]
+                p["runs"]        += int(batter.get("runs", 0) or 0)
+                p["balls_faced"] += int(batter.get("balls", batter.get("balls_faced", 0)) or 0)
+                p["fours"]       += int(batter.get("fours", batter.get("4s", 0)) or 0)
+                p["sixes"]       += int(batter.get("sixes", batter.get("6s", 0)) or 0)
+                if not p["dismissal"]:
+                    wkt = batter.get("wicket_type", batter.get("dismissal", "")) or ""
+                    p["dismissal"] = str(wkt).strip()
+                if p["batting_pos"] is None:
+                    pos = batter.get("batting_position", batter.get("batting_pos", i))
+                    p["batting_pos"] = int(pos) if pos is not None else i
+
+            for bowler in innings.get("bowling", []):
+                ch_pid = str(bowler.get("player_id", ""))
+                internal_id = ch_to_internal.get(ch_pid)
+                if not internal_id:
+                    continue
+                if internal_id not in perfs:
+                    perfs[internal_id] = _empty_perf()
+                p = perfs[internal_id]
+                overs_str = str(bowler.get("overs", "0") or "0")
+                parts = overs_str.split(".")
+                balls = int(parts[0]) * 6 + (int(parts[1]) if len(parts) > 1 else 0)
+                p["wickets"]      += int(bowler.get("wickets", 0) or 0)
+                p["runs_given"]   += int(bowler.get("runs", 0) or 0)
+                p["balls_bowled"] += balls
+                p["maidens"]      += int(bowler.get("maidens", 0) or 0)
+    return perfs
+
+
 # ── Main sync logic ───────────────────────────────────────────────────────────
 
 def sync():
@@ -243,16 +297,18 @@ def sync():
     print(f"\nNew sessions to sync: {len(sessions)} dates — {sorted(sessions.keys())}")
 
     # Accumulate rows to upsert at the end
-    new_players    = []
-    new_weeks      = []
-    new_attendance = []
-    changed        = False
+    new_players      = []
+    new_weeks        = []
+    new_attendance   = []
+    new_performances = []
+    changed          = False
 
     for match_date, session_matches in sorted(sessions.items()):
         week_id = f"W_{match_date.replace('-', '_')}"
         print(f"\nProcessing session {match_date} ({len(session_matches)} game(s))")
 
         all_session_ch_players = {}
+        all_scorecard_data     = []
         all_match_ids = []
         team_a = team_b = ""
         for match in session_matches:
@@ -261,6 +317,7 @@ def sync():
             team_a = match.get("team_a", team_a)
             team_b = match.get("team_b", team_b)
             scorecard_data = get_match_scorecard(match_id)
+            all_scorecard_data.append(scorecard_data)
             ch_players = extract_players_from_scorecard(scorecard_data)
             all_session_ch_players.update(ch_players)
             print(f"  Match {match_id}: {len(ch_players)} players")
@@ -375,6 +432,33 @@ def sync():
                 })
                 changed = True
 
+        # Extract and aggregate batting/bowling stats for this session
+        session_perfs = {}
+        for sd in all_scorecard_data:
+            for internal_id, stats in extract_performances_from_scorecard(sd, ch_to_internal).items():
+                if internal_id not in session_perfs:
+                    session_perfs[internal_id] = _empty_perf()
+                sp = session_perfs[internal_id]
+                for k in ("runs", "balls_faced", "fours", "sixes", "wickets",
+                          "runs_given", "balls_bowled", "maidens", "catches",
+                          "run_outs", "stumpings"):
+                    sp[k] += stats[k]
+                if not sp["dismissal"] and stats["dismissal"]:
+                    sp["dismissal"] = stats["dismissal"]
+                if sp["batting_pos"] is None and stats["batting_pos"] is not None:
+                    sp["batting_pos"] = stats["batting_pos"]
+
+        for internal_id, stats in session_perfs.items():
+            new_performances.append({
+                "id":            f"PERF_{internal_id}_{week_id}",
+                "player_id":     internal_id,
+                "week_id":       week_id,
+                "tournament_id": active_tournament_id,
+                **stats,
+            })
+        if session_perfs:
+            changed = True
+
     if not changed:
         print("\nNo changes detected. Everything up to date.")
         return
@@ -390,6 +474,9 @@ def sync():
 
     if new_attendance:
         sb_upsert('attendance', new_attendance)
+
+    if new_performances:
+        sb_upsert('match_performances', new_performances)
 
     # Always update mapping so last_sync timestamp is current
     updated_mapping = {
