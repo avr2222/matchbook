@@ -17,6 +17,7 @@ export default function AdminSettings() {
   const [saving, setSaving] = useState(false)
   const [showMigrate, setShowMigrate] = useState(false)
   const [newTournamentName, setNewTournamentName] = useState('')
+  const [newTournamentUrl, setNewTournamentUrl]   = useState('')
   const [form, setForm] = useState(null)
   const [cfgSaving, setCfgSaving] = useState(false)
 
@@ -80,13 +81,14 @@ export default function AdminSettings() {
       const newId = `TRN_${String(tData.tournaments.length + 1).padStart(3, '0')}`
       const newTournament = {
         id: newId, name: newTournamentName, short_name: newTournamentName,
-        cricheroes_tournament_id: null, cricheroes_url: '',
+        cricheroes_tournament_id: null, cricheroes_url: newTournamentUrl.trim(),
         start_date: new Date().toISOString().slice(0,10), end_date: null,
         status: 'active', opening_balances,
       }
 
+      const today = new Date().toISOString().slice(0, 10)
       const updatedTournaments = tData.tournaments
-        .map(t => t.id === activeTId ? { ...t, status: 'completed' } : t)
+        .map(t => t.id === activeTId ? { ...t, status: 'completed', end_date: today } : t)
         .concat(newTournament)
 
       await writeTournaments(updatedTournaments, 'start_tournament', `Closed ${activeTournament?.name}, started ${newTournamentName}`)
@@ -94,6 +96,8 @@ export default function AdminSettings() {
       qc.invalidateQueries({ queryKey: ['tournaments'] })
       qc.invalidateQueries({ queryKey: ['config'] })
       setShowMigrate(false)
+      setNewTournamentName('')
+      setNewTournamentUrl('')
       showToast(`Tournament migrated! Opening balances carried forward.`)
     } catch (e) {
       showToast(e.message, 'error')
@@ -195,7 +199,7 @@ export default function AdminSettings() {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
               <h2 className="font-semibold text-red-700">Close Tournament</h2>
-              <button onClick={() => setShowMigrate(false)} className="text-gray-400">✕</button>
+              <button onClick={() => { setShowMigrate(false); setNewTournamentName(''); setNewTournamentUrl('') }} className="text-gray-400">✕</button>
             </div>
             <div className="px-6 py-4 space-y-3">
               <p className="text-sm text-gray-700">
@@ -205,9 +209,14 @@ export default function AdminSettings() {
                 <label className="label">New Tournament Name</label>
                 <input className="input" placeholder="Machaxi Box Cricket Season 3" value={newTournamentName} onChange={e => setNewTournamentName(e.target.value)} />
               </div>
+              <div>
+                <label className="label">CricHeroes Tournament URL <span className="text-gray-400 font-normal">(optional)</span></label>
+                <input className="input font-mono text-sm" placeholder="https://cricheroes.com/tournament/…" value={newTournamentUrl} onChange={e => setNewTournamentUrl(e.target.value)} />
+                <p className="text-xs text-gray-400 mt-1">Needed for CricHeroes sync to work on the new season.</p>
+              </div>
             </div>
             <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
-              <button onClick={() => setShowMigrate(false)} className="btn-secondary">Cancel</button>
+              <button onClick={() => { setShowMigrate(false); setNewTournamentName(''); setNewTournamentUrl('') }} className="btn-secondary">Cancel</button>
               <button onClick={closeTournamentAndMigrate} disabled={saving} className="btn-danger">
                 {saving ? 'Migrating…' : 'Close & Migrate'}
               </button>

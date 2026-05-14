@@ -152,6 +152,7 @@ export default function AdminPlayers() {
   const [cashModal, setCashModal]     = useState(null)
   const [cashAmount, setCashAmount]   = useState('')
   const [cashDesc, setCashDesc]       = useState('')
+  const [selected, setSelected]       = useState(new Set())
 
   useEffect(() => {
     if (searchParams.get('new') === '1' && data) {
@@ -160,6 +161,8 @@ export default function AdminPlayers() {
       setSearchParams({}, { replace: true })
     }
   }, [data])
+
+  useEffect(() => { setSelected(new Set()) }, [typeTab])
 
   if (isLoading) return <PageSpinner />
 
@@ -246,6 +249,29 @@ export default function AdminPlayers() {
     })
   }
 
+  function bulkDeactivate() {
+    const names = [...selected].map(id => players.find(p => p.id === id)?.display_name ?? id).join(', ')
+    setConfirmData({
+      message: `Deactivate ${selected.size} player${selected.size > 1 ? 's' : ''}? (${names})`,
+      confirmLabel: 'Deactivate All',
+      danger: true,
+      onConfirm: async () => {
+        setSaving(true)
+        try {
+          const updated = players.map(p => selected.has(p.id) ? { ...p, status: 'inactive' } : p)
+          await writePlayers(updated, 'remove_player', null, `Bulk deactivated ${selected.size} players: ${names}`, null, null)
+          qc.invalidateQueries({ queryKey: ['players'] })
+          setSelected(new Set())
+          showToast(`${selected.size} player${selected.size > 1 ? 's' : ''} deactivated`)
+        } catch (e) {
+          showToast(e.message, 'error')
+        } finally {
+          setSaving(false)
+        }
+      },
+    })
+  }
+
   async function saveCashPayment() {
     const { player } = cashModal
     const amount = parseFloat(cashAmount)
@@ -323,10 +349,33 @@ export default function AdminPlayers() {
         />
       </div>
 
+      {isAdmin && selected.size > 0 && (
+        <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
+          <span className="text-sm text-red-700 font-medium flex-1">{selected.size} player{selected.size > 1 ? 's' : ''} selected</span>
+          <button onClick={() => setSelected(new Set())} className="text-xs text-gray-400 hover:text-gray-600">Clear</button>
+          <button onClick={bulkDeactivate} className="btn-danger text-sm py-1 px-3">
+            Deactivate Selected ({selected.size})
+          </button>
+        </div>
+      )}
+
       <div className="card p-0 overflow-hidden overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
+              {isAdmin && (
+                <th className="pl-4 py-3 w-8">
+                  <input
+                    type="checkbox"
+                    className="rounded"
+                    checked={visible.filter(p => p.status === 'active').length > 0 && visible.filter(p => p.status === 'active').every(p => selected.has(p.id))}
+                    onChange={e => {
+                      const activeIds = visible.filter(p => p.status === 'active').map(p => p.id)
+                      setSelected(e.target.checked ? new Set(activeIds) : new Set())
+                    }}
+                  />
+                </th>
+              )}
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Player</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Type</th>
               <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Balance</th>
@@ -340,11 +389,27 @@ export default function AdminPlayers() {
           <tbody className="divide-y divide-gray-100">
             {visible.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-8 text-center text-gray-400 text-sm">No players found.</td>
+                <td colSpan={isAdmin ? 9 : 8} className="px-4 py-8 text-center text-gray-400 text-sm">No players found.</td>
               </tr>
             )}
             {visible.map(p => (
-              <tr key={p.id} className={`hover:bg-gray-50 ${p.status === 'inactive' ? 'opacity-40' : ''}`}>
+              <tr key={p.id} className={`hover:bg-gray-50 ${p.status === 'inactive' ? 'opacity-40' : ''} ${selected.has(p.id) ? 'bg-red-50' : ''}`}>
+                {isAdmin && (
+                  <td className="pl-4 py-3 w-8">
+                    {p.status === 'active' && (
+                      <input
+                        type="checkbox"
+                        className="rounded"
+                        checked={selected.has(p.id)}
+                        onChange={e => {
+                          const next = new Set(selected)
+                          e.target.checked ? next.add(p.id) : next.delete(p.id)
+                          setSelected(next)
+                        }}
+                      />
+                    )}
+                  </td>
+                )}
                 <td className="px-4 py-3 font-medium text-gray-900">
                   <button
                     onClick={() => setDetail(p)}

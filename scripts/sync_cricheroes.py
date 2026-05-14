@@ -271,6 +271,18 @@ def sync():
     existing_week_ids      = {w["week_id"] for w in weeks}
     existing_session_dates = {w["match_date"] for w in weeks if w.get("status") == "completed"}
 
+    # Map match_date → actual DB week_id (handles ±1 day timezone offsets)
+    date_to_week_id = {w["match_date"]: w["week_id"] for w in weeks}
+
+    # Load existing performance week IDs to support backfill
+    try:
+        perf_rows = sb_get_all('match_performances', select='week_id')
+        existing_perf_week_ids = {r['week_id'] for r in perf_rows}
+        print(f"  Existing performance sessions: {len(existing_perf_week_ids)}")
+    except Exception as e:
+        print(f"  match_performances table not found — performance sync disabled ({e})")
+        existing_perf_week_ids = None  # None = skip performance extraction entirely
+
     def date_already_covered(d):
         from datetime import date as dt_date
         try:
@@ -280,17 +292,41 @@ def sync():
         for delta in (-1, 0, 1):
             candidate = (parsed + timedelta(days=delta)).isoformat()
             if candidate in existing_session_dates:
-                print(f"  Skipping already-synced session {d} (matched {candidate})")
                 return True
         return False
 
+    def resolve_week_id(match_date):
+        """Return the actual DB week_id for this date, handling ±1 day tz offsets."""
+        if match_date in date_to_week_id:
+            return date_to_week_id[match_date]
+        try:
+            from datetime import date as dt_date
+            parsed = dt_date.fromisoformat(match_date)
+            for delta in (-1, 0, 1):
+                candidate = (parsed + timedelta(days=delta)).isoformat()
+                if candidate in date_to_week_id:
+                    return date_to_week_id[candidate]
+        except Exception:
+            pass
+        return f"W_{match_date.replace('-', '_')}"  # fallback: canonical format
+
     all_matches = get_tournament_matches(tournament_id)
 
-    # Group by session date
+    # Group by session date.
+    # Include a session if: (a) it's new, OR (b) it's covered but missing performances.
     sessions = {}
+    skipped_dates = set()
     for match in all_matches:
         match_date = match.get("match_start_time", "")[:10]
-        if not match_date or date_already_covered(match_date):
+        if not match_date:
+            continue
+        covered = date_already_covered(match_date)
+        actual_wid = resolve_week_id(match_date)
+        needs_perfs = existing_perf_week_ids is not None and actual_wid not in existing_perf_week_ids
+        if covered and not needs_perfs:
+            if match_date not in skipped_dates:
+                print(f"  Skipping {match_date} (already synced)")
+                skipped_dates.add(match_date)
             continue
         sessions.setdefault(match_date, []).append(match)
 
@@ -304,8 +340,12 @@ def sync():
     changed          = False
 
     for match_date, session_matches in sorted(sessions.items()):
-        week_id = f"W_{match_date.replace('-', '_')}"
-        print(f"\nProcessing session {match_date} ({len(session_matches)} game(s))")
+        covered   = date_already_covered(match_date)
+        actual_wid = resolve_week_id(match_date)
+        week_id   = f"W_{match_date.replace('-', '_')}"  # canonical ID for new weeks
+        need_performances = existing_perf_week_ids is not None and actual_wid not in existing_perf_week_ids
+        label = " — backfilling performances" if covered else ""
+        print(f"\nProcessing session {match_date} ({len(session_matches)} game(s)){label}")
 
         all_session_ch_players = {}
         all_scorecard_data     = []
@@ -325,7 +365,7 @@ def sync():
 
         print(f"  Total unique players this session: {len(all_session_ch_players)}")
 
-        if week_id not in existing_week_ids:
+        if not covered and week_id not in existing_week_ids:
             week_row = {
                 "week_id":              week_id,
                 "tournament_id":        active_tournament_id,
@@ -413,51 +453,54 @@ def sync():
                         changed = True
                     played_internal_ids.add(ch_to_internal.get(ch_pid, guest_id))
 
-        # Build attendance records for every active player for this week
-        existing_att_ids   = {r["id"] for r in attendance}
-        active_player_ids  = {p["id"] for p in players if p.get("status") == "active"}
-        active_player_ids |= {p["id"] for p in new_players if p.get("status") == "active"}
+        # Build attendance only for new (not previously synced) sessions
+        if not covered:
+            existing_att_ids   = {r["id"] for r in attendance}
+            active_player_ids  = {p["id"] for p in players if p.get("status") == "active"}
+            active_player_ids |= {p["id"] for p in new_players if p.get("status") == "active"}
 
-        for pid in active_player_ids:
-            att_id = f"ATT_{pid}_{week_id}"
-            if att_id not in existing_att_ids:
-                new_attendance.append({
-                    "id":            att_id,
-                    "player_id":     pid,
-                    "week_id":       week_id,
-                    "tournament_id": active_tournament_id,
-                    "status":        "played" if pid in played_internal_ids else "absent",
-                    "source":        "cricheroes_sync",
-                    "fee_deducted":  False,
-                })
-                changed = True
+            for pid in active_player_ids:
+                att_id = f"ATT_{pid}_{week_id}"
+                if att_id not in existing_att_ids:
+                    new_attendance.append({
+                        "id":            att_id,
+                        "player_id":     pid,
+                        "week_id":       week_id,
+                        "tournament_id": active_tournament_id,
+                        "status":        "played" if pid in played_internal_ids else "absent",
+                        "source":        "cricheroes_sync",
+                        "fee_deducted":  False,
+                    })
+                    changed = True
 
         # Extract and aggregate batting/bowling stats for this session
-        session_perfs = {}
-        for sd in all_scorecard_data:
-            for internal_id, stats in extract_performances_from_scorecard(sd, ch_to_internal).items():
-                if internal_id not in session_perfs:
-                    session_perfs[internal_id] = _empty_perf()
-                sp = session_perfs[internal_id]
-                for k in ("runs", "balls_faced", "fours", "sixes", "wickets",
-                          "runs_given", "balls_bowled", "maidens", "catches",
-                          "run_outs", "stumpings"):
-                    sp[k] += stats[k]
-                if not sp["dismissal"] and stats["dismissal"]:
-                    sp["dismissal"] = stats["dismissal"]
-                if sp["batting_pos"] is None and stats["batting_pos"] is not None:
-                    sp["batting_pos"] = stats["batting_pos"]
+        if need_performances and existing_perf_week_ids is not None:
+            session_perfs = {}
+            for sd in all_scorecard_data:
+                for internal_id, stats in extract_performances_from_scorecard(sd, ch_to_internal).items():
+                    if internal_id not in session_perfs:
+                        session_perfs[internal_id] = _empty_perf()
+                    sp = session_perfs[internal_id]
+                    for k in ("runs", "balls_faced", "fours", "sixes", "wickets",
+                              "runs_given", "balls_bowled", "maidens", "catches",
+                              "run_outs", "stumpings"):
+                        sp[k] += stats[k]
+                    if not sp["dismissal"] and stats["dismissal"]:
+                        sp["dismissal"] = stats["dismissal"]
+                    if sp["batting_pos"] is None and stats["batting_pos"] is not None:
+                        sp["batting_pos"] = stats["batting_pos"]
 
-        for internal_id, stats in session_perfs.items():
-            new_performances.append({
-                "id":            f"PERF_{internal_id}_{week_id}",
-                "player_id":     internal_id,
-                "week_id":       week_id,
-                "tournament_id": active_tournament_id,
-                **stats,
-            })
-        if session_perfs:
-            changed = True
+            for internal_id, stats in session_perfs.items():
+                new_performances.append({
+                    "id":            f"PERF_{internal_id}_{actual_wid}",
+                    "player_id":     internal_id,
+                    "week_id":       actual_wid,  # use actual DB week_id (handles ±1 day offset)
+                    "tournament_id": active_tournament_id,
+                    **stats,
+                })
+            if session_perfs:
+                print(f"  Extracted performances for {len(session_perfs)} player(s)")
+                changed = True
 
     if not changed:
         print("\nNo changes detected. Everything up to date.")
