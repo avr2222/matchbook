@@ -59,7 +59,6 @@ export default function Leaderboard() {
   const batters = [...allStats]
     .filter(s => s.runs > 0 || s.balls_faced > 0)
     .sort((a, b) => b.runs - a.runs)
-    .slice(0, 10)
 
   const bowlers = [...allStats]
     .filter(s => s.wickets > 0 || s.balls_bowled > 0)
@@ -69,7 +68,6 @@ export default function Leaderboard() {
       const eB = b.balls_bowled ? b.runs_given / b.balls_bowled : Infinity
       return eA - eB
     })
-    .slice(0, 10)
 
   const mvps = [...allStats]
     .map(s => ({
@@ -78,7 +76,6 @@ export default function Leaderboard() {
     }))
     .filter(s => s.mvp_score > 0)
     .sort((a, b) => b.mvp_score - a.mvp_score)
-    .slice(0, 10)
 
   const tabs = [
     { id: 'batting', label: 'Batting' },
