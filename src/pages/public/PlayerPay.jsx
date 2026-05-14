@@ -41,7 +41,6 @@ function UpiPaySection({ player, config }) {
         id: reqId,
         player_id: player.id,
         amount: chosen,
-        amount_requested: chosen,
         status: 'pending',
         upi_ref: '',
         notes: `UPI Topup initiated — ${player.display_name}`,

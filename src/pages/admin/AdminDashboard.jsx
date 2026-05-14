@@ -57,7 +57,6 @@ export default function AdminDashboard() {
         id: `PREQ_HOST_${Date.now()}`,
         player_id: collectPlayer,
         amount,
-        amount_requested: amount,
         status: 'pending',
         upi_ref: '',
         notes: noteStr,
