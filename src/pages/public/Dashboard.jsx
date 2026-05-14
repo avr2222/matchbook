@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { usePlayers, useWeeks, useAttendance, useTournaments, useConfig, useAnnouncements, useExpenses, useTransactions } from '../../hooks/useData'
+import { usePlayers, useWeeks, useAttendance, useTournaments, useConfig, useAnnouncements, useExpenses, useTransactions, useLeaderboard } from '../../hooks/useData'
 import { PageSpinner } from '../../components/ui/Spinner'
 import MatchPlayersModal from '../../components/ui/MatchPlayersModal'
 import { format, parseISO } from 'date-fns'
@@ -19,6 +19,7 @@ export default function Dashboard() {
   const { data: annData } = useAnnouncements()
   const { data: eData }   = useExpenses()
   const { data: txnData } = useTransactions()
+  const { data: perfData } = useLeaderboard(cfg?.active_tournament_id)
 
   if (pLoad) return <PageSpinner />
 
@@ -79,6 +80,28 @@ export default function Dashboard() {
   const recentActivity = [...allExpenses.map(e => ({ ...e, _type: 'expense' })), ...deductionEntries]
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 7)
+
+  const perfs = perfData?.performances ?? []
+  const _sMap = {}
+  for (const perf of perfs) {
+    if (!_sMap[perf.player_id]) _sMap[perf.player_id] = { player_id: perf.player_id, runs: 0, balls_faced: 0, fours: 0, sixes: 0, wickets: 0, runs_given: 0, balls_bowled: 0, catches: 0 }
+    const s = _sMap[perf.player_id]
+    s.runs         += perf.runs         || 0
+    s.balls_faced  += perf.balls_faced  || 0
+    s.fours        += perf.fours        || 0
+    s.sixes        += perf.sixes        || 0
+    s.wickets      += perf.wickets      || 0
+    s.runs_given   += perf.runs_given   || 0
+    s.balls_bowled += perf.balls_bowled || 0
+    s.catches      += perf.catches      || 0
+  }
+  const _allS     = Object.values(_sMap)
+  const topBatter = _allS.filter(s => s.runs > 0).sort((a, b) => b.runs - a.runs)[0]
+  const topBowler = _allS.filter(s => s.wickets > 0).sort((a, b) => b.wickets - a.wickets)[0]
+  const topMvp    = _allS
+    .map(s => ({ ...s, score: s.runs * 0.5 + s.fours * 0.5 + s.sixes * 1.5 + s.wickets * 8 + s.catches * 2 }))
+    .filter(s => s.score > 0).sort((a, b) => b.score - a.score)[0]
+  const perfPlayerMap = Object.fromEntries((pData?.players ?? []).map(p => [p.id, p]))
 
   const EXPENSE_LABELS = {
     match_cost: 'Match Cost', ground_booking: 'Ground Booking', cricket_ball: 'Cricket Ball',
@@ -202,6 +225,53 @@ export default function Dashboard() {
           </Link>
         ))}
       </div>
+
+      {/* Season Leaders */}
+      {(topBatter || topBowler || topMvp) && (
+        <div className="card mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-bold text-gray-900">Season Leaders</h2>
+            <Link to="/leaderboard" className="text-sm font-semibold text-green-600 hover:text-green-700 transition-colors">
+              Full Stats →
+            </Link>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {topBatter && (
+              <Link to={`/player/${topBatter.player_id}`} className="rounded-xl bg-green-50 border border-green-100 p-3 hover:bg-green-100 transition-colors">
+                <div className="text-xl mb-1">🏏</div>
+                <div className="text-xs text-gray-500 font-medium mb-0.5">Top Scorer</div>
+                <div className="font-bold text-gray-900 text-sm leading-tight truncate">
+                  {perfPlayerMap[topBatter.player_id]?.display_name ?? '—'}
+                </div>
+                <div className="text-lg font-extrabold text-green-700">{topBatter.runs}</div>
+                <div className="text-xs text-gray-400">runs</div>
+              </Link>
+            )}
+            {topBowler && (
+              <Link to={`/player/${topBowler.player_id}`} className="rounded-xl bg-purple-50 border border-purple-100 p-3 hover:bg-purple-100 transition-colors">
+                <div className="text-xl mb-1">🎯</div>
+                <div className="text-xs text-gray-500 font-medium mb-0.5">Top Bowler</div>
+                <div className="font-bold text-gray-900 text-sm leading-tight truncate">
+                  {perfPlayerMap[topBowler.player_id]?.display_name ?? '—'}
+                </div>
+                <div className="text-lg font-extrabold text-purple-700">{topBowler.wickets}</div>
+                <div className="text-xs text-gray-400">wickets</div>
+              </Link>
+            )}
+            {topMvp && (
+              <Link to={`/player/${topMvp.player_id}`} className="rounded-xl bg-amber-50 border border-amber-100 p-3 hover:bg-amber-100 transition-colors">
+                <div className="text-xl mb-1">⭐</div>
+                <div className="text-xs text-gray-500 font-medium mb-0.5">Season MVP</div>
+                <div className="font-bold text-gray-900 text-sm leading-tight truncate">
+                  {perfPlayerMap[topMvp.player_id]?.display_name ?? '—'}
+                </div>
+                <div className="text-lg font-extrabold text-amber-600">{topMvp.score.toFixed(0)}</div>
+                <div className="text-xs text-gray-400">pts</div>
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Balance health */}
       <div className="card mb-6">
