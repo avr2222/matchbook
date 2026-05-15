@@ -228,45 +228,39 @@ export default function Dashboard() {
 
       {/* Season Leaders */}
       {(topBatter || topBowler || topMvp) && (
-        <div className="card mb-6">
-          <div className="flex items-center justify-between mb-3">
+        <div className="card mb-6 overflow-hidden p-0">
+          <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
             <h2 className="font-bold text-gray-900">Season Leaders</h2>
             <Link to="/leaderboard" className="text-sm font-semibold text-green-600 hover:text-green-700 transition-colors">
               Full Stats →
             </Link>
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 divide-x divide-gray-100">
             {topBatter && (
-              <Link to={`/player/${topBatter.player_id}`} className="rounded-xl bg-green-50 border border-green-100 p-3 hover:bg-green-100 transition-colors">
-                <div className="text-xl mb-1">🏏</div>
-                <div className="text-xs text-gray-500 font-medium mb-0.5">Top Scorer</div>
-                <div className="font-bold text-gray-900 text-sm leading-tight truncate">
-                  {perfPlayerMap[topBatter.player_id]?.display_name ?? '—'}
-                </div>
-                <div className="text-lg font-extrabold text-green-700">{topBatter.runs}</div>
-                <div className="text-xs text-gray-400">runs</div>
+              <Link to={`/player/${topBatter.player_id}`} className="p-4 hover:bg-green-50 transition-colors">
+                <div className="text-xl mb-2">🏏</div>
+                <div className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Top Scorer</div>
+                <div className="font-bold text-gray-900 text-sm truncate">{perfPlayerMap[topBatter.player_id]?.display_name ?? '—'}</div>
+                <div className="text-2xl font-black text-green-600 tabular-nums leading-none mt-1">{topBatter.runs}</div>
+                <div className="text-xs text-gray-400 mt-0.5">runs</div>
               </Link>
             )}
             {topBowler && (
-              <Link to={`/player/${topBowler.player_id}`} className="rounded-xl bg-purple-50 border border-purple-100 p-3 hover:bg-purple-100 transition-colors">
-                <div className="text-xl mb-1">🎯</div>
-                <div className="text-xs text-gray-500 font-medium mb-0.5">Top Bowler</div>
-                <div className="font-bold text-gray-900 text-sm leading-tight truncate">
-                  {perfPlayerMap[topBowler.player_id]?.display_name ?? '—'}
-                </div>
-                <div className="text-lg font-extrabold text-purple-700">{topBowler.wickets}</div>
-                <div className="text-xs text-gray-400">wickets</div>
+              <Link to={`/player/${topBowler.player_id}`} className="p-4 hover:bg-purple-50 transition-colors">
+                <div className="text-xl mb-2">🎯</div>
+                <div className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Top Bowler</div>
+                <div className="font-bold text-gray-900 text-sm truncate">{perfPlayerMap[topBowler.player_id]?.display_name ?? '—'}</div>
+                <div className="text-2xl font-black text-purple-600 tabular-nums leading-none mt-1">{topBowler.wickets}</div>
+                <div className="text-xs text-gray-400 mt-0.5">wickets</div>
               </Link>
             )}
             {topMvp && (
-              <Link to={`/player/${topMvp.player_id}`} className="rounded-xl bg-amber-50 border border-amber-100 p-3 hover:bg-amber-100 transition-colors">
-                <div className="text-xl mb-1">⭐</div>
-                <div className="text-xs text-gray-500 font-medium mb-0.5">Season MVP</div>
-                <div className="font-bold text-gray-900 text-sm leading-tight truncate">
-                  {perfPlayerMap[topMvp.player_id]?.display_name ?? '—'}
-                </div>
-                <div className="text-lg font-extrabold text-amber-600">{topMvp.score.toFixed(0)}</div>
-                <div className="text-xs text-gray-400">pts</div>
+              <Link to={`/player/${topMvp.player_id}`} className="p-4 hover:bg-amber-50 transition-colors">
+                <div className="text-xl mb-2">⭐</div>
+                <div className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Season MVP</div>
+                <div className="font-bold text-gray-900 text-sm truncate">{perfPlayerMap[topMvp.player_id]?.display_name ?? '—'}</div>
+                <div className="text-2xl font-black text-amber-600 tabular-nums leading-none mt-1">{topMvp.score.toFixed(0)}</div>
+                <div className="text-xs text-gray-400 mt-0.5">pts</div>
               </Link>
             )}
           </div>

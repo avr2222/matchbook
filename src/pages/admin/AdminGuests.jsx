@@ -136,8 +136,8 @@ export default function AdminGuests() {
             <tr>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Match</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Guest</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Invited By</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Fee Mode</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Invited By</th>
+              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Fee Mode</th>
               <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Fee</th>
               <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Paid?</th>
               <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Actions</th>
@@ -165,8 +165,8 @@ export default function AdminGuests() {
                       <div className="text-xs text-green-600 mt-0.5">✅ Converted to player</div>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-gray-500">{invite?.display_name ?? '—'}</td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-4 py-3 text-gray-500 hidden sm:table-cell">{invite?.display_name ?? '—'}</td>
+                  <td className="px-4 py-3 text-center hidden sm:table-cell">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                       v.fee_mode === 'sponsored' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
                     }`}>

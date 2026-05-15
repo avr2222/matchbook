@@ -133,7 +133,7 @@ export default function AdminSettings() {
                 <input className="input" type="number" min="0" {...numField('season_budget')} />
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="label">Low Threshold (₹)</label>
                 <input className="input" type="number" min="0" {...numField('corpus_low_threshold')} />

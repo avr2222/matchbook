@@ -125,13 +125,13 @@ export default function Leaderboard() {
         </div>
       </div>
 
-      <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-6">
+      <div className="flex gap-1 bg-gray-100/80 p-1 rounded-2xl mb-6">
         {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`flex-1 py-1.5 text-sm font-semibold rounded-lg transition-all ${
-              tab === t.id ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700'
+            className={`flex-1 py-2 text-sm font-bold rounded-xl transition-all ${
+              tab === t.id ? 'bg-white shadow-sm text-green-700' : 'text-gray-400 hover:text-gray-600'
             }`}
           >
             {t.label}
@@ -234,32 +234,38 @@ export default function Leaderboard() {
           <h2 className="font-bold text-gray-900 mb-1">Season MVP</h2>
           <p className="text-xs text-gray-400 mb-4">Score = runs×0.5 + 4s×0.5 + 6s×1.5 + wkts×8 + catches×2</p>
           <div className="space-y-2">
-            {mvps.map((s, i) => (
-              <div
-                key={s.player_id}
-                className={`flex items-center gap-3 py-2 px-3 rounded-xl ${
-                  i === 0 ? 'bg-amber-50 border border-amber-200' : 'bg-gray-50'
-                }`}
-              >
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-extrabold shrink-0 ${
-                  i === 0 ? 'bg-amber-400 text-white'
-                  : i === 1 ? 'bg-gray-300 text-gray-700'
-                  : i === 2 ? 'bg-orange-300 text-white'
-                  : 'bg-gray-100 text-gray-500'
-                }`}>
-                  {i + 1}
-                </div>
+            {mvps.map((s, i) => i < 3 ? (
+              <div key={s.player_id} className={`flex items-center gap-4 p-4 rounded-2xl border ${
+                i === 0 ? 'bg-amber-50 border-amber-200'
+                : i === 1 ? 'bg-slate-50 border-slate-200'
+                : 'bg-orange-50 border-orange-200'
+              }`}>
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-black shrink-0 ${
+                  i === 0 ? 'bg-amber-400 text-white shadow-md shadow-amber-200'
+                  : i === 1 ? 'bg-slate-400 text-white shadow-md shadow-slate-200'
+                  : 'bg-orange-400 text-white shadow-md shadow-orange-200'
+                }`}>{i + 1}</div>
                 <div className="flex-1 min-w-0">
-                  <Link to={`/player/${s.player_id}`} className="font-semibold text-sm text-gray-900 hover:text-green-700 hover:underline truncate block">
+                  <Link to={`/player/${s.player_id}`} className="font-bold text-gray-900 hover:text-green-700 truncate block">
                     {playerMap[s.player_id]?.display_name ?? s.player_id}
                   </Link>
-                  <div className="text-xs text-gray-500">
-                    {s.runs}r · {s.wickets}w · {s.catches}c
-                  </div>
+                  <div className="text-xs text-gray-500 mt-0.5">{s.runs}r · {s.wickets}w · {s.catches}c</div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="font-bold text-lg text-amber-600">{s.mvp_score.toFixed(0)}</div>
+                  <div className={`text-2xl font-black tabular-nums ${
+                    i === 0 ? 'text-amber-600' : i === 1 ? 'text-slate-500' : 'text-orange-500'
+                  }`}>{s.mvp_score.toFixed(0)}</div>
                   <div className="text-xs text-gray-400">pts</div>
+                </div>
+              </div>
+            ) : (
+              <div key={s.player_id} className="flex items-center gap-3 py-2 px-3 rounded-xl bg-gray-50">
+                <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500 shrink-0">{i + 1}</div>
+                <Link to={`/player/${s.player_id}`} className="flex-1 font-medium text-sm text-gray-900 hover:text-green-700 truncate">
+                  {playerMap[s.player_id]?.display_name ?? s.player_id}
+                </Link>
+                <div className="text-sm font-bold tabular-nums text-gray-600">
+                  {s.mvp_score.toFixed(0)} <span className="text-xs text-gray-400 font-normal">pts</span>
                 </div>
               </div>
             ))}
@@ -269,59 +275,73 @@ export default function Leaderboard() {
 
       {!perfLoading && !isEmpty && tab === 'awards' && (() => {
         function ACard({ emoji, title, pid, stat, unit, variant = 'default' }) {
-          if (!pid) return null
-          const bg  = variant === 'gold'  ? 'bg-amber-50 border-amber-200'
-                    : variant === 'spoon' ? 'bg-slate-50 border-slate-200'
-                    : 'bg-gray-50 border-gray-100'
-          const sc  = variant === 'gold'  ? 'text-amber-600'
-                    : variant === 'spoon' ? 'text-slate-500'
-                    : 'text-green-700'
+          const bg = variant === 'gold'  ? 'bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200'
+                   : variant === 'spoon' ? 'bg-slate-50 border-slate-200'
+                   : 'bg-gray-50 border-gray-100'
+          const sc = variant === 'gold'  ? 'text-amber-600'
+                   : variant === 'spoon' ? 'text-slate-400'
+                   : 'text-green-700'
+          if (!pid) return (
+            <div className={`rounded-xl border p-3 opacity-40 ${bg}`}>
+              <div className="text-xl mb-1 grayscale">{emoji}</div>
+              <div className="text-xs text-gray-400 font-medium mb-0.5">{title}</div>
+              <div className="font-semibold text-gray-400 text-sm">—</div>
+              <div className="text-xl font-black text-gray-300 leading-none mt-1">—</div>
+              <div className="text-xs text-gray-300 mt-0.5">{unit}</div>
+            </div>
+          )
           return (
-            <Link to={`/player/${pid}`} className={`rounded-xl border p-3 hover:brightness-95 transition-all block ${bg}`}>
+            <Link to={`/player/${pid}`} className={`rounded-xl border p-3 hover:scale-[1.02] hover:shadow-md transition-all duration-150 block ${bg}`}>
               <div className="text-xl mb-1">{emoji}</div>
               <div className="text-xs text-gray-500 font-medium mb-0.5">{title}</div>
               <div className="font-semibold text-gray-900 text-sm truncate">{playerMap[pid]?.display_name ?? '—'}</div>
-              <div className={`text-base font-extrabold ${sc}`}>{stat}</div>
-              <div className="text-xs text-gray-400">{unit}</div>
+              <div className={`text-xl font-black tabular-nums leading-none mt-1 ${sc}`}>{stat}</div>
+              <div className="text-xs text-gray-400 mt-0.5">{unit}</div>
             </Link>
           )
         }
         return (
-          <div className="space-y-5">
+          <div className="space-y-4">
             {/* Season Champions */}
-            <div className="card">
-              <h2 className="font-bold text-gray-900 mb-1">Season Champions</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
-                <ACard emoji="🌟" title="Season MVP"      pid={mvps[0]?.player_id}       stat={mvps[0]?.mvp_score.toFixed(0)}  unit="pts"     variant="gold" />
-                <ACard emoji="🏅" title="Most POTM Wins"  pid={topPotm?.player_id}        stat={topPotm?.potm_count}            unit="times"   variant="gold" />
-                <ACard emoji="🏏" title="Top Scorer"      pid={batters[0]?.player_id}     stat={batters[0]?.runs}               unit="runs"    variant="gold" />
-                <ACard emoji="🎯" title="Wicket Wizard"   pid={wicketWiz?.player_id}      stat={wicketWiz?.wickets}             unit="wickets" variant="gold" />
-                <ACard emoji="💥" title="Six Machine"     pid={sixMachine?.player_id}     stat={sixMachine?.sixes}              unit="sixes"   variant="gold" />
+            <div className="card overflow-hidden p-0">
+              <div className="bg-gradient-to-r from-amber-500 to-yellow-400 px-5 py-3">
+                <h2 className="font-black text-white text-sm uppercase tracking-widest">Season Champions 🏆</h2>
+              </div>
+              <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <ACard emoji="🌟" title="Season MVP"     pid={mvps[0]?.player_id}   stat={mvps[0]?.mvp_score.toFixed(0)} unit="pts"     variant="gold" />
+                <ACard emoji="🏅" title="Most POTM Wins" pid={topPotm?.player_id}   stat={topPotm?.potm_count}           unit="times"   variant="gold" />
+                <ACard emoji="🏏" title="Top Scorer"     pid={batters[0]?.player_id} stat={batters[0]?.runs}             unit="runs"    variant="gold" />
+                <ACard emoji="🎯" title="Wicket Wizard"  pid={wicketWiz?.player_id} stat={wicketWiz?.wickets}            unit="wickets" variant="gold" />
+                <ACard emoji="💥" title="Six Machine"    pid={sixMachine?.player_id} stat={sixMachine?.sixes}            unit="sixes"   variant="gold" />
               </div>
             </div>
 
             {/* Skill Awards */}
-            <div className="card">
-              <h2 className="font-bold text-gray-900 mb-1">Skill Awards</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
-                <ACard emoji="⚡" title="Lightning Bat"   pid={lightningBat?.player_id}   stat={lightningBat ? (lightningBat.runs/lightningBat.balls_faced*100).toFixed(1) : null}  unit={`SR (min ${MIN_BAT} balls)`} />
-                <ACard emoji="🔒" title="Economy King"    pid={economyKing?.player_id}    stat={economyKing ? economy(economyKing.runs_given, economyKing.balls_bowled) : null}       unit={`econ (min ${MIN_BOWL} balls)`} />
-                <ACard emoji="🎖️" title="Maiden Master"  pid={maidenMaster?.player_id}   stat={maidenMaster?.maidens}          unit="maidens" />
-                <ACard emoji="🧤" title="Catch King"      pid={catchKing?.player_id}      stat={catchKing ? catchKing.catches+catchKing.run_outs+catchKing.stumpings : null}         unit="dismissals" />
-                <ACard emoji="🏃" title="Workhorse"       pid={workhorse?.player_id}      stat={workhorse ? overs(workhorse.balls_bowled) : null}                                    unit="overs" />
+            <div className="card overflow-hidden p-0">
+              <div className="bg-gradient-to-r from-teal-600 to-emerald-500 px-5 py-3">
+                <h2 className="font-black text-white text-sm uppercase tracking-widest">Skill Awards ⚡</h2>
+              </div>
+              <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <ACard emoji="⚡" title="Lightning Bat"  pid={lightningBat?.player_id}  stat={lightningBat ? (lightningBat.runs/lightningBat.balls_faced*100).toFixed(1) : null} unit={`SR · min ${MIN_BAT} balls`} />
+                <ACard emoji="🔒" title="Economy King"   pid={economyKing?.player_id}   stat={economyKing ? economy(economyKing.runs_given, economyKing.balls_bowled) : null}    unit={`econ · min ${MIN_BOWL} balls`} />
+                <ACard emoji="🎖️" title="Maiden Master" pid={maidenMaster?.player_id}  stat={maidenMaster?.maidens}         unit="maidens" />
+                <ACard emoji="🧤" title="Catch King"     pid={catchKing?.player_id}     stat={catchKing ? catchKing.catches + catchKing.run_outs + catchKing.stumpings : null} unit="dismissals" />
+                <ACard emoji="🏃" title="Workhorse"      pid={workhorse?.player_id}     stat={workhorse ? overs(workhorse.balls_bowled) : null}                                unit="overs" />
               </div>
             </div>
 
             {/* Wooden Spoons */}
-            <div className="card">
-              <h2 className="font-bold text-gray-900 mb-1">Wooden Spoons 🥄</h2>
-              <p className="text-xs text-gray-400 mb-3">The not-so-glorious records…</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                <ACard emoji="🦆" title="Duck King"       pid={duckKing?.player_id}       stat={duckKing?.ducks}                unit="golden ducks" variant="spoon" />
-                <ACard emoji="🐢" title="Slowcoach"       pid={slowcoach?.player_id}      stat={slowcoach ? (slowcoach.runs/slowcoach.balls_faced*100).toFixed(1) : null}            unit={`SR (min ${MIN_BAT} balls)`}  variant="spoon" />
-                <ACard emoji="💨" title="Wide Man"        pid={wideMan?.player_id}        stat={wideMan?.wides ?? '—'}          unit="wides"        variant="spoon" />
-                <ACard emoji="⚾" title="No-Ball King"    pid={noBallKing?.player_id}     stat={noBallKing?.no_balls ?? '—'}    unit="no balls"     variant="spoon" />
-                <ACard emoji="💸" title="Costly Bowler"   pid={costlyBowler?.player_id}   stat={costlyBowler ? economy(costlyBowler.runs_given, costlyBowler.balls_bowled) : null}   unit={`econ (min ${MIN_BOWL} balls)`} variant="spoon" />
+            <div className="card overflow-hidden p-0">
+              <div className="bg-gradient-to-r from-slate-600 to-slate-500 px-5 py-3">
+                <h2 className="font-black text-white text-sm uppercase tracking-widest">Wooden Spoons 🥄</h2>
+                <p className="text-slate-300 text-xs mt-0.5">The not-so-glorious records…</p>
+              </div>
+              <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <ACard emoji="🦆" title="Duck King"      pid={duckKing?.player_id}      stat={duckKing?.ducks}             unit="golden ducks"             variant="spoon" />
+                <ACard emoji="🐢" title="Slowcoach"      pid={slowcoach?.player_id}     stat={slowcoach ? (slowcoach.runs/slowcoach.balls_faced*100).toFixed(1) : null} unit={`SR · min ${MIN_BAT} balls`} variant="spoon" />
+                <ACard emoji="💨" title="Wide Man"       pid={wideMan?.player_id}       stat={wideMan?.wides ?? '—'}       unit="wides"                    variant="spoon" />
+                <ACard emoji="⚾" title="No-Ball King"   pid={noBallKing?.player_id}    stat={noBallKing?.no_balls ?? '—'} unit="no balls"                 variant="spoon" />
+                <ACard emoji="💸" title="Costly Bowler"  pid={costlyBowler?.player_id}  stat={costlyBowler ? economy(costlyBowler.runs_given, costlyBowler.balls_bowled) : null} unit={`econ · min ${MIN_BOWL} balls`} variant="spoon" />
               </div>
             </div>
           </div>

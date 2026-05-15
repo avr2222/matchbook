@@ -145,7 +145,7 @@ export default function AdminMapping() {
                   <div className="text-xs text-gray-400">ID: {u.cricheroes_player_id}</div>
                 </div>
                 <select
-                  className="input w-44 text-sm"
+                  className="input w-full sm:w-44 text-sm"
                   defaultValue=""
                   disabled={!isAdmin}
                   onChange={e => isAdmin && assignUnmatched(u.cricheroes_player_id, u.cricheroes_name, e.target.value)}
@@ -159,8 +159,8 @@ export default function AdminMapping() {
         </div>
       )}
 
-      <div className="card p-0 overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="card p-0 overflow-hidden overflow-x-auto">
+        <table className="w-full text-sm min-w-[480px]">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">CricHeroes Name</th>

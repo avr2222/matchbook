@@ -379,10 +379,10 @@ export default function AdminPlayers() {
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Player</th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Type</th>
               <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Balance</th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Paid</th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Deducted</th>
+              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Paid</th>
+              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Deducted</th>
               <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Status</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">GitHub</th>
+              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">GitHub</th>
               <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Actions</th>
             </tr>
           </thead>
@@ -431,10 +431,10 @@ export default function AdminPlayers() {
                         : <span className="text-gray-400">PPM</span>)
                     : `₹${fmt(p.corpus_balance)}`}
                 </td>
-                <td className="px-4 py-3 text-right font-mono text-green-700 whitespace-nowrap">
+                <td className="px-4 py-3 text-right font-mono text-green-700 whitespace-nowrap hidden sm:table-cell">
                   ₹{fmt(p.total_paid)}
                 </td>
-                <td className="px-4 py-3 text-right font-mono text-red-500 whitespace-nowrap">
+                <td className="px-4 py-3 text-right font-mono text-red-500 whitespace-nowrap hidden sm:table-cell">
                   ₹{fmt(p.total_deducted)}
                 </td>
                 <td className="px-4 py-3 text-center">
@@ -444,7 +444,7 @@ export default function AdminPlayers() {
                         : <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">✓ Paid</span>)
                     : <BalanceBadge status={p.balance_status} />}
                 </td>
-                <td className="px-4 py-3 text-center text-gray-400 text-xs">{p.github_username || '—'}</td>
+                <td className="px-4 py-3 text-center text-gray-400 text-xs hidden sm:table-cell">{p.github_username || '—'}</td>
                 <td className="px-4 py-3 text-center whitespace-nowrap">
                   {(p.type === 'corpus' || p.type === 'new') && (
                     <button

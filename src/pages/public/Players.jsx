@@ -7,6 +7,17 @@ import { typeEmoji, typeLabel } from '../../utils/balanceCalculator'
 
 const TYPES = ['all', 'corpus', 'ppm', 'new']
 
+function initials(name) {
+  return name.split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase()
+}
+function avatarBg(name) {
+  const colors = [
+    'bg-blue-100 text-blue-700', 'bg-purple-100 text-purple-700', 'bg-rose-100 text-rose-700',
+    'bg-amber-100 text-amber-700', 'bg-teal-100 text-teal-700', 'bg-indigo-100 text-indigo-700',
+  ]
+  return colors[(name.charCodeAt(0) || 0) % colors.length]
+}
+
 export default function Players() {
   const { data, isLoading } = usePlayers()
   const [filter, setFilter] = useState('all')
@@ -29,7 +40,9 @@ export default function Players() {
       <div className="relative overflow-hidden rounded-3xl mt-6 mb-6 bg-gradient-to-br from-slate-700 via-slate-600 to-slate-500 px-6 py-8 text-white shadow-xl">
         <div className="absolute inset-0 opacity-10 pointer-events-none select-none text-[140px] leading-none flex items-center justify-end pr-4">👥</div>
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Player Roster</h1>
-        <p className="text-slate-300 text-sm mt-1">{players.length} active players</p>
+        <p className="text-slate-300 text-sm mt-1">
+          {players.filter(p => p.type === 'corpus' || p.type === 'new').length} corpus · {players.filter(p => p.type === 'ppm').length} PPM
+        </p>
       </div>
 
       {/* Controls row */}
@@ -83,14 +96,19 @@ export default function Players() {
               <tr key={p.id} className="hover:bg-gray-50 transition-colors group">
                 <td className="px-4 py-3.5 text-gray-300 text-xs font-medium">{i + 1}</td>
                 <td className="px-4 py-3.5">
-                  <Link
-                    to={`/pay/${p.id}`}
-                    className="font-semibold text-gray-900 group-hover:text-green-700 transition-colors"
-                  >
-                    {p.display_name}
-                  </Link>
-                  <div className="sm:hidden text-xs text-gray-400 mt-0.5">
-                    {typeEmoji(p.type)} {typeLabel(p.type)}
+                  <div className="flex items-center gap-2.5">
+                    <div className={`avatar ${avatarBg(p.display_name)}`}>{initials(p.display_name)}</div>
+                    <div>
+                      <Link
+                        to={`/pay/${p.id}`}
+                        className="font-semibold text-gray-900 group-hover:text-green-700 transition-colors"
+                      >
+                        {p.display_name}
+                      </Link>
+                      <div className="sm:hidden text-xs text-gray-400 mt-0.5">
+                        {typeEmoji(p.type)} {typeLabel(p.type)}
+                      </div>
+                    </div>
                   </div>
                 </td>
                 <td className="px-4 py-3.5 hidden sm:table-cell">
