@@ -264,9 +264,6 @@ def get_tournament_matches(tournament_id):
     if isinstance(items, dict):
         items = items.get("data", [])
     print(f"  Found {len(items)} matches")
-    if items:
-        # Debug: show keys of first match to discover if POTM/MOM fields exist
-        print(f"  Match object keys: {sorted(items[0].keys())}")
     return items
 
 
@@ -328,10 +325,14 @@ def extract_performances_from_scorecard(scorecard_data, ch_to_internal):
     Returns {internal_player_id: stats_dict}. Unmapped CricHeroes players are skipped.
     """
     perfs = {}
+    _debug_printed = False
     for team_key in ("team_a", "team_b"):
         team = scorecard_data.get(team_key, {})
         for innings in team.get("scorecard", []):
             for i, batter in enumerate(innings.get("batting", []), 1):
+                if not _debug_printed and batter.get("player_id"):
+                    print(f"  [DEBUG batter keys] {sorted(batter.keys())}")
+                    _debug_printed = True
                 ch_pid = str(batter.get("player_id", ""))
                 internal_id = ch_to_internal.get(ch_pid)
                 if not internal_id:
@@ -358,6 +359,8 @@ def extract_performances_from_scorecard(scorecard_data, ch_to_internal):
                     p["batting_pos"] = int(pos) if pos is not None else i
 
             for bowler in innings.get("bowling", []):
+                if not _debug_printed and bowler.get("player_id"):
+                    print(f"  [DEBUG bowler keys] {sorted(bowler.keys())}")
                 ch_pid = str(bowler.get("player_id", ""))
                 internal_id = ch_to_internal.get(ch_pid)
                 if not internal_id:
@@ -549,12 +552,20 @@ def sync():
             all_match_ids.append(match_id)
             team_a = match.get("team_a", team_a)
             team_b = match.get("team_b", team_b)
-            scorecard_data, potm_from_api = get_match_scorecard(match_id)
-            # POTM: use scorecard API result first, then try other sources
-            potm_ch_pid = potm_from_api or fetch_potm_for_match(match_id, scorecard_data)
-            potm_internal_id = ch_to_internal.get(potm_ch_pid) if potm_ch_pid else None
-            if potm_ch_pid and not potm_internal_id:
-                print(f"  POTM CH:{potm_ch_pid} not mapped to internal player")
+            scorecard_data, potm_from_scorecard = get_match_scorecard(match_id)
+            # POTM: pom_player_id is in the match list object directly (most reliable)
+            pom_raw = str(match.get("pom_player_id") or "").strip()
+            potm_ch_pid = (pom_raw if pom_raw and pom_raw != "0" else None) \
+                          or potm_from_scorecard
+            if potm_ch_pid:
+                potm_internal_id = ch_to_internal.get(potm_ch_pid)
+                if potm_internal_id:
+                    print(f"  POTM: pom_player_id={potm_ch_pid} -> {potm_internal_id}")
+                else:
+                    print(f"  POTM CH:{potm_ch_pid} not mapped to internal player")
+                    potm_internal_id = None
+            else:
+                potm_internal_id = None
             all_scorecard_data.append((scorecard_data, potm_internal_id))
             ch_players = extract_players_from_scorecard(scorecard_data)
             all_session_ch_players.update(ch_players)
