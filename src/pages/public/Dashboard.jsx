@@ -84,7 +84,12 @@ export default function Dashboard() {
   const perfs = perfData?.performances ?? []
   const _sMap = {}
   for (const perf of perfs) {
-    if (!_sMap[perf.player_id]) _sMap[perf.player_id] = { player_id: perf.player_id, runs: 0, balls_faced: 0, fours: 0, sixes: 0, wickets: 0, runs_given: 0, balls_bowled: 0, catches: 0 }
+    if (!_sMap[perf.player_id]) _sMap[perf.player_id] = {
+      player_id: perf.player_id, runs: 0, balls_faced: 0, fours: 0, sixes: 0,
+      wickets: 0, runs_given: 0, balls_bowled: 0, catches: 0,
+      maidens: 0, run_outs: 0, stumpings: 0, match_count: 0,
+      potm_count: 0, bba_count: 0, bbo_count: 0,
+    }
     const s = _sMap[perf.player_id]
     s.runs         += perf.runs         || 0
     s.balls_faced  += perf.balls_faced  || 0
@@ -94,12 +99,33 @@ export default function Dashboard() {
     s.runs_given   += perf.runs_given   || 0
     s.balls_bowled += perf.balls_bowled || 0
     s.catches      += perf.catches      || 0
+    s.maidens      += perf.maidens      || 0
+    s.run_outs     += perf.run_outs     || 0
+    s.stumpings    += perf.stumpings    || 0
+    s.match_count  += perf.match_count  || 1
+    s.potm_count   += perf.potm_count   || 0
+    s.bba_count    += perf.bba_count    || 0
+    s.bbo_count    += perf.bbo_count    || 0
   }
   const _allS     = Object.values(_sMap)
   const topBatter = _allS.filter(s => s.runs > 0).sort((a, b) => b.runs - a.runs)[0]
   const topBowler = _allS.filter(s => s.wickets > 0).sort((a, b) => b.wickets - a.wickets)[0]
+  const topPotm   = _allS.filter(s => s.potm_count > 0).sort((a, b) => b.potm_count - a.potm_count)[0]
+  const topBba    = _allS.filter(s => s.bba_count > 0).sort((a, b) => b.bba_count - a.bba_count)[0]
+  const topBbo    = _allS.filter(s => s.bbo_count > 0).sort((a, b) => b.bbo_count - a.bbo_count)[0]
+  const WKT_PTS   = 1.2
   const topMvp    = _allS
-    .map(s => ({ ...s, score: s.runs * 0.5 + s.fours * 0.5 + s.sixes * 1.5 + s.wickets * 8 + s.catches * 2 }))
+    .filter(s => s.match_count >= 5)
+    .map(s => ({
+      ...s,
+      score: parseFloat((
+        (s.runs / 10) * 1.08
+        + s.wickets * WKT_PTS
+        + Math.floor(s.maidens / 2) * WKT_PTS
+        + (s.catches + s.stumpings) * (WKT_PTS * 0.2)
+        + s.run_outs * WKT_PTS
+      ).toFixed(1)),
+    }))
     .filter(s => s.score > 0).sort((a, b) => b.score - a.score)[0]
   const perfPlayerMap = Object.fromEntries((pData?.players ?? []).map(p => [p.id, p]))
 
@@ -227,7 +253,7 @@ export default function Dashboard() {
       </div>
 
       {/* Season Leaders */}
-      {(topBatter || topBowler || topMvp) && (
+      {(topBatter || topBowler || topMvp || topPotm || topBba || topBbo) && (
         <div className="card mb-6 overflow-hidden p-0">
           <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
             <h2 className="font-bold text-gray-900">Season Leaders</h2>
@@ -235,34 +261,29 @@ export default function Dashboard() {
               Full Stats →
             </Link>
           </div>
-          <div className="grid grid-cols-3 divide-x divide-gray-100">
-            {topBatter && (
-              <Link to={`/player/${topBatter.player_id}`} className="p-4 hover:bg-green-50 transition-colors">
-                <div className="text-xl mb-2">🏏</div>
-                <div className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Top Scorer</div>
-                <div className="font-bold text-gray-900 text-sm truncate">{perfPlayerMap[topBatter.player_id]?.display_name ?? '—'}</div>
-                <div className="text-2xl font-black text-green-600 tabular-nums leading-none mt-1">{topBatter.runs}</div>
-                <div className="text-xs text-gray-400 mt-0.5">runs</div>
+          <div className="grid grid-cols-2 sm:grid-cols-3">
+            {[
+              { s: topMvp,    emoji: '🌟', label: 'Season MVP',    val: topMvp?.score,         unit: 'pts',    color: 'text-amber-500',   hover: 'hover:bg-amber-50'   },
+              { s: topPotm,   emoji: '🏅', label: 'Most POTM',     val: topPotm?.potm_count,   unit: 'times',  color: 'text-yellow-600',  hover: 'hover:bg-yellow-50'  },
+              { s: topBatter, emoji: '🏏', label: 'Top Scorer',    val: topBatter?.runs,       unit: 'runs',   color: 'text-green-600',   hover: 'hover:bg-green-50'   },
+              { s: topBowler, emoji: '🎯', label: 'Wicket Wizard', val: topBowler?.wickets,    unit: 'wkts',   color: 'text-purple-600',  hover: 'hover:bg-purple-50'  },
+              { s: topBba,    emoji: '🦇', label: 'Best Batsman',  val: topBba?.bba_count,     unit: 'awards', color: 'text-blue-600',    hover: 'hover:bg-blue-50'    },
+              { s: topBbo,    emoji: '🎳', label: 'Best Bowler',   val: topBbo?.bbo_count,     unit: 'awards', color: 'text-rose-600',    hover: 'hover:bg-rose-50'    },
+            ].map(({ s, emoji, label, val, unit, color, hover }, i) => s ? (
+              <Link
+                key={label}
+                to={`/player/${s.player_id}`}
+                className={`p-4 ${hover} transition-colors ${i % 3 !== 2 ? 'sm:border-r' : ''} ${i % 2 !== 1 ? 'border-r sm:border-r-0' : ''} ${i < 3 ? 'border-b' : ''} border-gray-100`}
+              >
+                <div className="text-xl mb-1.5">{emoji}</div>
+                <div className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">{label}</div>
+                <div className="font-bold text-gray-900 text-sm truncate">{perfPlayerMap[s.player_id]?.display_name ?? '—'}</div>
+                <div className={`text-2xl font-black tabular-nums leading-none mt-1 ${color}`}>
+                  {typeof val === 'number' ? (Number.isInteger(val) ? val : val.toFixed(1)) : '—'}
+                </div>
+                <div className="text-xs text-gray-400 mt-0.5">{unit}</div>
               </Link>
-            )}
-            {topBowler && (
-              <Link to={`/player/${topBowler.player_id}`} className="p-4 hover:bg-purple-50 transition-colors">
-                <div className="text-xl mb-2">🎯</div>
-                <div className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Top Bowler</div>
-                <div className="font-bold text-gray-900 text-sm truncate">{perfPlayerMap[topBowler.player_id]?.display_name ?? '—'}</div>
-                <div className="text-2xl font-black text-purple-600 tabular-nums leading-none mt-1">{topBowler.wickets}</div>
-                <div className="text-xs text-gray-400 mt-0.5">wickets</div>
-              </Link>
-            )}
-            {topMvp && (
-              <Link to={`/player/${topMvp.player_id}`} className="p-4 hover:bg-amber-50 transition-colors">
-                <div className="text-xl mb-2">⭐</div>
-                <div className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Season MVP</div>
-                <div className="font-bold text-gray-900 text-sm truncate">{perfPlayerMap[topMvp.player_id]?.display_name ?? '—'}</div>
-                <div className="text-2xl font-black text-amber-600 tabular-nums leading-none mt-1">{topMvp.score.toFixed(0)}</div>
-                <div className="text-xs text-gray-400 mt-0.5">pts</div>
-              </Link>
-            )}
+            ) : null)}
           </div>
         </div>
       )}

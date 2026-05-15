@@ -36,7 +36,7 @@ export default function Navbar() {
           <span>MatchBook</span>
         </Link>
 
-        <div className="flex items-center gap-1 overflow-x-auto">
+        <div className="flex items-center gap-1 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <NavLink to="/">Home</NavLink>
           <NavLink to="/players">Players</NavLink>
           <NavLink to="/leaderboard">Stats</NavLink>
