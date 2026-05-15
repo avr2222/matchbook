@@ -317,6 +317,7 @@ def _empty_perf():
         "wickets": 0, "runs_given": 0, "balls_bowled": 0, "maidens": 0,
         "catches": 0, "run_outs": 0, "stumpings": 0,
         "match_count": 0, "wides": 0, "no_balls": 0, "potm_count": 0, "ducks": 0,
+        "bba_count": 0, "bbo_count": 0,
     }
 
 
@@ -325,14 +326,10 @@ def extract_performances_from_scorecard(scorecard_data, ch_to_internal):
     Returns {internal_player_id: stats_dict}. Unmapped CricHeroes players are skipped.
     """
     perfs = {}
-    _debug_printed = False
     for team_key in ("team_a", "team_b"):
         team = scorecard_data.get(team_key, {})
         for innings in team.get("scorecard", []):
             for i, batter in enumerate(innings.get("batting", []), 1):
-                if not _debug_printed and batter.get("player_id"):
-                    print(f"  [DEBUG batter keys] {sorted(batter.keys())}")
-                    _debug_printed = True
                 ch_pid = str(batter.get("player_id", ""))
                 internal_id = ch_to_internal.get(ch_pid)
                 if not internal_id:
@@ -359,8 +356,6 @@ def extract_performances_from_scorecard(scorecard_data, ch_to_internal):
                     p["batting_pos"] = int(pos) if pos is not None else i
 
             for bowler in innings.get("bowling", []):
-                if not _debug_printed and bowler.get("player_id"):
-                    print(f"  [DEBUG bowler keys] {sorted(bowler.keys())}")
                 ch_pid = str(bowler.get("player_id", ""))
                 internal_id = ch_to_internal.get(ch_pid)
                 if not internal_id:
@@ -554,19 +549,22 @@ def sync():
             team_b = match.get("team_b", team_b)
             scorecard_data, potm_from_scorecard = get_match_scorecard(match_id)
             # POTM: pom_player_id is in the match list object directly (most reliable)
-            pom_raw = str(match.get("pom_player_id") or "").strip()
-            potm_ch_pid = (pom_raw if pom_raw and pom_raw != "0" else None) \
-                          or potm_from_scorecard
-            if potm_ch_pid:
-                potm_internal_id = ch_to_internal.get(potm_ch_pid)
-                if potm_internal_id:
-                    print(f"  POTM: pom_player_id={potm_ch_pid} -> {potm_internal_id}")
+            def _resolve_award(raw, label):
+                pid = str(raw or "").strip()
+                if not pid or pid == "0":
+                    return None
+                internal = ch_to_internal.get(pid)
+                if internal:
+                    print(f"  {label}: CH:{pid} -> {internal}")
                 else:
-                    print(f"  POTM CH:{potm_ch_pid} not mapped to internal player")
-                    potm_internal_id = None
-            else:
-                potm_internal_id = None
-            all_scorecard_data.append((scorecard_data, potm_internal_id))
+                    print(f"  {label}: CH:{pid} not mapped")
+                return internal
+
+            potm_internal_id = _resolve_award(
+                match.get("pom_player_id") or potm_from_scorecard, "POTM")
+            bba_internal_id  = _resolve_award(match.get("bba_player_id"), "BBA")
+            bbo_internal_id  = _resolve_award(match.get("bbo_player_id"), "BBO")
+            all_scorecard_data.append((scorecard_data, potm_internal_id, bba_internal_id, bbo_internal_id))
             ch_players = extract_players_from_scorecard(scorecard_data)
             all_session_ch_players.update(ch_players)
             print(f"  Match {match_id}: {len(ch_players)} players")
@@ -686,7 +684,7 @@ def sync():
         if need_performances and existing_perf_week_ids is not None:
             session_perfs = {}
             for sd_tuple in all_scorecard_data:
-                sd, potm_id = sd_tuple if isinstance(sd_tuple, tuple) else (sd_tuple, None)
+                sd, potm_id, bba_id, bbo_id = sd_tuple if len(sd_tuple) == 4 else (*sd_tuple, None, None)
                 for internal_id, stats in extract_performances_from_scorecard(sd, ch_to_internal).items():
                     if internal_id not in session_perfs:
                         session_perfs[internal_id] = _empty_perf()
@@ -699,11 +697,12 @@ def sync():
                         sp["dismissal"] = stats["dismissal"]
                     if sp["batting_pos"] is None and stats["batting_pos"] is not None:
                         sp["batting_pos"] = stats["batting_pos"]
-                    sp["match_count"] += 1  # one individual game per scorecard entry
-                if potm_id:
-                    if potm_id not in session_perfs:
-                        session_perfs[potm_id] = _empty_perf()
-                    session_perfs[potm_id]["potm_count"] += 1
+                    sp["match_count"] += 1
+                for award_id, award_key in ((potm_id, "potm_count"), (bba_id, "bba_count"), (bbo_id, "bbo_count")):
+                    if award_id:
+                        if award_id not in session_perfs:
+                            session_perfs[award_id] = _empty_perf()
+                        session_perfs[award_id][award_key] += 1
 
             for internal_id, stats in session_perfs.items():
                 new_performances.append({

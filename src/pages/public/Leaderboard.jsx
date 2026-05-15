@@ -39,6 +39,7 @@ export default function Leaderboard() {
         matches: 0, runs: 0, balls_faced: 0, fours: 0, sixes: 0, high_score: 0,
         wickets: 0, runs_given: 0, balls_bowled: 0, maidens: 0, catches: 0,
         run_outs: 0, stumpings: 0, wides: 0, no_balls: 0, potm_count: 0, ducks: 0,
+        bba_count: 0, bbo_count: 0,
       }
     }
     const s = statsMap[perf.player_id]
@@ -59,6 +60,8 @@ export default function Leaderboard() {
     s.no_balls    += perf.no_balls    || 0
     s.potm_count  += perf.potm_count  || 0
     s.ducks       += perf.ducks       || 0
+    s.bba_count   += perf.bba_count   || 0
+    s.bbo_count   += perf.bbo_count   || 0
   }
 
   const allStats = Object.values(statsMap)
@@ -77,17 +80,26 @@ export default function Leaderboard() {
       return eA - eB
     })
 
+  // CricHeroes MVP formula (season total)
+  // Batting: runs/10 + 8% SR bonus | Bowling: 1.2 pts/wkt (T10), 2 maidens = 1 wkt
+  // Fielding: catches/stumpings = 20% of wkt value, run-outs = full wkt value
+  const WKT_PTS = 1.2
   const mvps = [...allStats]
-    .map(s => ({
-      ...s,
-      mvp_score: s.runs * 0.5 + s.fours * 0.5 + s.sixes * 1.5 + s.wickets * 8 + s.catches * 2,
-    }))
+    .filter(s => s.matches >= 5)
+    .map(s => {
+      const batting  = (s.runs / 10) * 1.08
+      const bowling  = s.wickets * WKT_PTS + Math.floor(s.maidens / 2) * WKT_PTS
+      const fielding = (s.catches + s.stumpings) * (WKT_PTS * 0.2) + s.run_outs * WKT_PTS
+      return { ...s, mvp_score: parseFloat((batting + bowling + fielding).toFixed(1)) }
+    })
     .filter(s => s.mvp_score > 0)
     .sort((a, b) => b.mvp_score - a.mvp_score)
 
   // Awards tab
   const MIN_BAT = 40, MIN_BOWL = 30
   const topPotm      = [...allStats].filter(s => s.potm_count > 0).sort((a,b) => b.potm_count - a.potm_count)[0]
+  const topBba       = [...allStats].filter(s => s.bba_count > 0).sort((a,b) => b.bba_count - a.bba_count)[0]
+  const topBbo       = [...allStats].filter(s => s.bbo_count > 0).sort((a,b) => b.bbo_count - a.bbo_count)[0]
   const sixMachine   = [...allStats].filter(s => s.sixes > 0).sort((a,b) => b.sixes - a.sixes)[0]
   const wicketWiz    = [...allStats].filter(s => s.wickets > 0).sort((a,b) => b.wickets - a.wickets)[0]
   const lightningBat = [...allStats].filter(s => s.balls_faced >= MIN_BAT).sort((a,b) => (b.runs/b.balls_faced)-(a.runs/a.balls_faced))[0]
@@ -247,7 +259,7 @@ export default function Leaderboard() {
                 <div className="text-right shrink-0">
                   <div className={`text-2xl font-black tabular-nums ${
                     i === 0 ? 'text-amber-600' : i === 1 ? 'text-slate-500' : 'text-orange-500'
-                  }`}>{s.mvp_score.toFixed(0)}</div>
+                  }`}>{s.mvp_score.toFixed(1)}</div>
                   <div className="text-xs text-gray-400">pts</div>
                 </div>
               </div>
@@ -258,7 +270,7 @@ export default function Leaderboard() {
                   {playerMap[s.player_id]?.display_name ?? s.player_id}
                 </Link>
                 <div className="text-sm font-bold tabular-nums text-gray-600">
-                  {s.mvp_score.toFixed(0)} <span className="text-xs text-gray-400 font-normal">pts</span>
+                  {s.mvp_score.toFixed(1)} <span className="text-xs text-gray-400 font-normal">pts</span>
                 </div>
               </div>
             ))}
@@ -301,11 +313,13 @@ export default function Leaderboard() {
                 <h2 className="font-black text-white text-sm uppercase tracking-widest">Season Champions 🏆</h2>
               </div>
               <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <ACard emoji="🌟" title="Season MVP"     pid={mvps[0]?.player_id}   stat={mvps[0]?.mvp_score.toFixed(0)} unit="pts"     variant="gold" />
-                <ACard emoji="🏅" title="Most POTM Wins" pid={topPotm?.player_id}   stat={topPotm?.potm_count}           unit="times"   variant="gold" />
-                <ACard emoji="🏏" title="Top Scorer"     pid={batters[0]?.player_id} stat={batters[0]?.runs}             unit="runs"    variant="gold" />
-                <ACard emoji="🎯" title="Wicket Wizard"  pid={wicketWiz?.player_id} stat={wicketWiz?.wickets}            unit="wickets" variant="gold" />
-                <ACard emoji="💥" title="Six Machine"    pid={sixMachine?.player_id} stat={sixMachine?.sixes}            unit="sixes"   variant="gold" />
+                <ACard emoji="🌟" title="Season MVP"       pid={mvps[0]?.player_id}    stat={mvps[0]?.mvp_score.toFixed(1)} unit="pts"     variant="gold" />
+                <ACard emoji="🏅" title="Most POTM Wins"  pid={topPotm?.player_id}    stat={topPotm?.potm_count}           unit="times"   variant="gold" />
+                <ACard emoji="🏏" title="Top Scorer"      pid={batters[0]?.player_id} stat={batters[0]?.runs}              unit="runs"    variant="gold" />
+                <ACard emoji="🎯" title="Wicket Wizard"   pid={wicketWiz?.player_id}  stat={wicketWiz?.wickets}            unit="wickets" variant="gold" />
+                <ACard emoji="💥" title="Six Machine"     pid={sixMachine?.player_id} stat={sixMachine?.sixes}             unit="sixes"   variant="gold" />
+                <ACard emoji="🦇" title="Best Batsman"    pid={topBba?.player_id}     stat={topBba?.bba_count}             unit="awards"  variant="gold" />
+                <ACard emoji="🎳" title="Best Bowler"     pid={topBbo?.player_id}     stat={topBbo?.bbo_count}             unit="awards"  variant="gold" />
               </div>
             </div>
 
