@@ -119,29 +119,40 @@ def api_get(path, retries=3):
     raise RuntimeError(f"Failed to fetch API {url} after {retries} attempts")
 
 
+def _clean_name(n):
+    return n.strip().strip('\xa0').strip()
+
+
 def parse_fielder_from_dismissal(dismissal_text):
-    """Parse cricket dismissal text; returns (kind, fielder_name) or (None, None).
+    """Parse CricHeroes how_to_out text; returns (kind, fielder_name) or (None, None).
     kind: 'caught' | 'stumped' | 'run_out'
+    CricHeroes format examples:
+      'c seenu b Lokesh kumar YC'
+      'st seenu b Srikanta Maddara'  (may have non-breaking space after 'st')
+      'run out Pabitra / seenu'      (no parentheses)
+      'run out seenu'
+      'b Srikanta Maddara'           (bowled — no fielder)
+      'not out'
     """
     d = str(dismissal_text or '').strip()
     # "c & b Jones" / "c and b Jones" — caught and bowled by same player
     m = re.match(r'^c\s*(?:&|and)\s*b\s+(.+)$', d, re.I)
     if m:
-        return 'caught', m.group(1).strip()
+        return 'caught', _clean_name(m.group(1))
     # "c Smith b Jones"
     m = re.match(r'^c\s+(.+?)\s+b\s+', d, re.I)
     if m:
-        return 'caught', m.group(1).strip()
-    # "st Smith b Jones"
-    m = re.match(r'^st\s+(.+?)\s+b\s+', d, re.I)
+        return 'caught', _clean_name(m.group(1))
+    # "st Smith b Jones" (may have \xa0 non-breaking space after 'st')
+    m = re.match(r'^st[\s\xa0]+(.+?)\s+b\s+', d, re.I)
     if m:
-        return 'stumped', m.group(1).strip()
-    # "run out (Smith)" or "run out (Smith/Jones)"
-    m = re.match(r'^run\s*out\s*\((.+?)\)', d, re.I)
+        return 'stumped', _clean_name(m.group(1))
+    # "run out Smith / Jones" or "run out Smith" — CricHeroes uses no parentheses
+    m = re.match(r'^run\s*out\s+(.+)$', d, re.I)
     if m:
-        name = m.group(1).strip()
+        name = _clean_name(m.group(1))
         if '/' in name:
-            name = name.split('/')[-1].strip()
+            name = _clean_name(name.split('/')[-1])
         return 'run_out', name
     return None, None
 
@@ -160,6 +171,45 @@ def fuzzy_match(name, candidates, threshold=0.5):
     if best_score >= threshold:
         return best_id, round(best_score, 3)
     return None, round(best_score, 3)
+
+
+def fetch_potm_for_match(match_id, scorecard_data):
+    """Fetch Player of the Match CricHeroes player_id by scraping the match HTML page.
+    Returns the CricHeroes player_id string, or None if unavailable.
+    """
+    t_name = scorecard_data.get("tournament_name", "")
+    a_name = (scorecard_data.get("team_a") or {}).get("name", "")
+    b_name = (scorecard_data.get("team_b") or {}).get("name", "")
+    if not (t_name and a_name and b_name):
+        return None
+    t_slug = t_name.lower().replace(" ", "-")
+    a_slug = a_name.lower().replace(" ", "-")
+    b_slug = b_name.lower().replace(" ", "-")
+    url = f"https://cricheroes.com/scorecard/{match_id}/{t_slug}/{a_slug}-vs-{b_slug}/scorecard"
+    try:
+        req = urllib.request.Request(url, headers={
+            **API_HEADERS,
+            "Accept": "text/html,application/xhtml+xml,*/*",
+        })
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            html = resp.read().decode("utf-8", errors="replace")
+        m = re.search(r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>', html, re.DOTALL)
+        if not m:
+            return None
+        page_data = json.loads(m.group(1))
+        summary = (page_data.get("props", {})
+                            .get("pageProps", {})
+                            .get("summaryData", {})
+                            .get("data", {}))
+        potm = summary.get("player_of_the_match") or {}
+        ch_pid = str(potm.get("player_id") or "").strip()
+        potm_name = str(potm.get("player_name") or "").strip()
+        if ch_pid and ch_pid != "0":
+            print(f"  POTM (HTML): '{potm_name}' (CH:{ch_pid})")
+            return ch_pid
+    except Exception as e:
+        print(f"  POTM fetch failed for {match_id}: {e}")
+    return None
 
 
 def get_tournament_matches(tournament_id):
@@ -231,11 +281,14 @@ def extract_performances_from_scorecard(scorecard_data, ch_to_internal):
                 p["balls_faced"] += int(batter.get("balls", batter.get("balls_faced", 0)) or 0)
                 p["fours"]       += int(batter.get("fours", batter.get("4s", 0)) or 0)
                 p["sixes"]       += int(batter.get("sixes", batter.get("6s", 0)) or 0)
-                wkt = str(batter.get("wicket_type", batter.get("dismissal", "")) or "").strip()
+                # CricHeroes uses 'how_to_out'; fallback to legacy field names
+                wkt = str(batter.get("how_to_out", batter.get("wicket_type", batter.get("dismissal", ""))) or "").strip()
                 if not p["dismissal"]:
                     p["dismissal"] = wkt
-                # Count duck: scored 0 AND was dismissed (not a not-out or DNB)
-                if innings_runs == 0 and wkt and wkt.lower() not in ("not out", "dnb", "did not bat", "absent"):
+                # Count duck: scored 0 AND was dismissed (not a not-out, retired, or DNB)
+                NOT_OUT_TYPES = ("not out", "dnb", "did not bat", "absent", "retired hurt",
+                                 "absent hurt", "retired not out")
+                if innings_runs == 0 and wkt and wkt.lower() not in NOT_OUT_TYPES:
                     p["ducks"] += 1
                 if p["batting_pos"] is None:
                     pos = batter.get("batting_position", batter.get("batting_pos", i))
@@ -274,7 +327,7 @@ def extract_performances_from_scorecard(scorecard_data, ch_to_internal):
     for tk in ("team_a", "team_b"):
         for inn in scorecard_data.get(tk, {}).get("scorecard", []):
             for batter in inn.get("batting", []):
-                wkt_text = batter.get("wicket_type", batter.get("dismissal", "")) or ""
+                wkt_text = batter.get("how_to_out", batter.get("wicket_type", batter.get("dismissal", ""))) or ""
                 kind, fielder_name = parse_fielder_from_dismissal(wkt_text)
                 if not kind or not fielder_name:
                     continue
@@ -434,38 +487,11 @@ def sync():
             team_a = match.get("team_a", team_a)
             team_b = match.get("team_b", team_b)
             scorecard_data = get_match_scorecard(match_id)
-            # Extract Player of the Match from scorecard root
-            # CricHeroes returns player_of_the_match.player_name (name only, no player_id)
-            # Cross-reference with batting/bowling arrays in the same scorecard to get ch player_id
-            potm_obj  = scorecard_data.get("player_of_the_match") or {}
-            potm_name = str(potm_obj.get("player_name") or "").strip()
-            potm_internal_id = None
-            if potm_name:
-                sc_name_to_ch_id = {}
-                for _tk in ("team_a", "team_b"):
-                    for _inn in scorecard_data.get(_tk, {}).get("scorecard", []):
-                        for _entry in _inn.get("batting", []) + _inn.get("bowling", []):
-                            _pid  = str(_entry.get("player_id", ""))
-                            _name = re.sub(r"\s*\(c\s*&\s*wk\)|\s*\(wk\)|\s*\(c\)", "", _entry.get("name", ""), flags=re.I).strip()
-                            if _pid and _name:
-                                sc_name_to_ch_id[_name.lower()] = _pid
-                potm_ch_id = sc_name_to_ch_id.get(potm_name.lower())
-                if not potm_ch_id:
-                    _best_id, _best_sc = None, 0.0
-                    for _sc_name, _sc_pid in sc_name_to_ch_id.items():
-                        _sc = difflib.SequenceMatcher(None, potm_name.lower(), _sc_name).ratio()
-                        if _sc > _best_sc:
-                            _best_sc, _best_id = _sc, _sc_pid
-                    if _best_sc >= 0.7:
-                        potm_ch_id = _best_id
-                potm_internal_id = ch_to_internal.get(potm_ch_id) if potm_ch_id else None
-                if not potm_internal_id:
-                    active_list = [p for p in players if p["status"] == "active"]
-                    potm_internal_id, conf = fuzzy_match(potm_name, active_list)
-                    if conf < 0.7:
-                        potm_internal_id = None
-            if potm_name:
-                print(f"  POTM: '{potm_name}' -> {potm_internal_id or 'unmapped'}")
+            # Fetch POTM by scraping the CricHeroes HTML page (__NEXT_DATA__)
+            potm_ch_pid = fetch_potm_for_match(match_id, scorecard_data)
+            potm_internal_id = ch_to_internal.get(potm_ch_pid) if potm_ch_pid else None
+            if potm_ch_pid and not potm_internal_id:
+                print(f"  POTM CH:{potm_ch_pid} not mapped to internal player")
             all_scorecard_data.append((scorecard_data, potm_internal_id))
             ch_players = extract_players_from_scorecard(scorecard_data)
             all_session_ch_players.update(ch_players)
