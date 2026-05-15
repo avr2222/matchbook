@@ -38,7 +38,7 @@ export default function Leaderboard() {
         player_id: perf.player_id,
         matches: 0, runs: 0, balls_faced: 0, fours: 0, sixes: 0, high_score: 0,
         wickets: 0, runs_given: 0, balls_bowled: 0, maidens: 0, catches: 0,
-        run_outs: 0, stumpings: 0, wides: 0, no_balls: 0, potm_count: 0,
+        run_outs: 0, stumpings: 0, wides: 0, no_balls: 0, potm_count: 0, ducks: 0,
       }
     }
     const s = statsMap[perf.player_id]
@@ -58,6 +58,7 @@ export default function Leaderboard() {
     s.wides       += perf.wides       || 0
     s.no_balls    += perf.no_balls    || 0
     s.potm_count  += perf.potm_count  || 0
+    s.ducks       += perf.ducks       || 0
   }
 
   const allStats = Object.values(statsMap)
@@ -94,15 +95,7 @@ export default function Leaderboard() {
   const maidenMaster = [...allStats].filter(s => s.maidens > 0).sort((a,b) => b.maidens - a.maidens)[0]
   const catchKing    = [...allStats].filter(s => (s.catches+s.run_outs+s.stumpings) > 0).sort((a,b) => (b.catches+b.run_outs+b.stumpings)-(a.catches+a.run_outs+a.stumpings))[0]
   const workhorse    = [...allStats].filter(s => s.balls_bowled > 0).sort((a,b) => b.balls_bowled - a.balls_bowled)[0]
-  const duckKing     = (() => {
-    const dm = {}
-    for (const p of perfs) {
-      const d = (p.dismissal || '').toLowerCase()
-      if (p.runs === 0 && d && d !== 'not out') dm[p.player_id] = (dm[p.player_id] || 0) + 1
-    }
-    const e = Object.entries(dm).sort((a,b) => b[1]-a[1])
-    return e.length ? { player_id: e[0][0], ducks: e[0][1] } : null
-  })()
+  const duckKing     = [...allStats].filter(s => s.ducks > 0).sort((a,b) => b.ducks - a.ducks)[0]
   const slowcoach    = [...allStats].filter(s => s.balls_faced >= MIN_BAT).sort((a,b) => (a.runs/a.balls_faced)-(b.runs/b.balls_faced))[0]
   const wideMan      = [...allStats].filter(s => s.wides > 0).sort((a,b) => b.wides - a.wides)[0]
   const noBallKing   = [...allStats].filter(s => s.no_balls > 0).sort((a,b) => b.no_balls - a.no_balls)[0]

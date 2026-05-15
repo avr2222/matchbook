@@ -206,7 +206,7 @@ def _empty_perf():
         "dismissal": "", "batting_pos": None,
         "wickets": 0, "runs_given": 0, "balls_bowled": 0, "maidens": 0,
         "catches": 0, "run_outs": 0, "stumpings": 0,
-        "match_count": 0, "wides": 0, "no_balls": 0, "potm_count": 0,
+        "match_count": 0, "wides": 0, "no_balls": 0, "potm_count": 0, "ducks": 0,
     }
 
 
@@ -226,13 +226,17 @@ def extract_performances_from_scorecard(scorecard_data, ch_to_internal):
                 if internal_id not in perfs:
                     perfs[internal_id] = _empty_perf()
                 p = perfs[internal_id]
-                p["runs"]        += int(batter.get("runs", 0) or 0)
+                innings_runs = int(batter.get("runs", 0) or 0)
+                p["runs"]        += innings_runs
                 p["balls_faced"] += int(batter.get("balls", batter.get("balls_faced", 0)) or 0)
                 p["fours"]       += int(batter.get("fours", batter.get("4s", 0)) or 0)
                 p["sixes"]       += int(batter.get("sixes", batter.get("6s", 0)) or 0)
+                wkt = str(batter.get("wicket_type", batter.get("dismissal", "")) or "").strip()
                 if not p["dismissal"]:
-                    wkt = batter.get("wicket_type", batter.get("dismissal", "")) or ""
-                    p["dismissal"] = str(wkt).strip()
+                    p["dismissal"] = wkt
+                # Count duck: scored 0 AND was dismissed (not a not-out or DNB)
+                if innings_runs == 0 and wkt and wkt.lower() not in ("not out", "dnb", "did not bat", "absent"):
+                    p["ducks"] += 1
                 if p["batting_pos"] is None:
                     pos = batter.get("batting_position", batter.get("batting_pos", i))
                     p["batting_pos"] = int(pos) if pos is not None else i
@@ -589,7 +593,7 @@ def sync():
                     sp = session_perfs[internal_id]
                     for k in ("runs", "balls_faced", "fours", "sixes", "wickets",
                               "runs_given", "balls_bowled", "maidens", "catches",
-                              "run_outs", "stumpings", "wides", "no_balls"):
+                              "run_outs", "stumpings", "wides", "no_balls", "ducks"):
                         sp[k] += stats[k]
                     if not sp["dismissal"] and stats["dismissal"]:
                         sp["dismissal"] = stats["dismissal"]
