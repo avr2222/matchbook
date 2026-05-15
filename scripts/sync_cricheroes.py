@@ -174,41 +174,84 @@ def fuzzy_match(name, candidates, threshold=0.5):
 
 
 def fetch_potm_for_match(match_id, scorecard_data):
-    """Fetch Player of the Match CricHeroes player_id by scraping the match HTML page.
-    Returns the CricHeroes player_id string, or None if unavailable.
+    """Try several CricHeroes API endpoints to get POTM ch_player_id.
+    Returns the CricHeroes player_id string, or None.
     """
+    # Try match-detail API endpoint (returns a richer match object)
+    try:
+        detail = api_get(f"match/get-match-detail/{match_id}")
+        d = detail.get("data") or {}
+        if isinstance(d, list):
+            d = d[0] if d else {}
+        for key in ("player_of_the_match", "man_of_the_match", "mom", "potm", "manOfTheMatch"):
+            potm_obj = d.get(key)
+            if potm_obj:
+                if isinstance(potm_obj, dict):
+                    pid = str(potm_obj.get("player_id") or potm_obj.get("id") or "").strip()
+                    name = str(potm_obj.get("player_name") or potm_obj.get("name") or "").strip()
+                else:
+                    pid, name = str(potm_obj).strip(), ""
+                if pid and pid != "0":
+                    print(f"  POTM (detail API): '{name}' (CH:{pid})")
+                    return pid
+    except Exception:
+        pass
+
+    # Try highlights/summary API
+    try:
+        hl = api_get(f"match/get-match-highlights/{match_id}")
+        d = hl.get("data") or {}
+        for key in ("player_of_the_match", "man_of_the_match", "mom", "potm"):
+            potm_obj = d.get(key)
+            if potm_obj and isinstance(potm_obj, dict):
+                pid = str(potm_obj.get("player_id") or potm_obj.get("id") or "").strip()
+                name = str(potm_obj.get("player_name") or potm_obj.get("name") or "").strip()
+                if pid and pid != "0":
+                    print(f"  POTM (highlights API): '{name}' (CH:{pid})")
+                    return pid
+    except Exception:
+        pass
+
+    # Fall back to HTML scraping (may be Cloudflare-blocked)
     t_name = scorecard_data.get("tournament_name", "")
     a_name = (scorecard_data.get("team_a") or {}).get("name", "")
     b_name = (scorecard_data.get("team_b") or {}).get("name", "")
-    if not (t_name and a_name and b_name):
-        return None
-    t_slug = t_name.lower().replace(" ", "-")
-    a_slug = a_name.lower().replace(" ", "-")
-    b_slug = b_name.lower().replace(" ", "-")
-    url = f"https://cricheroes.com/scorecard/{match_id}/{t_slug}/{a_slug}-vs-{b_slug}/scorecard"
-    try:
-        req = urllib.request.Request(url, headers={
-            **API_HEADERS,
-            "Accept": "text/html,application/xhtml+xml,*/*",
-        })
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            html = resp.read().decode("utf-8", errors="replace")
-        m = re.search(r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>', html, re.DOTALL)
-        if not m:
-            return None
-        page_data = json.loads(m.group(1))
-        summary = (page_data.get("props", {})
-                            .get("pageProps", {})
-                            .get("summaryData", {})
-                            .get("data", {}))
-        potm = summary.get("player_of_the_match") or {}
-        ch_pid = str(potm.get("player_id") or "").strip()
-        potm_name = str(potm.get("player_name") or "").strip()
-        if ch_pid and ch_pid != "0":
-            print(f"  POTM (HTML): '{potm_name}' (CH:{ch_pid})")
-            return ch_pid
-    except Exception as e:
-        print(f"  POTM fetch failed for {match_id}: {e}")
+    if t_name and a_name and b_name:
+        def slugify(s):
+            return re.sub(r'[^a-z0-9]+', '-', s.lower()).strip('-')
+        url = (f"https://cricheroes.com/scorecard/{match_id}"
+               f"/{slugify(t_name)}/{slugify(a_name)}-vs-{slugify(b_name)}/scorecard")
+        try:
+            html_headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.5",
+                "Sec-Fetch-Mode": "navigate",
+                "Sec-Fetch-Site": "none",
+                "Sec-Fetch-Dest": "document",
+                "Referer": "https://cricheroes.com/",
+            }
+            resp = requests.get(url, headers=html_headers, timeout=15)
+            if resp.status_code == 200:
+                m = re.search(r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>',
+                              resp.text, re.DOTALL)
+                if m:
+                    page_data = json.loads(m.group(1))
+                    summary = (page_data.get("props", {})
+                                        .get("pageProps", {})
+                                        .get("summaryData", {})
+                                        .get("data", {}))
+                    potm = summary.get("player_of_the_match") or {}
+                    ch_pid = str(potm.get("player_id") or "").strip()
+                    potm_name = str(potm.get("player_name") or "").strip()
+                    if ch_pid and ch_pid != "0":
+                        print(f"  POTM (HTML): '{potm_name}' (CH:{ch_pid})")
+                        return ch_pid
+            else:
+                print(f"  POTM HTML {resp.status_code} for match {match_id}")
+        except Exception as e:
+            print(f"  POTM HTML failed for {match_id}: {e}")
+
     return None
 
 
@@ -221,15 +264,35 @@ def get_tournament_matches(tournament_id):
     if isinstance(items, dict):
         items = items.get("data", [])
     print(f"  Found {len(items)} matches")
+    if items:
+        # Debug: show keys of first match to discover if POTM/MOM fields exist
+        print(f"  Match object keys: {sorted(items[0].keys())}")
     return items
 
 
 def get_match_scorecard(match_id):
+    """Returns (scorecard_data, potm_ch_pid) where potm_ch_pid may be None."""
     data = api_get(f"scorecard/v2/get-scorecard/{match_id}")
     if not data.get("status"):
         print(f"  Warning: API returned status=false for match {match_id}")
-        return {}
-    return data.get("data", {})
+        return {}, None
+    inner = data.get("data", {})
+    # Check if scorecard API includes POTM directly (field names vary)
+    potm_ch_pid = None
+    for key in ("player_of_the_match", "man_of_the_match", "mom", "potm"):
+        potm_obj = inner.get(key) or data.get(key)
+        if potm_obj:
+            if isinstance(potm_obj, dict):
+                pid = str(potm_obj.get("player_id") or potm_obj.get("id") or "").strip()
+                name = str(potm_obj.get("player_name") or potm_obj.get("name") or "").strip()
+            else:
+                pid = str(potm_obj).strip()
+                name = ""
+            if pid and pid != "0":
+                print(f"  POTM (API scorecard): '{name}' (CH:{pid})")
+                potm_ch_pid = pid
+                break
+    return inner, potm_ch_pid
 
 
 def extract_players_from_scorecard(scorecard_data):
@@ -486,9 +549,9 @@ def sync():
             all_match_ids.append(match_id)
             team_a = match.get("team_a", team_a)
             team_b = match.get("team_b", team_b)
-            scorecard_data = get_match_scorecard(match_id)
-            # Fetch POTM by scraping the CricHeroes HTML page (__NEXT_DATA__)
-            potm_ch_pid = fetch_potm_for_match(match_id, scorecard_data)
+            scorecard_data, potm_from_api = get_match_scorecard(match_id)
+            # POTM: use scorecard API result first, then try other sources
+            potm_ch_pid = potm_from_api or fetch_potm_for_match(match_id, scorecard_data)
             potm_internal_id = ch_to_internal.get(potm_ch_pid) if potm_ch_pid else None
             if potm_ch_pid and not potm_internal_id:
                 print(f"  POTM CH:{potm_ch_pid} not mapped to internal player")
