@@ -226,7 +226,7 @@ def extract_performances_from_scorecard(scorecard_data, ch_to_internal):
                 p["balls_bowled"] += balls
                 p["maidens"]      += int(bowler.get("maidens", 0) or 0)
                 p["wides"]        += int(bowler.get("wides",    bowler.get("wide",    0)) or 0)
-                p["no_balls"]     += int(bowler.get("no_balls", bowler.get("no_ball", 0)) or 0)
+                p["no_balls"]     += int(bowler.get("no_balls", bowler.get("noball", bowler.get("no_ball", 0))) or 0)
     return perfs
 
 
@@ -361,16 +361,35 @@ def sync():
             team_b = match.get("team_b", team_b)
             scorecard_data = get_match_scorecard(match_id)
             # Extract Player of the Match from scorecard root
-            potm_ch_id = str(scorecard_data.get("man_of_match_player_id") or
-                             scorecard_data.get("man_of_match_id") or "").strip()
-            potm_name  = str(scorecard_data.get("man_of_match") or
-                             scorecard_data.get("man_of_match_name") or "").strip()
-            potm_internal_id = ch_to_internal.get(potm_ch_id)
-            if not potm_internal_id and potm_name:
-                active_list = [p for p in players if p["status"] == "active"]
-                potm_internal_id, conf = fuzzy_match(potm_name, active_list)
-                if conf < 0.7:
-                    potm_internal_id = None
+            # CricHeroes returns player_of_the_match.player_name (name only, no player_id)
+            # Cross-reference with batting/bowling arrays in the same scorecard to get ch player_id
+            potm_obj  = scorecard_data.get("player_of_the_match") or {}
+            potm_name = str(potm_obj.get("player_name") or "").strip()
+            potm_internal_id = None
+            if potm_name:
+                sc_name_to_ch_id = {}
+                for _tk in ("team_a", "team_b"):
+                    for _inn in scorecard_data.get(_tk, {}).get("scorecard", []):
+                        for _entry in _inn.get("batting", []) + _inn.get("bowling", []):
+                            _pid  = str(_entry.get("player_id", ""))
+                            _name = re.sub(r"\s*\(c\s*&\s*wk\)|\s*\(wk\)|\s*\(c\)", "", _entry.get("name", ""), flags=re.I).strip()
+                            if _pid and _name:
+                                sc_name_to_ch_id[_name.lower()] = _pid
+                potm_ch_id = sc_name_to_ch_id.get(potm_name.lower())
+                if not potm_ch_id:
+                    _best_id, _best_sc = None, 0.0
+                    for _sc_name, _sc_pid in sc_name_to_ch_id.items():
+                        _sc = difflib.SequenceMatcher(None, potm_name.lower(), _sc_name).ratio()
+                        if _sc > _best_sc:
+                            _best_sc, _best_id = _sc, _sc_pid
+                    if _best_sc >= 0.7:
+                        potm_ch_id = _best_id
+                potm_internal_id = ch_to_internal.get(potm_ch_id) if potm_ch_id else None
+                if not potm_internal_id:
+                    active_list = [p for p in players if p["status"] == "active"]
+                    potm_internal_id, conf = fuzzy_match(potm_name, active_list)
+                    if conf < 0.7:
+                        potm_internal_id = None
             if potm_name:
                 print(f"  POTM: '{potm_name}' -> {potm_internal_id or 'unmapped'}")
             all_scorecard_data.append((scorecard_data, potm_internal_id))
