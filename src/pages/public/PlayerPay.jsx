@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { usePlayers, useWeeks, useConfig } from '../../hooks/useData'
+import { usePlayers, useWeeks, useConfig, useMatchPerformances } from '../../hooks/useData'
 import { supabase } from '../../lib/supabase'
 import BalanceBadge from '../../components/ui/BalanceBadge'
 import { PageSpinner } from '../../components/ui/Spinner'
@@ -215,6 +215,7 @@ export default function PlayerPay() {
   const { data: pData, isLoading } = usePlayers()
   const { data: wData } = useWeeks()
   const { data: cfg }   = useConfig()
+  const { data: perfData } = useMatchPerformances(playerId)
 
   if (isLoading) return <PageSpinner />
 
@@ -231,13 +232,28 @@ export default function PlayerPay() {
     )
   }
 
+  const weeks      = wData?.weeks ?? []
   const activeTId  = cfg?.active_tournament_id
-  const nextMatch  = (wData?.weeks ?? [])
+  const nextMatch  = weeks
     .filter(w => w.tournament_id === activeTId && w.status === 'scheduled')
     .sort((a, b) => a.match_date.localeCompare(b.match_date))[0] ?? null
 
   const needsTopUp = player.balance_status !== 'good' && player.type !== 'ppm'
   const balance    = player.corpus_balance ?? 0
+  const perfs  = perfData?.performances ?? []
+  const careerRuns        = perfs.reduce((s, p) => s + (p.runs || 0), 0)
+  const careerWkts        = perfs.reduce((s, p) => s + (p.wickets || 0), 0)
+  const careerBalls       = perfs.reduce((s, p) => s + (p.balls_faced || 0), 0)
+  const careerBallsBowled = perfs.reduce((s, p) => s + (p.balls_bowled || 0), 0)
+  const careerRunsGiven   = perfs.reduce((s, p) => s + (p.runs_given || 0), 0)
+  const careerHighScore   = perfs.reduce((max, p) => Math.max(max, p.runs || 0), 0)
+  const careerBestWkts    = perfs.reduce((max, p) => Math.max(max, p.wickets || 0), 0)
+  const sortedPerfs = [...perfs].sort((a, b) => {
+    const wa = weeks.find(w => w.week_id === a.week_id)
+    const wb = weeks.find(w => w.week_id === b.week_id)
+    return (wb?.match_date ?? '').localeCompare(wa?.match_date ?? '')
+  })
+  const last5 = sortedPerfs.slice(0, 5)
 
   const statusColor = {
     good:         'from-emerald-600 via-green-500 to-teal-500',
@@ -317,6 +333,88 @@ export default function PlayerPay() {
               <span className="text-xs text-green-500 font-medium">Match fee</span>
               <span className="font-extrabold text-green-800 text-xl">₹{(nextMatch.match_fee ?? 0).toLocaleString('en-IN')}</span>
             </div>
+          </div>
+        )}
+
+        {/* Cricket Stats */}
+        {perfs.length > 0 && (
+          <div className="card shadow-sm mb-4">
+            <h3 className="font-bold text-gray-900 mb-3 text-sm uppercase tracking-wide">Cricket Stats</h3>
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="bg-green-50 rounded-xl p-3 text-center">
+                <div className="text-2xl font-extrabold text-green-700">{careerRuns}</div>
+                <div className="text-xs text-gray-500 mt-0.5">Runs</div>
+              </div>
+              <div className="bg-purple-50 rounded-xl p-3 text-center">
+                <div className="text-2xl font-extrabold text-purple-700">{careerWkts}</div>
+                <div className="text-xs text-gray-500 mt-0.5">Wickets</div>
+              </div>
+              <div className="bg-blue-50 rounded-xl p-3 text-center">
+                <div className="text-2xl font-extrabold text-blue-700">{perfs.length}</div>
+                <div className="text-xs text-gray-500 mt-0.5">Matches</div>
+              </div>
+            </div>
+            <div className="grid grid-cols-4 gap-2 text-center mb-4">
+              <div>
+                <div className="font-bold text-gray-800 text-sm">
+                  {careerBalls > 0 ? ((careerRuns / careerBalls) * 100).toFixed(1) : '—'}
+                </div>
+                <div className="text-xs text-gray-400">Bat SR</div>
+              </div>
+              <div>
+                <div className="font-bold text-gray-800 text-sm">{careerHighScore}</div>
+                <div className="text-xs text-gray-400">High Score</div>
+              </div>
+              <div>
+                <div className="font-bold text-gray-800 text-sm">
+                  {careerBallsBowled > 0 ? ((careerRunsGiven / careerBallsBowled) * 6).toFixed(2) : '—'}
+                </div>
+                <div className="text-xs text-gray-400">Economy</div>
+              </div>
+              <div>
+                <div className="font-bold text-gray-800 text-sm">{careerBestWkts}</div>
+                <div className="text-xs text-gray-400">Best Wkts</div>
+              </div>
+            </div>
+            {last5.length > 0 && (
+              <>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Last {last5.length} Matches</p>
+                <div className="space-y-1.5">
+                  {last5.map(perf => {
+                    const week = weeks.find(w => w.week_id === perf.week_id)
+                    return (
+                      <div key={perf.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2">
+                        <div className="text-xs text-gray-500 w-14 shrink-0">
+                          {week ? format(parseISO(week.match_date), 'MMM d') : perf.week_id}
+                        </div>
+                        <div className="flex gap-3 items-center text-sm">
+                          <span>
+                            <span className="font-bold text-green-700">{perf.runs}</span>
+                            <span className="text-xs text-gray-400"> r</span>
+                            {perf.balls_faced > 0 && (
+                              <span className="text-xs text-gray-400"> ({perf.balls_faced}b)</span>
+                            )}
+                          </span>
+                          {perf.wickets > 0 && (
+                            <span>
+                              <span className="font-bold text-purple-700">{perf.wickets}</span>
+                              <span className="text-xs text-gray-400"> w</span>
+                            </span>
+                          )}
+                          {(perf.fours > 0 || perf.sixes > 0) && (
+                            <span className="text-xs text-gray-400">
+                              {perf.fours > 0 ? `${perf.fours}×4` : ''}
+                              {perf.fours > 0 && perf.sixes > 0 ? ' ' : ''}
+                              {perf.sixes > 0 ? `${perf.sixes}×6` : ''}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </>
+            )}
           </div>
         )}
 
