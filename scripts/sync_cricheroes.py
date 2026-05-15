@@ -119,6 +119,33 @@ def api_get(path, retries=3):
     raise RuntimeError(f"Failed to fetch API {url} after {retries} attempts")
 
 
+def parse_fielder_from_dismissal(dismissal_text):
+    """Parse cricket dismissal text; returns (kind, fielder_name) or (None, None).
+    kind: 'caught' | 'stumped' | 'run_out'
+    """
+    d = str(dismissal_text or '').strip()
+    # "c & b Jones" / "c and b Jones" — caught and bowled by same player
+    m = re.match(r'^c\s*(?:&|and)\s*b\s+(.+)$', d, re.I)
+    if m:
+        return 'caught', m.group(1).strip()
+    # "c Smith b Jones"
+    m = re.match(r'^c\s+(.+?)\s+b\s+', d, re.I)
+    if m:
+        return 'caught', m.group(1).strip()
+    # "st Smith b Jones"
+    m = re.match(r'^st\s+(.+?)\s+b\s+', d, re.I)
+    if m:
+        return 'stumped', m.group(1).strip()
+    # "run out (Smith)" or "run out (Smith/Jones)"
+    m = re.match(r'^run\s*out\s*\((.+?)\)', d, re.I)
+    if m:
+        name = m.group(1).strip()
+        if '/' in name:
+            name = name.split('/')[-1].strip()
+        return 'run_out', name
+    return None, None
+
+
 def fuzzy_match(name, candidates, threshold=0.5):
     best_score, best_id = 0.0, None
     name_lower = name.lower().strip()
@@ -227,6 +254,49 @@ def extract_performances_from_scorecard(scorecard_data, ch_to_internal):
                 p["maidens"]      += int(bowler.get("maidens", 0) or 0)
                 p["wides"]        += int(bowler.get("wides",    bowler.get("wide",    0)) or 0)
                 p["no_balls"]     += int(bowler.get("no_balls", bowler.get("noball", bowler.get("no_ball", 0))) or 0)
+
+    # Build name→ch_id lookup from the full scorecard for fielder resolution
+    sc_name_to_ch_id = {}
+    for tk in ("team_a", "team_b"):
+        for inn in scorecard_data.get(tk, {}).get("scorecard", []):
+            for entry in inn.get("batting", []) + inn.get("bowling", []):
+                _pid  = str(entry.get("player_id", ""))
+                _name = re.sub(r"\s*\(c\s*&\s*wk\)|\s*\(wk\)|\s*\(c\)", "",
+                               entry.get("name", ""), flags=re.I).strip()
+                if _pid and _name:
+                    sc_name_to_ch_id[_name.lower()] = _pid
+
+    # Extract fielding (catches, stumpings, run_outs) from batting dismissal strings
+    for tk in ("team_a", "team_b"):
+        for inn in scorecard_data.get(tk, {}).get("scorecard", []):
+            for batter in inn.get("batting", []):
+                wkt_text = batter.get("wicket_type", batter.get("dismissal", "")) or ""
+                kind, fielder_name = parse_fielder_from_dismissal(wkt_text)
+                if not kind or not fielder_name:
+                    continue
+                ch_fid = sc_name_to_ch_id.get(fielder_name.lower())
+                if not ch_fid:
+                    best_sc, best_id = 0.0, None
+                    for sc_name, sc_pid in sc_name_to_ch_id.items():
+                        sc = difflib.SequenceMatcher(None, fielder_name.lower(), sc_name).ratio()
+                        if sc > best_sc:
+                            best_sc, best_id = sc, sc_pid
+                    if best_sc >= 0.7:
+                        ch_fid = best_id
+                if not ch_fid:
+                    continue
+                fielder_internal = ch_to_internal.get(ch_fid)
+                if not fielder_internal:
+                    continue
+                if fielder_internal not in perfs:
+                    perfs[fielder_internal] = _empty_perf()
+                if kind == 'caught':
+                    perfs[fielder_internal]["catches"] += 1
+                elif kind == 'stumped':
+                    perfs[fielder_internal]["stumpings"] += 1
+                elif kind == 'run_out':
+                    perfs[fielder_internal]["run_outs"] += 1
+
     return perfs
 
 
@@ -526,7 +596,9 @@ def sync():
                     if sp["batting_pos"] is None and stats["batting_pos"] is not None:
                         sp["batting_pos"] = stats["batting_pos"]
                     sp["match_count"] += 1  # one individual game per scorecard entry
-                if potm_id and potm_id in session_perfs:
+                if potm_id:
+                    if potm_id not in session_perfs:
+                        session_perfs[potm_id] = _empty_perf()
                     session_perfs[potm_id]["potm_count"] += 1
 
             for internal_id, stats in session_perfs.items():
