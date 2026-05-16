@@ -31,10 +31,16 @@ export default function Dashboard() {
   const records      = aData?.records ?? []
   const seasonName   = tData?.tournaments?.find(t => t.id === activeTournamentId)?.short_name ?? cfg?.team_name ?? 'Season'
 
-  // Series score
+  // Series score — prefer winning_team column; fall back to parsing result string
+  const _parseWinner = result => {
+    const m = (result ?? '').match(/^(.+?)\s+(\d+)-(\d+)$/)
+    if (!m) return ''
+    return parseInt(m[2]) !== parseInt(m[3]) ? m[1].trim() : ''
+  }
   const seriesWins = {}
   completed.forEach(w => {
-    if (w.winning_team) seriesWins[w.winning_team] = (seriesWins[w.winning_team] || 0) + 1
+    const winner = w.winning_team || _parseWinner(w.result)
+    if (winner) seriesWins[winner] = (seriesWins[winner] || 0) + 1
   })
   const seriesTeams = Object.entries(seriesWins).sort((a, b) => b[1] - a[1])
   const seriesLeader = seriesTeams[0]
