@@ -288,6 +288,16 @@ def _build_result(session_matches):
     return ""
 
 
+def _session_winner(session_matches):
+    """Return the overall winning team name for a session (team with most match wins)."""
+    wins = {}
+    for m in session_matches:
+        wt = str(m.get("winning_team") or "").strip()
+        if wt:
+            wins[wt] = wins.get(wt, 0) + 1
+    return max(wins, key=wins.get) if wins else ""
+
+
 def get_tournament_matches(tournament_id):
     ts = int(time.time() * 1000)
     path = f"match/get-tournament-matches/3/-1/-1?tournamentid={tournament_id}&status=3&pagesize=100&pageno=1&datetime={ts}"
@@ -619,6 +629,7 @@ def sync():
                 "team_a":               team_a,
                 "team_b":               team_b,
                 "result":               _build_result(session_matches),
+                "winning_team":         _session_winner(session_matches),
                 "players_count":        len(all_session_ch_players),
                 "notes":                f"{len(session_matches)} game(s)" if len(session_matches) > 1 else "",
             }
@@ -779,8 +790,10 @@ def sync():
         if not matches_for_day:
             continue
         result_str = _build_result(matches_for_day)
-        if result_str:
-            sb_patch('weeks', f'week_id=eq.{w["week_id"]}', {'result': result_str})
+        winner_str = _session_winner(matches_for_day)
+        if result_str or winner_str:
+            sb_patch('weeks', f'week_id=eq.{w["week_id"]}',
+                     {'result': result_str, 'winning_team': winner_str})
             result_updates += 1
     if result_updates:
         print(f"  Backfilled result for {result_updates} week(s)")
