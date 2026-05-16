@@ -175,10 +175,13 @@ export default function Leaderboard() {
               {batters.map((s, i) => (
                 <tr key={s.player_id} className={i === 0 ? 'font-semibold' : ''}>
                   <td className="py-2 text-gray-400 text-xs">{i + 1}</td>
-                  <td className="py-2 pr-2 font-medium max-w-[120px] truncate">
-                    <Link to={`/player/${s.player_id}`} className="text-gray-900 hover:text-green-700 hover:underline">
+                  <td className="py-2 pr-2 font-medium max-w-[140px]">
+                    <Link to={`/player/${s.player_id}`} className="text-gray-900 hover:text-green-700 hover:underline truncate block">
                       {playerMap[s.player_id]?.display_name ?? s.player_id}
                     </Link>
+                    {s.bba_count > 0 && (
+                      <span className="text-xs text-blue-500 font-semibold">🦇×{s.bba_count}</span>
+                    )}
                   </td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-500">{s.matches}</td>
                   <td className="py-2 pr-2 text-right tabular-nums font-bold text-green-700">{s.runs}</td>
@@ -216,10 +219,13 @@ export default function Leaderboard() {
               {bowlers.map((s, i) => (
                 <tr key={s.player_id} className={i === 0 ? 'font-semibold' : ''}>
                   <td className="py-2 text-gray-400 text-xs">{i + 1}</td>
-                  <td className="py-2 pr-2 font-medium max-w-[130px] truncate">
-                    <Link to={`/player/${s.player_id}`} className="text-gray-900 hover:text-green-700 hover:underline">
+                  <td className="py-2 pr-2 font-medium max-w-[140px]">
+                    <Link to={`/player/${s.player_id}`} className="text-gray-900 hover:text-green-700 hover:underline truncate block">
                       {playerMap[s.player_id]?.display_name ?? s.player_id}
                     </Link>
+                    {s.bbo_count > 0 && (
+                      <span className="text-xs text-rose-500 font-semibold">🎳×{s.bbo_count}</span>
+                    )}
                   </td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-500">{s.matches}</td>
                   <td className="py-2 pr-2 text-right tabular-nums font-bold text-purple-700">{s.wickets}</td>

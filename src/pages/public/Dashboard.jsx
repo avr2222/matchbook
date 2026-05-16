@@ -462,6 +462,7 @@ export default function Dashboard() {
         week={(wData?.weeks ?? []).find(w => w.week_id === detail)}
         players={allActive}
         records={records}
+        perfRows={detail ? (perfData?.performances ?? []).filter(p => p.week_id === detail) : []}
         onClose={() => setDetail(null)}
       />
     </div>

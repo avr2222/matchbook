@@ -240,6 +240,24 @@ export default function PlayerPay() {
 
   const needsTopUp = player.balance_status !== 'good' && player.type !== 'ppm'
   const balance    = player.corpus_balance ?? 0
+
+  // Attendance streak + rate (using match_performances as proxy for sessions played)
+  const completedWeeks = weeks
+    .filter(w => w.tournament_id === activeTId && w.status === 'completed')
+    .sort((a, b) => b.match_date.localeCompare(a.match_date))
+  const perfWeekIds = new Set(perfs.map(p => p.week_id))
+  let attendStreak = 0
+  for (const w of completedWeeks) {
+    if (perfWeekIds.has(w.week_id)) attendStreak++
+    else break
+  }
+  const attendRate = completedWeeks.length > 0
+    ? Math.round((perfs.length / completedWeeks.length) * 100)
+    : 0
+
+  // Corpus forecast
+  const matchFee     = cfg?.default_match_fee ?? nextMatch?.match_fee ?? 500
+  const matchesLeft  = balance > 0 && matchFee > 0 ? Math.floor(balance / matchFee) : 0
   const perfs  = perfData?.performances ?? []
   const careerRuns        = perfs.reduce((s, p) => s + (p.runs || 0), 0)
   const careerWkts        = perfs.reduce((s, p) => s + (p.wickets || 0), 0)
@@ -290,6 +308,33 @@ export default function PlayerPay() {
             <BalanceBadge status={player.balance_status} />
           </div>
         </div>
+
+        {/* Attendance + Forecast */}
+        {completedWeeks.length > 0 && (
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            <div className="card shadow-sm text-center py-3 px-2">
+              <div className="text-2xl font-extrabold text-blue-700">{attendRate}%</div>
+              <div className="text-xs text-gray-400 mt-0.5">Attendance</div>
+              <div className="text-xs text-gray-300 mt-0.5">{perfs.length}/{completedWeeks.length} sessions</div>
+            </div>
+            <div className="card shadow-sm text-center py-3 px-2">
+              <div className="text-2xl font-extrabold text-orange-500">
+                {attendStreak > 0 ? `🔥${attendStreak}` : '—'}
+              </div>
+              <div className="text-xs text-gray-400 mt-0.5">Streak</div>
+              <div className="text-xs text-gray-300 mt-0.5">consecutive</div>
+            </div>
+            {player.type !== 'ppm' && (
+              <div className="card shadow-sm text-center py-3 px-2">
+                <div className={`text-2xl font-extrabold ${matchesLeft <= 2 ? 'text-red-500' : matchesLeft <= 5 ? 'text-amber-500' : 'text-emerald-600'}`}>
+                  ~{matchesLeft}
+                </div>
+                <div className="text-xs text-gray-400 mt-0.5">Matches left</div>
+                <div className="text-xs text-gray-300 mt-0.5">at ₹{matchFee}/match</div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Pay section */}
         {needsTopUp ? (

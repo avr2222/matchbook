@@ -87,6 +87,13 @@ def sb_get_one(table, select='*', filters=''):
     return data[0] if data else None
 
 
+def sb_patch(table, row_filter, data):
+    url = f'{SUPABASE_URL}/rest/v1/{table}?{row_filter}'
+    r = requests.patch(url, headers={**SB_HEADERS, 'Prefer': 'return=minimal'}, json=data)
+    if not r.ok:
+        print(f"  ERROR patching {table}: {r.status_code} {r.text[:200]}")
+
+
 def sb_upsert(table, rows, chunk=500):
     if not rows:
         return
@@ -253,6 +260,32 @@ def fetch_potm_for_match(match_id, scorecard_data):
             print(f"  POTM HTML failed for {match_id}: {e}")
 
     return None
+
+
+def _build_result(session_matches):
+    """Format a human-readable result string from one or more match objects."""
+    if len(session_matches) == 1:
+        m = session_matches[0]
+        result = str(m.get("match_result") or "").strip()
+        if result:
+            return result
+        winner = str(m.get("winning_team") or "").strip()
+        margin = str(m.get("win_by") or "").strip()
+        if winner and margin:
+            return f"{winner} won by {margin}"
+        return winner or ""
+    # Multiple games: tally wins per team
+    wins = {}
+    for m in session_matches:
+        wt = str(m.get("winning_team") or "").strip()
+        if wt:
+            wins[wt] = wins.get(wt, 0) + 1
+    if wins:
+        winner = max(wins, key=wins.get)
+        wcount  = wins[winner]
+        lcount  = len(session_matches) - wcount
+        return f"{winner} {wcount}-{lcount}"
+    return ""
 
 
 def get_tournament_matches(tournament_id):
@@ -585,7 +618,7 @@ def sync():
                 "cricheroes_match_ids": all_match_ids,
                 "team_a":               team_a,
                 "team_b":               team_b,
-                "result":               "",
+                "result":               _build_result(session_matches),
                 "players_count":        len(all_session_ch_players),
                 "notes":                f"{len(session_matches)} game(s)" if len(session_matches) > 1 else "",
             }
@@ -719,6 +752,38 @@ def sync():
     if not changed:
         print("\nNo changes detected. Everything up to date.")
         return
+
+    # ── Backfill result for existing weeks that have empty result ────────────
+    date_to_matches = {}
+    for m in all_matches:
+        d = m.get("match_start_time", "")[:10]
+        if d:
+            date_to_matches.setdefault(d, []).append(m)
+
+    result_updates = 0
+    for w in weeks:
+        if w.get("result") or w.get("status") != "completed":
+            continue
+        d = w.get("match_date", "")
+        matches_for_day = date_to_matches.get(d, [])
+        if not matches_for_day:
+            for delta in (-1, 1):
+                from datetime import date as dt_date
+                try:
+                    alt = (dt_date.fromisoformat(d) + timedelta(days=delta)).isoformat()
+                    matches_for_day = date_to_matches.get(alt, [])
+                    if matches_for_day:
+                        break
+                except Exception:
+                    pass
+        if not matches_for_day:
+            continue
+        result_str = _build_result(matches_for_day)
+        if result_str:
+            sb_patch('weeks', f'week_id=eq.{w["week_id"]}', {'result': result_str})
+            result_updates += 1
+    if result_updates:
+        print(f"  Backfilled result for {result_updates} week(s)")
 
     # ── Write all changes to Supabase ────────────────────────────────────────
     print("\nWriting changes to Supabase…")
