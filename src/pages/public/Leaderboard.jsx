@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { usePlayers, useConfig, useLeaderboard } from '../../hooks/useData'
 import { PageSpinner } from '../../components/ui/Spinner'
 
@@ -20,6 +20,7 @@ function strikeRate(runs, balls) {
 
 export default function Leaderboard() {
   const [tab, setTab] = useState('batting')
+  const navigate = useNavigate()
   const { data: cfg, isLoading: cfgLoading } = useConfig()
   const { data: pData, isLoading: playersLoading } = usePlayers()
   const tournamentId = cfg?.active_tournament_id
@@ -169,6 +170,7 @@ export default function Leaderboard() {
                 <th className="text-right pb-2 pr-2">HS</th>
                 <th className="text-right pb-2 pr-2">4s</th>
                 <th className="text-right pb-2">6s</th>
+                <th className="pb-2 w-6"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -192,6 +194,13 @@ export default function Leaderboard() {
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{s.high_score}</td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-500">{s.fours}</td>
                   <td className="py-2 text-right tabular-nums text-gray-500">{s.sixes}</td>
+                  <td className="py-2 pl-1">
+                    <button
+                      title="Compare"
+                      onClick={() => navigate(`/compare?a=${s.player_id}`)}
+                      className="text-gray-300 hover:text-green-600 transition-colors text-xs"
+                    >⚖️</button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -213,6 +222,7 @@ export default function Leaderboard() {
                 <th className="text-right pb-2 pr-2">Runs</th>
                 <th className="text-right pb-2 pr-2">Econ</th>
                 <th className="text-right pb-2">Mdns</th>
+                <th className="pb-2 w-6"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -233,6 +243,13 @@ export default function Leaderboard() {
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{s.runs_given}</td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{economy(s.runs_given, s.balls_bowled)}</td>
                   <td className="py-2 text-right tabular-nums text-gray-500">{s.maidens}</td>
+                  <td className="py-2 pl-1">
+                    <button
+                      title="Compare"
+                      onClick={() => navigate(`/compare?a=${s.player_id}`)}
+                      className="text-gray-300 hover:text-green-600 transition-colors text-xs"
+                    >⚖️</button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -243,7 +260,7 @@ export default function Leaderboard() {
       {!perfLoading && !isEmpty && tab === 'mvp' && (
         <div className="card">
           <h2 className="font-bold text-gray-900 mb-1">Season MVP</h2>
-          <p className="text-xs text-gray-400 mb-4">Score = runs×0.5 + 4s×0.5 + 6s×1.5 + wkts×8 + catches×2</p>
+          <p className="text-xs text-gray-400 mb-4">CricHeroes formula · min 5 matches</p>
           <div className="space-y-2">
             {mvps.map((s, i) => i < 3 ? (
               <div key={s.player_id} className={`flex items-center gap-4 p-4 rounded-2xl border ${

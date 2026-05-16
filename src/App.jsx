@@ -31,6 +31,8 @@ import AdminPayments        from './pages/admin/AdminPayments'
 import Signup               from './pages/auth/Signup'
 import ForgotPassword       from './pages/auth/ForgotPassword'
 import Leaderboard          from './pages/public/Leaderboard'
+import Compare              from './pages/public/Compare'
+import Timeline             from './pages/public/Timeline'
 
 const qc = new QueryClient()
 
@@ -74,6 +76,8 @@ export default function App() {
               <Route path="/player/:id"    element={<PlayerDetail />} />
               <Route path="/pay/:playerId" element={<PlayerPay />} />
               <Route path="/leaderboard"  element={<Leaderboard />} />
+              <Route path="/compare"      element={<Compare />} />
+              <Route path="/timeline"     element={<Timeline />} />
               <Route path="/login"         element={<DeviceFlowLogin />} />
               <Route path="/signup"          element={<Signup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />

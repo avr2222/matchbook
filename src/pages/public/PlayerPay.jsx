@@ -241,7 +241,9 @@ export default function PlayerPay() {
   const needsTopUp = player.balance_status !== 'good' && player.type !== 'ppm'
   const balance    = player.corpus_balance ?? 0
 
-  // Attendance streak + rate (using match_performances as proxy for sessions played)
+  const perfs = perfData?.performances ?? []
+
+  // Attendance streak + rate
   const completedWeeks = weeks
     .filter(w => w.tournament_id === activeTId && w.status === 'completed')
     .sort((a, b) => b.match_date.localeCompare(a.match_date))
@@ -256,22 +258,38 @@ export default function PlayerPay() {
     : 0
 
   // Corpus forecast
-  const matchFee     = cfg?.default_match_fee ?? nextMatch?.match_fee ?? 500
-  const matchesLeft  = balance > 0 && matchFee > 0 ? Math.floor(balance / matchFee) : 0
-  const perfs  = perfData?.performances ?? []
-  const careerRuns        = perfs.reduce((s, p) => s + (p.runs || 0), 0)
-  const careerWkts        = perfs.reduce((s, p) => s + (p.wickets || 0), 0)
+  const matchFee    = cfg?.default_match_fee ?? nextMatch?.match_fee ?? 500
+  const matchesLeft = balance > 0 && matchFee > 0 ? Math.floor(balance / matchFee) : 0
+
+  // Career stats
+  const careerRuns        = perfs.reduce((s, p) => s + (p.runs        || 0), 0)
+  const careerWkts        = perfs.reduce((s, p) => s + (p.wickets     || 0), 0)
   const careerBalls       = perfs.reduce((s, p) => s + (p.balls_faced || 0), 0)
-  const careerBallsBowled = perfs.reduce((s, p) => s + (p.balls_bowled || 0), 0)
-  const careerRunsGiven   = perfs.reduce((s, p) => s + (p.runs_given || 0), 0)
-  const careerHighScore   = perfs.reduce((max, p) => Math.max(max, p.runs || 0), 0)
-  const careerBestWkts    = perfs.reduce((max, p) => Math.max(max, p.wickets || 0), 0)
+  const careerBallsBowled = perfs.reduce((s, p) => s + (p.balls_bowled|| 0), 0)
+  const careerRunsGiven   = perfs.reduce((s, p) => s + (p.runs_given  || 0), 0)
+  const careerHighScore   = perfs.reduce((max, p) => Math.max(max, p.runs     || 0), 0)
+  const careerBestWkts    = perfs.reduce((max, p) => Math.max(max, p.wickets  || 0), 0)
   const sortedPerfs = [...perfs].sort((a, b) => {
     const wa = weeks.find(w => w.week_id === a.week_id)
     const wb = weeks.find(w => w.week_id === b.week_id)
     return (wb?.match_date ?? '').localeCompare(wa?.match_date ?? '')
   })
   const last5 = sortedPerfs.slice(0, 5)
+
+  // Achievement badges
+  const totalPotm = perfs.reduce((s, p) => s + (p.potm_count || 0), 0)
+  const totalBba  = perfs.reduce((s, p) => s + (p.bba_count  || 0), 0)
+  const totalBbo  = perfs.reduce((s, p) => s + (p.bbo_count  || 0), 0)
+  const badges = [
+    careerHighScore >= 100                         && { emoji: '💯', label: 'Century Club' },
+    careerHighScore >= 50 && careerHighScore < 100 && { emoji: '🏏', label: 'Half-Century' },
+    careerBestWkts >= 3                            && { emoji: '🎯', label: 'Hat-trick Hero' },
+    totalPotm > 0                                  && { emoji: '🏅', label: `POTM ×${totalPotm}` },
+    totalBba > 0                                   && { emoji: '🦇', label: `Best Bat ×${totalBba}` },
+    totalBbo > 0                                   && { emoji: '🎳', label: `Best Bowl ×${totalBbo}` },
+    attendStreak >= 5                              && { emoji: '🔥', label: 'Iron Man' },
+    perfs.length >= 5                              && { emoji: '🎽', label: 'Regular' },
+  ].filter(Boolean)
 
   const statusColor = {
     good:         'from-emerald-600 via-green-500 to-teal-500',
@@ -381,6 +399,20 @@ export default function PlayerPay() {
           </div>
         )}
 
+        {/* Achievements */}
+        {badges.length > 0 && (
+          <div className="card shadow-sm mb-4">
+            <h3 className="font-bold text-gray-900 mb-2 text-sm uppercase tracking-wide">Achievements</h3>
+            <div className="flex flex-wrap gap-2">
+              {badges.map(({ emoji, label }) => (
+                <span key={label} className="flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-100 text-xs font-semibold px-2.5 py-1 rounded-full">
+                  {emoji} {label}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Cricket Stats */}
         {perfs.length > 0 && (
           <div className="card shadow-sm mb-4">
@@ -421,6 +453,31 @@ export default function PlayerPay() {
                 <div className="text-xs text-gray-400">Best Wkts</div>
               </div>
             </div>
+            {last5.length >= 2 && (() => {
+              const avgRuns = careerRuns / perfs.length
+              const avgWkts = careerWkts / perfs.length
+              return (
+                <div className="mb-3">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1.5">Form</p>
+                  <div className="flex gap-1.5">
+                    {[...last5].reverse().map(p => {
+                      const empty = p.runs === 0 && p.wickets === 0
+                      const good  = p.runs > avgRuns || p.wickets > avgWkts
+                      return (
+                        <div
+                          key={p.id}
+                          title={`${p.runs}r ${p.wickets}w`}
+                          className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold
+                            ${empty ? 'bg-gray-100 text-gray-400' : good ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}
+                        >
+                          {empty ? '—' : good ? '↑' : '↓'}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })()}
             {last5.length > 0 && (
               <>
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Last {last5.length} Matches</p>
@@ -429,10 +486,17 @@ export default function PlayerPay() {
                     const week = weeks.find(w => w.week_id === perf.week_id)
                     return (
                       <div key={perf.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2">
-                        <div className="text-xs text-gray-500 w-14 shrink-0">
-                          {week ? format(parseISO(week.match_date), 'MMM d') : perf.week_id}
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="text-xs text-gray-500 w-14 shrink-0">
+                            {week ? format(parseISO(week.match_date), 'MMM d') : perf.week_id}
+                          </div>
+                          {week?.result && (
+                            <span className="text-xs font-medium text-green-600 bg-green-50 px-1.5 py-0.5 rounded-md truncate max-w-[90px]">
+                              {week.result}
+                            </span>
+                          )}
                         </div>
-                        <div className="flex gap-3 items-center text-sm">
+                        <div className="flex gap-3 items-center text-sm shrink-0">
                           <span>
                             <span className="font-bold text-green-700">{perf.runs}</span>
                             <span className="text-xs text-gray-400"> r</span>

@@ -429,8 +429,8 @@ export default function Dashboard() {
       <div className="card">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-bold text-gray-900">Recent Matches</h2>
-          <Link to="/players" className="text-sm font-semibold text-green-600 hover:text-green-700 transition-colors">
-            View Roster →
+          <Link to="/timeline" className="text-sm font-semibold text-green-600 hover:text-green-700 transition-colors">
+            See All →
           </Link>
         </div>
         {recentWeeks.length === 0 ? (
