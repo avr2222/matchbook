@@ -330,6 +330,7 @@ export default function Dashboard() {
         week={(wData?.weeks ?? []).find(w => w.week_id === detail)}
         players={allActive}
         records={records}
+        expenses={allExpenses}
         onClose={() => setDetail(null)}
       />
     </div>

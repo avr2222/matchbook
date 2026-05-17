@@ -217,6 +217,9 @@ def sync():
     existing_week_ids      = {w["week_id"] for w in weeks}
     existing_session_dates = {w["match_date"] for w in weeks if w.get("status") == "completed"}
 
+    # Pre-index attendance by week_id for fast lookup
+    att_week_ids = {r["week_id"] for r in attendance}
+
     def date_already_covered(d):
         from datetime import date as dt_date
         try:
@@ -226,8 +229,13 @@ def sync():
         for delta in (-1, 0, 1):
             candidate = (parsed + timedelta(days=delta)).isoformat()
             if candidate in existing_session_dates:
-                print(f"  Skipping already-synced session {d} (matched {candidate})")
-                return True
+                week_id_check = f"W_{candidate.replace('-', '_')}"
+                if week_id_check in att_week_ids:
+                    print(f"  Skipping already-synced session {d} (matched {candidate})")
+                    return True
+                else:
+                    # Week row exists but attendance was never written — re-process
+                    print(f"  Week {week_id_check} has no attendance records — re-processing")
         return False
 
     all_matches = get_tournament_matches(tournament_id)

@@ -3,6 +3,7 @@
 // so useData.js / admin pages require no changes.
 
 import { supabase } from '../lib/supabase'
+import { calcBalanceStatus } from '../utils/balanceCalculator'
 
 export async function fetchConfig() {
   const { data, error } = await supabase
@@ -18,13 +19,25 @@ export async function fetchConfig() {
 export function clearConfig() {}
 
 export async function fetchPlayers() {
-  // player_balances view returns corpus_balance, total_paid, total_deducted computed from transactions
-  const { data, error } = await supabase
-    .from('player_balances')
-    .select('*')
-    .order('display_name')
-  if (error) throw new Error(`fetchPlayers: ${error.message}`)
-  return { schema_version: 1, players: data }
+  // Fetch players and config thresholds in parallel so balance_status can be derived client-side.
+  // The player_balances view supplies corpus_balance; balance_status is not a DB column.
+  const [{ data: players, error: playersErr }, { data: cfg, error: cfgErr }] = await Promise.all([
+    supabase.from('player_balances').select('*').order('display_name'),
+    supabase.from('config')
+      .select('corpus_low_threshold,corpus_urgent_threshold,corpus_overdue_threshold')
+      .eq('id', 1)
+      .single(),
+  ])
+  if (playersErr) throw new Error(`fetchPlayers: ${playersErr.message}`)
+  // cfgErr is non-fatal — fall back to permissive defaults
+  const thresholds = cfg ?? {}
+  return {
+    schema_version: 1,
+    players: (players ?? []).map(p => ({
+      ...p,
+      balance_status: calcBalanceStatus(p.corpus_balance ?? 0, thresholds),
+    })),
+  }
 }
 
 export async function fetchWeeks() {
@@ -37,9 +50,23 @@ export async function fetchWeeks() {
 }
 
 export async function fetchAttendance() {
-  const { data, error } = await supabase.from('attendance').select('*')
-  if (error) throw new Error(`fetchAttendance: ${error.message}`)
-  return { schema_version: 1, records: data }
+  // Supabase PostgREST hard-limits each request to 1000 rows.
+  // A 30-player team with 35+ matches already exceeds 1000 attendance records,
+  // so we paginate to ensure every row is fetched.
+  const PAGE = 1000
+  const all = []
+  let from = 0
+  while (true) {
+    const { data, error } = await supabase
+      .from('attendance')
+      .select('*')
+      .range(from, from + PAGE - 1)
+    if (error) throw new Error(`fetchAttendance: ${error.message}`)
+    all.push(...(data ?? []))
+    if (!data || data.length < PAGE) break
+    from += PAGE
+  }
+  return { schema_version: 1, records: all }
 }
 
 export async function fetchTransactions() {
