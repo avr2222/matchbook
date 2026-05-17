@@ -690,15 +690,40 @@ def sync():
                     played_internal_ids.add(best_id)
                     changed = True
                 elif confidence >= 0.5:
-                    print(f"  Low-confidence: '{ch_name}' (CH:{ch_pid}) -> {best_id} (conf={confidence}) — needs review")
+                    # Not confident enough to auto-confirm — save the suggestion for
+                    # admin review AND create a guest so the player appears in the roster
+                    # and is marked as played. Admin can confirm/merge later.
+                    print(f"  Low-confidence: '{ch_name}' (CH:{ch_pid}) -> {best_id} (conf={confidence:.2f}) — creating guest, needs review")
                     mappings.append({
                         "cricheroes_player_id": ch_pid,
                         "cricheroes_name":      ch_name,
-                        "player_id":            best_id,
+                        "player_id":            best_id,   # suggested match for admin
                         "match_confidence":     confidence,
                         "match_method":         "auto_fuzzy",
                         "confirmed":            False,
                     })
+                    existing_ids = {p["id"] for p in players} | {p["id"] for p in new_players}
+                    guest_id = f"PLY_G_{ch_pid}"
+                    if guest_id not in existing_ids:
+                        print(f"  Auto-creating guest for unconfirmed player: '{ch_name}' -> {guest_id}")
+                        guest_row = {
+                            "id":                    guest_id,
+                            "display_name":          ch_name,
+                            "type":                  "guest",
+                            "status":                "active",
+                            "joined_date":           match_date,
+                            "phone":                 "",
+                            "github_username":       "",
+                            "cricheroes_player_id":  ch_pid,
+                            "cricheroes_name":       ch_name,
+                            "guest_fee_mode":        "free",
+                            "sponsored_by_player_id": None,
+                            "notes":                 f"Auto-created (low-confidence match to {best_id}, conf={confidence:.2f})",
+                        }
+                        new_players.append(guest_row)
+                        players.append(guest_row)
+                        ch_to_internal[ch_pid] = guest_id
+                    played_internal_ids.add(ch_to_internal.get(ch_pid, guest_id))
                     changed = True
                 else:
                     existing_ids = {p["id"] for p in players} | {p["id"] for p in new_players}
@@ -741,19 +766,35 @@ def sync():
             active_player_ids  = {p["id"] for p in players if p.get("status") == "active"}
             active_player_ids |= {p["id"] for p in new_players if p.get("status") == "active"}
 
+            att_by_id = {r["id"]: r for r in attendance}
             for pid in active_player_ids:
                 att_id = f"ATT_{pid}_{eff_week_id}"
+                status = "played" if pid in played_internal_ids else "absent"
                 if att_id not in existing_att_ids:
                     new_attendance.append({
                         "id":            att_id,
                         "player_id":     pid,
                         "week_id":       eff_week_id,
                         "tournament_id": active_tournament_id,
-                        "status":        "played" if pid in played_internal_ids else "absent",
+                        "status":        status,
                         "source":        "cricheroes_sync",
                         "fee_deducted":  False,
                     })
                     changed = True
+                elif status == "played":
+                    # Record exists — update absent→played if it was sync-written and is now wrong
+                    existing_rec = att_by_id.get(att_id)
+                    if existing_rec and existing_rec.get("status") == "absent" and existing_rec.get("source") == "cricheroes_sync":
+                        new_attendance.append({
+                            "id":            att_id,
+                            "player_id":     pid,
+                            "week_id":       eff_week_id,
+                            "tournament_id": active_tournament_id,
+                            "status":        "played",
+                            "source":        "cricheroes_sync",
+                            "fee_deducted":  False,
+                        })
+                        changed = True
 
         # Extract and aggregate batting/bowling stats for this session
         if need_performances and existing_perf_week_ids is not None:
