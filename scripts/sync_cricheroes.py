@@ -642,7 +642,11 @@ def sync():
             # Week already exists (e.g. manually pre-created as 'scheduled').
             # Promote it to completed and fill in CricHeroes match IDs so the
             # app shows it and its attendance records become visible.
-            existing_week = next((w for w in weeks if w["week_id"] == week_id), None)
+            existing_week = next((w for w in weeks if w["week_id"] == actual_wid), None)
+            if not existing_week and actual_wid != week_id:
+                existing_week = next((w for w in weeks if w["week_id"] == week_id), None)
+            if not existing_week:
+                print(f"  WARNING: no existing week found for {match_date} (tried {actual_wid}, {week_id})")
             if existing_week and (
                 existing_week.get("status") != "completed"
                 or not existing_week.get("cricheroes_match_id")
@@ -729,19 +733,21 @@ def sync():
                         changed = True
                     played_internal_ids.add(ch_to_internal.get(ch_pid, guest_id))
 
-        # Build attendance only for new (not previously synced) sessions
+        # Build attendance only for new (not previously synced) sessions.
+        # Use actual_wid (the real DB week ID) so records link to the correct week row.
         if not covered:
+            eff_week_id        = actual_wid  # honours pre-created week IDs (e.g. W_2026_05_17)
             existing_att_ids   = {r["id"] for r in attendance}
             active_player_ids  = {p["id"] for p in players if p.get("status") == "active"}
             active_player_ids |= {p["id"] for p in new_players if p.get("status") == "active"}
 
             for pid in active_player_ids:
-                att_id = f"ATT_{pid}_{week_id}"
+                att_id = f"ATT_{pid}_{eff_week_id}"
                 if att_id not in existing_att_ids:
                     new_attendance.append({
                         "id":            att_id,
                         "player_id":     pid,
-                        "week_id":       week_id,
+                        "week_id":       eff_week_id,
                         "tournament_id": active_tournament_id,
                         "status":        "played" if pid in played_internal_ids else "absent",
                         "source":        "cricheroes_sync",
@@ -828,15 +834,21 @@ def sync():
 
     if new_players:
         sb_upsert('players', new_players)
+        print(f"  Saved {len(new_players)} player(s)")
 
     if new_weeks:
         sb_upsert('weeks', new_weeks)
+        print(f"  Saved {len(new_weeks)} week(s): {[w['week_id'] for w in new_weeks]}")
 
     if new_attendance:
         sb_upsert('attendance', new_attendance)
+        played  = sum(1 for a in new_attendance if a['status'] == 'played')
+        absent  = sum(1 for a in new_attendance if a['status'] == 'absent')
+        print(f"  Saved {len(new_attendance)} attendance record(s) — {played} played, {absent} absent")
 
     if new_performances:
         sb_upsert('match_performances', new_performances)
+        print(f"  Saved {len(new_performances)} performance record(s)")
 
     # Always update mapping so last_sync timestamp is current
     updated_mapping = {
