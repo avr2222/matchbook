@@ -689,9 +689,11 @@ def sync():
 
         # Map CricHeroes players -> internal IDs
         played_internal_ids = set()
+        print(f"  Mapping {len(all_session_ch_players)} CH players (covered={covered}, recent={_is_recent(match_date)})")
         for ch_pid, ch_name in all_session_ch_players.items():
             internal_id = ch_to_internal.get(ch_pid)
             if internal_id:
+                print(f"  Already mapped: '{ch_name}' (CH:{ch_pid}) -> {internal_id}")
                 played_internal_ids.add(internal_id)
             else:
                 active_players = [p for p in players if p["status"] == "active"]
