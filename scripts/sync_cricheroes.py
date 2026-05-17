@@ -297,6 +297,28 @@ def sync():
             existing_week_ids.add(week_id)
             existing_session_dates.add(match_date)
             changed = True
+        else:
+            # Week already exists (e.g. manually pre-created as 'scheduled').
+            # Promote it to completed and fill in CricHeroes match IDs so the
+            # app shows it and its attendance records become visible.
+            existing_week = next((w for w in weeks if w["week_id"] == week_id), None)
+            if existing_week and (
+                existing_week.get("status") != "completed"
+                or not existing_week.get("cricheroes_match_id")
+            ):
+                updated = dict(existing_week)
+                updated.update({
+                    "status":               "completed",
+                    "cricheroes_match_id":  all_match_ids[0],
+                    "cricheroes_match_ids": all_match_ids,
+                    "team_a":               team_a or existing_week.get("team_a", ""),
+                    "team_b":               team_b or existing_week.get("team_b", ""),
+                    "players_count":        len(all_session_ch_players),
+                })
+                new_weeks.append(updated)
+                existing_session_dates.add(match_date)
+                changed = True
+                print(f"  Promoted existing week {week_id} → completed")
 
         # Map CricHeroes players -> internal IDs
         played_internal_ids = set()
