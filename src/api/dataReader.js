@@ -25,7 +25,7 @@ export async function fetchPlayers() {
   ])
   if (playersRes.error) throw new Error(`fetchPlayers: ${playersRes.error.message}`)
   const cfg = cfgRes.data ?? {}
-  const players = playersRes.data.map(p => ({
+  const players = (playersRes.data ?? []).map(p => ({
     ...p,
     balance_status: (p.type === 'ppm' || p.type === 'guest')
       ? 'n/a'
@@ -45,9 +45,23 @@ export async function fetchWeeks() {
 }
 
 export async function fetchAttendance() {
-  const { data, error } = await supabase.from('attendance').select('*')
-  if (error) throw new Error(`fetchAttendance: ${error.message}`)
-  return { schema_version: 1, records: data }
+  // Supabase PostgREST hard-limits each request to 1000 rows.
+  // A 30-player team with 35+ matches already exceeds 1000 attendance records,
+  // so we paginate to ensure every row is fetched.
+  const PAGE = 1000
+  const all = []
+  let from = 0
+  while (true) {
+    const { data, error } = await supabase
+      .from('attendance')
+      .select('*')
+      .range(from, from + PAGE - 1)
+    if (error) throw new Error(`fetchAttendance: ${error.message}`)
+    all.push(...(data ?? []))
+    if (!data || data.length < PAGE) break
+    from += PAGE
+  }
+  return { schema_version: 1, records: all }
 }
 
 export async function fetchTransactions() {

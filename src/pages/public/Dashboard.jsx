@@ -511,6 +511,7 @@ export default function Dashboard() {
         players={allActive}
         records={records}
         perfRows={detail ? (perfData?.performances ?? []).filter(p => p.week_id === detail) : []}
+        expenses={allExpenses}
         onClose={() => setDetail(null)}
       />
     </div>
