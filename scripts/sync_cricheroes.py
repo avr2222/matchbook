@@ -557,7 +557,17 @@ def sync():
     all_matches = get_tournament_matches(tournament_id)
 
     # Group by session date.
-    # Include a session if: (a) it's new, OR (b) it's covered but missing performances.
+    # Include a session if: (a) it's new, OR (b) covered but missing performances,
+    # OR (c) covered but recent (last 7 days) — so new guests/mappings are resolved.
+    from datetime import date as _dt_date
+    _today = _dt_date.today()
+
+    def _is_recent(d):
+        try:
+            return (_today - _dt_date.fromisoformat(d)).days <= 7
+        except Exception:
+            return False
+
     sessions = {}
     skipped_dates = set()
     for match in all_matches:
@@ -567,7 +577,7 @@ def sync():
         covered = date_already_covered(match_date)
         actual_wid = resolve_week_id(match_date)
         needs_perfs = existing_perf_week_ids is not None and actual_wid not in existing_perf_week_ids
-        if covered and not needs_perfs:
+        if covered and not needs_perfs and not _is_recent(match_date):
             if match_date not in skipped_dates:
                 print(f"  Skipping {match_date} (already synced)")
                 skipped_dates.add(match_date)
@@ -768,9 +778,9 @@ def sync():
                         changed = True
                     played_internal_ids.add(ch_to_internal.get(ch_pid, guest_id))
 
-        # Build attendance only for new (not previously synced) sessions.
-        # Use actual_wid (the real DB week ID) so records link to the correct week row.
-        if not covered:
+        # Build attendance for new sessions, AND re-run reconciliation for recent
+        # covered sessions so newly-created guests get a 'played' record.
+        if not covered or _is_recent(match_date):
             eff_week_id        = actual_wid  # honours pre-created week IDs (e.g. W_2026_05_17)
             existing_att_ids   = {r["id"] for r in attendance}
             active_player_ids  = {p["id"] for p in players if p.get("status") == "active"}
