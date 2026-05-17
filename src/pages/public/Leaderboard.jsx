@@ -98,21 +98,34 @@ export default function Leaderboard() {
 
   // Awards tab
   const MIN_BAT = 40, MIN_BOWL = 30
-  const topPotm      = [...allStats].filter(s => s.potm_count > 0).sort((a,b) => b.potm_count - a.potm_count)[0]
-  const topBba       = [...allStats].filter(s => s.bba_count > 0).sort((a,b) => b.bba_count - a.bba_count)[0]
-  const topBbo       = [...allStats].filter(s => s.bbo_count > 0).sort((a,b) => b.bbo_count - a.bbo_count)[0]
-  const sixMachine   = [...allStats].filter(s => s.sixes > 0).sort((a,b) => b.sixes - a.sixes)[0]
-  const wicketWiz    = [...allStats].filter(s => s.wickets > 0).sort((a,b) => b.wickets - a.wickets)[0]
-  const lightningBat = [...allStats].filter(s => s.balls_faced >= MIN_BAT).sort((a,b) => (b.runs/b.balls_faced)-(a.runs/a.balls_faced))[0]
-  const economyKing  = [...allStats].filter(s => s.balls_bowled >= MIN_BOWL).sort((a,b) => (a.runs_given/a.balls_bowled)-(b.runs_given/b.balls_bowled))[0]
-  const maidenMaster = [...allStats].filter(s => s.maidens > 0).sort((a,b) => b.maidens - a.maidens)[0]
-  const catchKing    = [...allStats].filter(s => (s.catches+s.run_outs+s.stumpings) > 0).sort((a,b) => (b.catches+b.run_outs+b.stumpings)-(a.catches+a.run_outs+a.stumpings))[0]
-  const workhorse    = [...allStats].filter(s => s.balls_bowled > 0).sort((a,b) => b.balls_bowled - a.balls_bowled)[0]
-  const duckKing     = [...allStats].filter(s => s.ducks > 0).sort((a,b) => b.ducks - a.ducks)[0]
-  const slowcoach    = [...allStats].filter(s => s.balls_faced >= MIN_BAT).sort((a,b) => (a.runs/a.balls_faced)-(b.runs/b.balls_faced))[0]
-  const wideMan      = [...allStats].filter(s => s.wides > 0).sort((a,b) => b.wides - a.wides)[0]
-  const noBallKing   = [...allStats].filter(s => s.no_balls > 0).sort((a,b) => b.no_balls - a.no_balls)[0]
-  const costlyBowler = [...allStats].filter(s => s.balls_bowled >= MIN_BOWL).sort((a,b) => (b.runs_given/b.balls_bowled)-(a.runs_given/a.balls_bowled))[0]
+  // Returns all players tied at the top value for a given sort key.
+  // valueFn must match the sort direction (descending for counts, ascending for economy).
+  const _tg = (sorted, fn) => {
+    if (!sorted.length) return []
+    const best = fn(sorted[0])
+    return sorted.filter(s => fn(s) === best)
+  }
+  // For float rates, round to the same precision used for display (1 decimal place)
+  const _tgf = (sorted, fn) => {
+    if (!sorted.length) return []
+    const best = Math.round(fn(sorted[0]) * 10)
+    return sorted.filter(s => Math.round(fn(s) * 10) === best)
+  }
+  const topPotm      = _tg([...allStats].filter(s => s.potm_count > 0).sort((a,b) => b.potm_count - a.potm_count), s => s.potm_count)
+  const topBba       = _tg([...allStats].filter(s => s.bba_count > 0).sort((a,b) => b.bba_count - a.bba_count), s => s.bba_count)
+  const topBbo       = _tg([...allStats].filter(s => s.bbo_count > 0).sort((a,b) => b.bbo_count - a.bbo_count), s => s.bbo_count)
+  const sixMachine   = _tg([...allStats].filter(s => s.sixes > 0).sort((a,b) => b.sixes - a.sixes), s => s.sixes)
+  const wicketWiz    = _tg([...allStats].filter(s => s.wickets > 0).sort((a,b) => b.wickets - a.wickets), s => s.wickets)
+  const lightningBat = _tgf([...allStats].filter(s => s.balls_faced >= MIN_BAT).sort((a,b) => (b.runs/b.balls_faced)-(a.runs/a.balls_faced)), s => s.runs/s.balls_faced)
+  const economyKing  = _tgf([...allStats].filter(s => s.balls_bowled >= MIN_BOWL).sort((a,b) => (a.runs_given/a.balls_bowled)-(b.runs_given/b.balls_bowled)), s => s.runs_given/s.balls_bowled)
+  const maidenMaster = _tg([...allStats].filter(s => s.maidens > 0).sort((a,b) => b.maidens - a.maidens), s => s.maidens)
+  const catchKing    = _tg([...allStats].filter(s => (s.catches+s.run_outs+s.stumpings) > 0).sort((a,b) => (b.catches+b.run_outs+b.stumpings)-(a.catches+a.run_outs+a.stumpings)), s => s.catches+s.run_outs+s.stumpings)
+  const workhorse    = _tg([...allStats].filter(s => s.balls_bowled > 0).sort((a,b) => b.balls_bowled - a.balls_bowled), s => s.balls_bowled)
+  const duckKing     = _tg([...allStats].filter(s => s.ducks > 0).sort((a,b) => b.ducks - a.ducks), s => s.ducks)
+  const slowcoach    = _tgf([...allStats].filter(s => s.balls_faced >= MIN_BAT).sort((a,b) => (a.runs/a.balls_faced)-(b.runs/b.balls_faced)), s => s.runs/s.balls_faced)
+  const wideMan      = _tg([...allStats].filter(s => s.wides > 0).sort((a,b) => b.wides - a.wides), s => s.wides)
+  const noBallKing   = _tg([...allStats].filter(s => s.no_balls > 0).sort((a,b) => b.no_balls - a.no_balls), s => s.no_balls)
+  const costlyBowler = _tgf([...allStats].filter(s => s.balls_bowled >= MIN_BOWL).sort((a,b) => (b.runs_given/b.balls_bowled)-(a.runs_given/a.balls_bowled)), s => s.runs_given/s.balls_bowled)
 
   const tabs = [
     { id: 'batting', label: 'Batting' },
@@ -302,14 +315,14 @@ export default function Leaderboard() {
       )}
 
       {!perfLoading && !isEmpty && tab === 'awards' && (() => {
-        function ACard({ emoji, title, pid, stat, unit, variant = 'default' }) {
+        function ACard({ emoji, title, group = [], stat, unit, variant = 'default' }) {
           const bg = variant === 'gold'  ? 'bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200'
                    : variant === 'spoon' ? 'bg-slate-50 border-slate-200'
                    : 'bg-gray-50 border-gray-100'
           const sc = variant === 'gold'  ? 'text-amber-600'
                    : variant === 'spoon' ? 'text-slate-400'
                    : 'text-green-700'
-          if (!pid) return (
+          if (!group.length) return (
             <div className={`rounded-xl border p-3 opacity-40 ${bg}`}>
               <div className="text-xl mb-1 grayscale">{emoji}</div>
               <div className="text-xs text-gray-400 font-medium mb-0.5">{title}</div>
@@ -318,15 +331,19 @@ export default function Leaderboard() {
               <div className="text-xs text-gray-300 mt-0.5">{unit}</div>
             </div>
           )
-          return (
-            <Link to={`/player/${pid}`} className={`rounded-xl border p-3 hover:scale-[1.02] hover:shadow-md transition-all duration-150 block ${bg}`}>
+          const names = group.map(s => playerMap[s.player_id]?.display_name ?? '—').join(', ')
+          const inner = (
+            <>
               <div className="text-xl mb-1">{emoji}</div>
               <div className="text-xs text-gray-500 font-medium mb-0.5">{title}</div>
-              <div className="font-semibold text-gray-900 text-sm truncate">{playerMap[pid]?.display_name ?? '—'}</div>
+              <div className="font-semibold text-gray-900 text-sm leading-snug" title={names}>{names}</div>
               <div className={`text-xl font-black tabular-nums leading-none mt-1 ${sc}`}>{stat}</div>
               <div className="text-xs text-gray-400 mt-0.5">{unit}</div>
-            </Link>
+            </>
           )
+          return group.length === 1
+            ? <Link to={`/player/${group[0].player_id}`} className={`rounded-xl border p-3 hover:scale-[1.02] hover:shadow-md transition-all duration-150 block ${bg}`}>{inner}</Link>
+            : <div className={`rounded-xl border p-3 ${bg}`}>{inner}</div>
         }
         return (
           <div className="space-y-4">
@@ -336,13 +353,13 @@ export default function Leaderboard() {
                 <h2 className="font-black text-white text-sm uppercase tracking-widest">Season Champions 🏆</h2>
               </div>
               <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <ACard emoji="🌟" title="Season MVP"       pid={mvps[0]?.player_id}    stat={mvps[0]?.mvp_score.toFixed(1)} unit="pts"     variant="gold" />
-                <ACard emoji="🏅" title="Most POTM Wins"  pid={topPotm?.player_id}    stat={topPotm?.potm_count}           unit="times"   variant="gold" />
-                <ACard emoji="🏏" title="Top Scorer"      pid={batters[0]?.player_id} stat={batters[0]?.runs}              unit="runs"    variant="gold" />
-                <ACard emoji="🎯" title="Wicket Wizard"   pid={wicketWiz?.player_id}  stat={wicketWiz?.wickets}            unit="wickets" variant="gold" />
-                <ACard emoji="💥" title="Six Machine"     pid={sixMachine?.player_id} stat={sixMachine?.sixes}             unit="sixes"   variant="gold" />
-                <ACard emoji="🦇" title="Best Batsman"    pid={topBba?.player_id}     stat={topBba?.bba_count}             unit="awards"  variant="gold" />
-                <ACard emoji="🎳" title="Best Bowler"     pid={topBbo?.player_id}     stat={topBbo?.bbo_count}             unit="awards"  variant="gold" />
+                <ACard emoji="🌟" title="Season MVP"       group={mvps.filter(s => s.mvp_score === mvps[0]?.mvp_score)}  stat={mvps[0]?.mvp_score.toFixed(1)} unit="pts"     variant="gold" />
+                <ACard emoji="🏅" title="Most POTM Wins"  group={topPotm}   stat={topPotm[0]?.potm_count}  unit="times"   variant="gold" />
+                <ACard emoji="🏏" title="Top Scorer"      group={batters.filter(s => s.runs === batters[0]?.runs)}        stat={batters[0]?.runs}              unit="runs"    variant="gold" />
+                <ACard emoji="🎯" title="Wicket Wizard"   group={wicketWiz}  stat={wicketWiz[0]?.wickets}   unit="wickets" variant="gold" />
+                <ACard emoji="💥" title="Six Machine"     group={sixMachine} stat={sixMachine[0]?.sixes}    unit="sixes"   variant="gold" />
+                <ACard emoji="🦇" title="Best Batsman"    group={topBba}     stat={topBba[0]?.bba_count}    unit="awards"  variant="gold" />
+                <ACard emoji="🎳" title="Best Bowler"     group={topBbo}     stat={topBbo[0]?.bbo_count}    unit="awards"  variant="gold" />
               </div>
             </div>
 
@@ -352,11 +369,11 @@ export default function Leaderboard() {
                 <h2 className="font-black text-white text-sm uppercase tracking-widest">Skill Awards ⚡</h2>
               </div>
               <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <ACard emoji="⚡" title="Lightning Bat"  pid={lightningBat?.player_id}  stat={lightningBat ? (lightningBat.runs/lightningBat.balls_faced*100).toFixed(1) : null} unit={`SR · min ${MIN_BAT} balls`} />
-                <ACard emoji="🔒" title="Economy King"   pid={economyKing?.player_id}   stat={economyKing ? economy(economyKing.runs_given, economyKing.balls_bowled) : null}    unit={`econ · min ${MIN_BOWL} balls`} />
-                <ACard emoji="🎖️" title="Maiden Master" pid={maidenMaster?.player_id}  stat={maidenMaster?.maidens}         unit="maidens" />
-                <ACard emoji="🧤" title="Catch King"     pid={catchKing?.player_id}     stat={catchKing ? catchKing.catches + catchKing.run_outs + catchKing.stumpings : null} unit="dismissals" />
-                <ACard emoji="🏃" title="Workhorse"      pid={workhorse?.player_id}     stat={workhorse ? overs(workhorse.balls_bowled) : null}                                unit="overs" />
+                <ACard emoji="⚡" title="Lightning Bat"  group={lightningBat}  stat={lightningBat[0] ? (lightningBat[0].runs/lightningBat[0].balls_faced*100).toFixed(1) : null} unit={`SR · min ${MIN_BAT} balls`} />
+                <ACard emoji="🔒" title="Economy King"   group={economyKing}   stat={economyKing[0] ? economy(economyKing[0].runs_given, economyKing[0].balls_bowled) : null}    unit={`econ · min ${MIN_BOWL} balls`} />
+                <ACard emoji="🎖️" title="Maiden Master" group={maidenMaster}  stat={maidenMaster[0]?.maidens}                                                                   unit="maidens" />
+                <ACard emoji="🧤" title="Catch King"     group={catchKing}     stat={catchKing[0] ? catchKing[0].catches + catchKing[0].run_outs + catchKing[0].stumpings : null} unit="dismissals" />
+                <ACard emoji="🏃" title="Workhorse"      group={workhorse}     stat={workhorse[0] ? overs(workhorse[0].balls_bowled) : null}                                     unit="overs" />
               </div>
             </div>
 
@@ -367,11 +384,11 @@ export default function Leaderboard() {
                 <p className="text-slate-300 text-xs mt-0.5">The not-so-glorious records…</p>
               </div>
               <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <ACard emoji="🦆" title="Duck King"      pid={duckKing?.player_id}      stat={duckKing?.ducks}             unit="golden ducks"             variant="spoon" />
-                <ACard emoji="🐢" title="Slowcoach"      pid={slowcoach?.player_id}     stat={slowcoach ? (slowcoach.runs/slowcoach.balls_faced*100).toFixed(1) : null} unit={`SR · min ${MIN_BAT} balls`} variant="spoon" />
-                <ACard emoji="💨" title="Wide Man"       pid={wideMan?.player_id}       stat={wideMan?.wides ?? '—'}       unit="wides"                    variant="spoon" />
-                <ACard emoji="⚾" title="No-Ball King"   pid={noBallKing?.player_id}    stat={noBallKing?.no_balls ?? '—'} unit="no balls"                 variant="spoon" />
-                <ACard emoji="💸" title="Costly Bowler"  pid={costlyBowler?.player_id}  stat={costlyBowler ? economy(costlyBowler.runs_given, costlyBowler.balls_bowled) : null} unit={`econ · min ${MIN_BOWL} balls`} variant="spoon" />
+                <ACard emoji="🦆" title="Duck King"      group={duckKing}     stat={duckKing[0]?.ducks}              unit="golden ducks"              variant="spoon" />
+                <ACard emoji="🐢" title="Slowcoach"      group={slowcoach}    stat={slowcoach[0] ? (slowcoach[0].runs/slowcoach[0].balls_faced*100).toFixed(1) : null} unit={`SR · min ${MIN_BAT} balls`} variant="spoon" />
+                <ACard emoji="💨" title="Wide Man"       group={wideMan}      stat={wideMan[0]?.wides ?? '—'}        unit="wides"                     variant="spoon" />
+                <ACard emoji="⚾" title="No-Ball King"   group={noBallKing}   stat={noBallKing[0]?.no_balls ?? '—'}  unit="no balls"                  variant="spoon" />
+                <ACard emoji="💸" title="Costly Bowler"  group={costlyBowler} stat={costlyBowler[0] ? economy(costlyBowler[0].runs_given, costlyBowler[0].balls_bowled) : null} unit={`econ · min ${MIN_BOWL} balls`} variant="spoon" />
               </div>
             </div>
           </div>
