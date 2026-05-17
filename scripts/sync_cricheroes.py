@@ -483,6 +483,16 @@ def sync():
     mappings     = mapping_data.get('player_mappings', [])
     unmatched    = mapping_data.get('unmatched', [])
 
+    # Deduplicate mappings: for each CricHeroes player ID, keep the confirmed entry
+    # if one exists, otherwise keep the last entry. Prevents UI showing the same
+    # player multiple times when the sync runs repeatedly.
+    _seen: dict = {}
+    for m_ in mappings:
+        pid = m_["cricheroes_player_id"]
+        if pid not in _seen or m_.get("confirmed"):
+            _seen[pid] = m_
+    mappings = list(_seen.values())
+
     active_tournament_id = config["active_tournament_id"]
     match_fee            = config.get("default_match_fee", 500)
     tournament_url       = config.get("cricheroes_tournament_url", "")
