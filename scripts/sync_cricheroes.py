@@ -483,6 +483,16 @@ def sync():
     mappings     = mapping_data.get('player_mappings', [])
     unmatched    = mapping_data.get('unmatched', [])
 
+    # Deduplicate mappings: for each CricHeroes player ID, keep the confirmed entry
+    # if one exists, otherwise keep the last entry. Prevents UI showing the same
+    # player multiple times when the sync runs repeatedly.
+    _seen: dict = {}
+    for m_ in mappings:
+        pid = m_["cricheroes_player_id"]
+        if pid not in _seen or m_.get("confirmed"):
+            _seen[pid] = m_
+    mappings = list(_seen.values())
+
     active_tournament_id = config["active_tournament_id"]
     match_fee            = config.get("default_match_fee", 500)
     tournament_url       = config.get("cricheroes_tournament_url", "")
@@ -547,7 +557,17 @@ def sync():
     all_matches = get_tournament_matches(tournament_id)
 
     # Group by session date.
-    # Include a session if: (a) it's new, OR (b) it's covered but missing performances.
+    # Include a session if: (a) it's new, OR (b) covered but missing performances,
+    # OR (c) covered but recent (last 7 days) — so new guests/mappings are resolved.
+    from datetime import date as _dt_date
+    _today = _dt_date.today()
+
+    def _is_recent(d):
+        try:
+            return (_today - _dt_date.fromisoformat(d)).days <= 7
+        except Exception:
+            return False
+
     sessions = {}
     skipped_dates = set()
     for match in all_matches:
@@ -557,7 +577,7 @@ def sync():
         covered = date_already_covered(match_date)
         actual_wid = resolve_week_id(match_date)
         needs_perfs = existing_perf_week_ids is not None and actual_wid not in existing_perf_week_ids
-        if covered and not needs_perfs:
+        if covered and not needs_perfs and not _is_recent(match_date):
             if match_date not in skipped_dates:
                 print(f"  Skipping {match_date} (already synced)")
                 skipped_dates.add(match_date)
@@ -616,6 +636,7 @@ def sync():
         print(f"  Total unique players this session: {len(all_session_ch_players)}")
 
         if not covered and week_id not in existing_week_ids:
+            # Brand-new session — create the week row
             week_row = {
                 "week_id":              week_id,
                 "tournament_id":        active_tournament_id,
@@ -637,12 +658,42 @@ def sync():
             existing_week_ids.add(week_id)
             existing_session_dates.add(match_date)
             changed = True
+        elif not covered:
+            # Week already exists (e.g. manually pre-created as 'scheduled').
+            # Promote it to completed and fill in CricHeroes match IDs so the
+            # app shows it and its attendance records become visible.
+            existing_week = next((w for w in weeks if w["week_id"] == actual_wid), None)
+            if not existing_week and actual_wid != week_id:
+                existing_week = next((w for w in weeks if w["week_id"] == week_id), None)
+            if not existing_week:
+                print(f"  WARNING: no existing week found for {match_date} (tried {actual_wid}, {week_id})")
+            if existing_week and (
+                existing_week.get("status") != "completed"
+                or not existing_week.get("cricheroes_match_id")
+            ):
+                updated = dict(existing_week)
+                updated.update({
+                    "status":               "completed",
+                    "cricheroes_match_id":  all_match_ids[0],
+                    "cricheroes_match_ids": all_match_ids,
+                    "team_a":               team_a or existing_week.get("team_a", ""),
+                    "team_b":               team_b or existing_week.get("team_b", ""),
+                    "result":               _build_result(session_matches) or existing_week.get("result", ""),
+                    "winning_team":         _session_winner(session_matches) or existing_week.get("winning_team", ""),
+                    "players_count":        len(all_session_ch_players),
+                })
+                new_weeks.append(updated)
+                existing_session_dates.add(match_date)
+                changed = True
+                print(f"  Promoted existing week {week_id} → completed")
 
         # Map CricHeroes players -> internal IDs
         played_internal_ids = set()
+        print(f"  Mapping {len(all_session_ch_players)} CH players (covered={covered}, recent={_is_recent(match_date)})")
         for ch_pid, ch_name in all_session_ch_players.items():
             internal_id = ch_to_internal.get(ch_pid)
             if internal_id:
+                print(f"  Already mapped: '{ch_name}' (CH:{ch_pid}) -> {internal_id}")
                 played_internal_ids.add(internal_id)
             else:
                 active_players = [p for p in players if p["status"] == "active"]
@@ -661,15 +712,40 @@ def sync():
                     played_internal_ids.add(best_id)
                     changed = True
                 elif confidence >= 0.5:
-                    print(f"  Low-confidence: '{ch_name}' (CH:{ch_pid}) -> {best_id} (conf={confidence}) — needs review")
+                    # Not confident enough to auto-confirm — save the suggestion for
+                    # admin review AND create a guest so the player appears in the roster
+                    # and is marked as played. Admin can confirm/merge later.
+                    print(f"  Low-confidence: '{ch_name}' (CH:{ch_pid}) -> {best_id} (conf={confidence:.2f}) — creating guest, needs review")
                     mappings.append({
                         "cricheroes_player_id": ch_pid,
                         "cricheroes_name":      ch_name,
-                        "player_id":            best_id,
+                        "player_id":            best_id,   # suggested match for admin
                         "match_confidence":     confidence,
                         "match_method":         "auto_fuzzy",
                         "confirmed":            False,
                     })
+                    existing_ids = {p["id"] for p in players} | {p["id"] for p in new_players}
+                    guest_id = f"PLY_G_{ch_pid}"
+                    if guest_id not in existing_ids:
+                        print(f"  Auto-creating guest for unconfirmed player: '{ch_name}' -> {guest_id}")
+                        guest_row = {
+                            "id":                    guest_id,
+                            "display_name":          ch_name,
+                            "type":                  "guest",
+                            "status":                "active",
+                            "joined_date":           match_date,
+                            "phone":                 "",
+                            "github_username":       "",
+                            "cricheroes_player_id":  ch_pid,
+                            "cricheroes_name":       ch_name,
+                            "guest_fee_mode":        "free",
+                            "sponsored_by_player_id": None,
+                            "notes":                 f"Auto-created (low-confidence match to {best_id}, conf={confidence:.2f})",
+                        }
+                        new_players.append(guest_row)
+                        players.append(guest_row)
+                        ch_to_internal[ch_pid] = guest_id
+                    played_internal_ids.add(ch_to_internal.get(ch_pid, guest_id))
                     changed = True
                 else:
                     existing_ids = {p["id"] for p in players} | {p["id"] for p in new_players}
@@ -704,25 +780,43 @@ def sync():
                         changed = True
                     played_internal_ids.add(ch_to_internal.get(ch_pid, guest_id))
 
-        # Build attendance only for new (not previously synced) sessions
-        if not covered:
+        # Build attendance for new sessions, AND re-run reconciliation for recent
+        # covered sessions so newly-created guests get a 'played' record.
+        if not covered or _is_recent(match_date):
+            eff_week_id        = actual_wid  # honours pre-created week IDs (e.g. W_2026_05_17)
             existing_att_ids   = {r["id"] for r in attendance}
             active_player_ids  = {p["id"] for p in players if p.get("status") == "active"}
             active_player_ids |= {p["id"] for p in new_players if p.get("status") == "active"}
 
+            att_by_id = {r["id"]: r for r in attendance}
             for pid in active_player_ids:
-                att_id = f"ATT_{pid}_{week_id}"
+                att_id = f"ATT_{pid}_{eff_week_id}"
+                status = "played" if pid in played_internal_ids else "absent"
                 if att_id not in existing_att_ids:
                     new_attendance.append({
                         "id":            att_id,
                         "player_id":     pid,
-                        "week_id":       week_id,
+                        "week_id":       eff_week_id,
                         "tournament_id": active_tournament_id,
-                        "status":        "played" if pid in played_internal_ids else "absent",
+                        "status":        status,
                         "source":        "cricheroes_sync",
                         "fee_deducted":  False,
                     })
                     changed = True
+                elif status == "played":
+                    # Record exists — update absent→played if it was sync-written and is now wrong
+                    existing_rec = att_by_id.get(att_id)
+                    if existing_rec and existing_rec.get("status") == "absent" and existing_rec.get("source") == "cricheroes_sync":
+                        new_attendance.append({
+                            "id":            att_id,
+                            "player_id":     pid,
+                            "week_id":       eff_week_id,
+                            "tournament_id": active_tournament_id,
+                            "status":        "played",
+                            "source":        "cricheroes_sync",
+                            "fee_deducted":  False,
+                        })
+                        changed = True
 
         # Extract and aggregate batting/bowling stats for this session
         if need_performances and existing_perf_week_ids is not None:
@@ -803,15 +897,21 @@ def sync():
 
     if new_players:
         sb_upsert('players', new_players)
+        print(f"  Saved {len(new_players)} player(s)")
 
     if new_weeks:
         sb_upsert('weeks', new_weeks)
+        print(f"  Saved {len(new_weeks)} week(s): {[w['week_id'] for w in new_weeks]}")
 
     if new_attendance:
         sb_upsert('attendance', new_attendance)
+        played  = sum(1 for a in new_attendance if a['status'] == 'played')
+        absent  = sum(1 for a in new_attendance if a['status'] == 'absent')
+        print(f"  Saved {len(new_attendance)} attendance record(s) — {played} played, {absent} absent")
 
     if new_performances:
         sb_upsert('match_performances', new_performances)
+        print(f"  Saved {len(new_performances)} performance record(s)")
 
     # Always update mapping so last_sync timestamp is current
     updated_mapping = {

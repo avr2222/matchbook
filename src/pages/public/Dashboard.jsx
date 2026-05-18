@@ -122,14 +122,20 @@ export default function Dashboard() {
     s.bba_count    += perf.bba_count    || 0
     s.bbo_count    += perf.bbo_count    || 0
   }
-  const _allS     = Object.values(_sMap)
-  const topBatter = _allS.filter(s => s.runs > 0).sort((a, b) => b.runs - a.runs)[0]
-  const topBowler = _allS.filter(s => s.wickets > 0).sort((a, b) => b.wickets - a.wickets)[0]
-  const topPotm   = _allS.filter(s => s.potm_count > 0).sort((a, b) => b.potm_count - a.potm_count)[0]
-  const topBba    = _allS.filter(s => s.bba_count > 0).sort((a, b) => b.bba_count - a.bba_count)[0]
-  const topBbo    = _allS.filter(s => s.bbo_count > 0).sort((a, b) => b.bbo_count - a.bbo_count)[0]
+  const _allS = Object.values(_sMap)
+  const _topGroup = (arr, fn) => { const top = fn(arr[0]); return arr.filter(s => fn(s) === top) }
+  const topBatterArr = _allS.filter(s => s.runs > 0).sort((a, b) => b.runs - a.runs)
+  const topBowlerArr = _allS.filter(s => s.wickets > 0).sort((a, b) => b.wickets - a.wickets)
+  const topPotmArr   = _allS.filter(s => s.potm_count > 0).sort((a, b) => b.potm_count - a.potm_count)
+  const topBbaArr    = _allS.filter(s => s.bba_count > 0).sort((a, b) => b.bba_count - a.bba_count)
+  const topBboArr    = _allS.filter(s => s.bbo_count > 0).sort((a, b) => b.bbo_count - a.bbo_count)
+  const topBatter = topBatterArr.length ? _topGroup(topBatterArr, s => s.runs) : []
+  const topBowler = topBowlerArr.length ? _topGroup(topBowlerArr, s => s.wickets) : []
+  const topPotm   = topPotmArr.length   ? _topGroup(topPotmArr, s => s.potm_count) : []
+  const topBba    = topBbaArr.length    ? _topGroup(topBbaArr, s => s.bba_count) : []
+  const topBbo    = topBboArr.length    ? _topGroup(topBboArr, s => s.bbo_count) : []
   const WKT_PTS   = 1.2
-  const topMvp    = _allS
+  const _mvpSorted = _allS
     .filter(s => s.match_count >= 5)
     .map(s => ({
       ...s,
@@ -141,7 +147,8 @@ export default function Dashboard() {
         + s.run_outs * WKT_PTS
       ).toFixed(1)),
     }))
-    .filter(s => s.score > 0).sort((a, b) => b.score - a.score)[0]
+    .filter(s => s.score > 0).sort((a, b) => b.score - a.score)
+  const topMvp = _mvpSorted.length ? _topGroup(_mvpSorted, s => s.score) : []
   const perfPlayerMap = Object.fromEntries((pData?.players ?? []).map(p => [p.id, p]))
 
   const EXPENSE_LABELS = {
@@ -305,7 +312,7 @@ export default function Dashboard() {
       </div>
 
       {/* Season Leaders */}
-      {(topBatter || topBowler || topMvp || topPotm || topBba || topBbo) && (
+      {(topBatter.length || topBowler.length || topMvp.length || topPotm.length || topBba.length || topBbo.length) ? (
         <div className="card mb-6 overflow-hidden p-0">
           <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
             <h2 className="font-bold text-gray-900">Season Leaders</h2>
@@ -315,30 +322,34 @@ export default function Dashboard() {
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3">
             {[
-              { s: topMvp,    emoji: '🌟', label: 'Season MVP',    val: topMvp?.score,         unit: 'pts',    color: 'text-amber-500',   hover: 'hover:bg-amber-50'   },
-              { s: topPotm,   emoji: '🏅', label: 'Most POTM',     val: topPotm?.potm_count,   unit: 'times',  color: 'text-yellow-600',  hover: 'hover:bg-yellow-50'  },
-              { s: topBatter, emoji: '🏏', label: 'Top Scorer',    val: topBatter?.runs,       unit: 'runs',   color: 'text-green-600',   hover: 'hover:bg-green-50'   },
-              { s: topBowler, emoji: '🎯', label: 'Wicket Wizard', val: topBowler?.wickets,    unit: 'wkts',   color: 'text-purple-600',  hover: 'hover:bg-purple-50'  },
-              { s: topBba,    emoji: '🦇', label: 'Best Batsman',  val: topBba?.bba_count,     unit: 'awards', color: 'text-blue-600',    hover: 'hover:bg-blue-50'    },
-              { s: topBbo,    emoji: '🎳', label: 'Best Bowler',   val: topBbo?.bbo_count,     unit: 'awards', color: 'text-rose-600',    hover: 'hover:bg-rose-50'    },
-            ].map(({ s, emoji, label, val, unit, color, hover }, i) => s ? (
-              <Link
-                key={label}
-                to={`/player/${s.player_id}`}
-                className={`p-4 ${hover} transition-colors ${i % 3 !== 2 ? 'sm:border-r' : ''} ${i % 2 !== 1 ? 'border-r sm:border-r-0' : ''} ${i < 3 ? 'border-b' : ''} border-gray-100`}
-              >
-                <div className="text-xl mb-1.5">{emoji}</div>
-                <div className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">{label}</div>
-                <div className="font-bold text-gray-900 text-sm truncate">{perfPlayerMap[s.player_id]?.display_name ?? '—'}</div>
-                <div className={`text-2xl font-black tabular-nums leading-none mt-1 ${color}`}>
-                  {typeof val === 'number' ? (Number.isInteger(val) ? val : val.toFixed(1)) : '—'}
-                </div>
-                <div className="text-xs text-gray-400 mt-0.5">{unit}</div>
-              </Link>
-            ) : null)}
+              { ss: topMvp,    emoji: '🌟', label: 'Season MVP',    val: topMvp[0]?.score,        unit: 'pts',    color: 'text-amber-500',   hover: 'hover:bg-amber-50'   },
+              { ss: topPotm,   emoji: '🏅', label: 'Most POTM',     val: topPotm[0]?.potm_count,  unit: 'times',  color: 'text-yellow-600',  hover: 'hover:bg-yellow-50'  },
+              { ss: topBatter, emoji: '🏏', label: 'Top Scorer',    val: topBatter[0]?.runs,      unit: 'runs',   color: 'text-green-600',   hover: 'hover:bg-green-50'   },
+              { ss: topBowler, emoji: '🎯', label: 'Wicket Wizard', val: topBowler[0]?.wickets,   unit: 'wkts',   color: 'text-purple-600',  hover: 'hover:bg-purple-50'  },
+              { ss: topBba,    emoji: '🦇', label: 'Best Batsman',  val: topBba[0]?.bba_count,    unit: 'awards', color: 'text-blue-600',    hover: 'hover:bg-blue-50'    },
+              { ss: topBbo,    emoji: '🎳', label: 'Best Bowler',   val: topBbo[0]?.bbo_count,    unit: 'awards', color: 'text-rose-600',    hover: 'hover:bg-rose-50'    },
+            ].map(({ ss, emoji, label, val, unit, color, hover }, i) => {
+              if (!ss.length) return null
+              const cellClass = `p-4 ${hover} transition-colors ${i % 3 !== 2 ? 'sm:border-r' : ''} ${i % 2 !== 1 ? 'border-r sm:border-r-0' : ''} ${i < 3 ? 'border-b' : ''} border-gray-100`
+              const names = ss.map(s => perfPlayerMap[s.player_id]?.display_name ?? '—').join(', ')
+              const inner = (
+                <>
+                  <div className="text-xl mb-1.5">{emoji}</div>
+                  <div className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">{label}</div>
+                  <div className="font-bold text-gray-900 text-sm leading-snug" title={names}>{names}</div>
+                  <div className={`text-2xl font-black tabular-nums leading-none mt-1 ${color}`}>
+                    {typeof val === 'number' ? (Number.isInteger(val) ? val : val.toFixed(1)) : '—'}
+                  </div>
+                  <div className="text-xs text-gray-400 mt-0.5">{unit}</div>
+                </>
+              )
+              return ss.length === 1
+                ? <Link key={label} to={`/player/${ss[0].player_id}`} className={cellClass}>{inner}</Link>
+                : <div key={label} className={cellClass}>{inner}</div>
+            })}
           </div>
         </div>
-      )}
+      ) : null}
 
       {/* Balance health */}
       <div className="card mb-6">
@@ -515,6 +526,7 @@ export default function Dashboard() {
         players={allActive}
         records={records}
         perfRows={detail ? (perfData?.performances ?? []).filter(p => p.week_id === detail) : []}
+        expenses={allExpenses}
         onClose={() => setDetail(null)}
       />
     </div>
