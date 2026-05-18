@@ -66,7 +66,13 @@ export default function Dashboard() {
     }
   }
   const matchLeaderName = Object.entries(matchWinMap).sort((a, b) => b[1] - a[1])[0]?.[0]
-  const _abbr = name => name ? name.split(/[\s\-(]/)[0].slice(0, 3).toUpperCase() : '?'
+  const _abbr = name => {
+    if (!name) return '?'
+    const paren = name.match(/\(([A-Z0-9]+)\)/)
+    if (paren) return paren[1]
+    const initials = name.split(/\s+/).filter(Boolean).map(w => w[0]).join('').toUpperCase()
+    return initials.slice(0, 4) || name.slice(0, 3).toUpperCase()
+  }
   const _teamColorMap = {
     ..._t0 ? { [_t0]: 'bg-amber-400 text-black' } : {},
     ..._t1 ? { [_t1]: 'bg-sky-400 text-white'   } : {},
@@ -294,39 +300,44 @@ export default function Dashboard() {
             <div className="px-4 pt-4 pb-3">
               <p className="text-white/60 text-[10px] font-bold uppercase tracking-[0.15em] mb-4">⚔️ Series Standing</p>
               <div className="flex gap-3">
-                {seriesTeams.map(([name, wins], i) => (
-                  <div key={name} className={`flex-1 rounded-xl px-3 py-2.5 ${
-                    i === 0
-                      ? 'bg-white/15 border border-white/25 shadow-lg'
-                      : 'bg-white/5 border border-white/10'
-                  }`}>
-                    <div className={`tabular-nums font-black leading-none ${
-                      i === 0 ? 'text-6xl text-amber-300' : 'text-4xl text-white/40'
-                    }`}>{wins}</div>
-                    <div className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${
-                      i === 0 ? 'text-amber-300/60' : 'text-white/25'
-                    }`}>weeks</div>
-                    <div className={`text-xs mt-1.5 truncate font-semibold leading-tight ${
-                      i === 0 ? 'text-white/90' : 'text-white/40'
-                    }`} title={name}>{name}</div>
-                    {matchWinMap[name] > 0 && (
-                      <div className={`flex items-center gap-1 text-xs mt-0.5 tabular-nums ${
-                        matchLeaderName === name && i !== 0
-                          ? 'text-cyan-300 font-bold'
-                          : i === 0 ? 'text-white/55' : 'text-white/25'
-                      }`}>
-                        {matchLeaderName === name && i !== 0 && <span>📊</span>}
-                        {matchWinMap[name]} matches
-                        {matchLeaderName === name && i !== 0 && <span className="text-[9px] text-cyan-400/70 ml-0.5">lead</span>}
+                {seriesTeams.map(([name, wins], i) => {
+                  const isMatchLeader = matchLeaderName === name
+                  const mWins = matchWinMap[name] || 0
+                  return (
+                    <div key={name} className={`flex-1 rounded-xl px-3 py-2.5 ${
+                      i === 0 ? 'bg-white/15 border border-white/25 shadow-lg' : 'bg-white/5 border border-white/10'
+                    }`}>
+                      <div className={`text-[10px] font-bold truncate leading-snug ${i === 0 ? 'text-white/65' : 'text-white/25'}`} title={name}>
+                        {name}
                       </div>
-                    )}
-                  </div>
-                ))}
+                      {mWins > 0 && (
+                        <>
+                          <div className={`tabular-nums font-black leading-none mt-1.5 ${
+                            isMatchLeader
+                              ? (i === 0 ? 'text-5xl text-amber-300' : 'text-5xl text-cyan-300')
+                              : (i === 0 ? 'text-4xl text-white/55' : 'text-3xl text-white/30')
+                          }`}>{mWins}</div>
+                          <div className={`text-[10px] font-bold uppercase tracking-widest ${
+                            isMatchLeader ? (i === 0 ? 'text-amber-300/55' : 'text-cyan-400/55') : 'text-white/20'
+                          }`}>matches</div>
+                        </>
+                      )}
+                      <div className="mt-2 flex items-baseline gap-1">
+                        <span className={`text-xl font-black tabular-nums leading-none ${i === 0 ? 'text-white/55' : 'text-white/25'}`}>{wins}</span>
+                        <span className={`text-[9px] font-bold uppercase tracking-wide ${i === 0 ? 'text-white/30' : 'text-white/15'}`}>wks</span>
+                      </div>
+                    </div>
+                  )
+                })}
                 {seriesTeams.length === 1 && (
                   <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2.5">
-                    <div className="text-4xl font-black text-white/20 leading-none">0</div>
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-white/20 mt-1">weeks</div>
-                    <div className="text-xs text-white/25 mt-1.5 font-semibold">Opponent</div>
+                    <div className="text-[10px] font-bold text-white/25">Opponent</div>
+                    <div className="text-3xl font-black text-white/20 leading-none mt-1.5">0</div>
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-white/15">matches</div>
+                    <div className="mt-2 flex items-baseline gap-1">
+                      <span className="text-xl font-black tabular-nums text-white/15">0</span>
+                      <span className="text-[9px] font-bold uppercase tracking-wide text-white/10">wks</span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -350,10 +361,14 @@ export default function Dashboard() {
               </div>
             </div>
             <p className="text-xs text-white/45 text-center pb-2.5 px-4">
-              {seriesLeader[0].split(' ')[0]} leads weeks
-              {matchLeaderName && matchLeaderName !== seriesLeader[0] && (
-                <span className="text-cyan-400"> · {matchLeaderName.split(' ')[0]} leads matches</span>
-              )}
+              {_abbr(seriesLeader[0])} leads weeks
+              {(() => {
+                const m0 = matchWinMap[_t0] || 0, m1 = matchWinMap[_t1] || 0
+                if (!_t1 || m0 === m1) return null
+                const mLeader = m0 > m1 ? _t0 : _t1
+                const gap = Math.abs(m0 - m1)
+                return <span className={mLeader !== seriesLeader[0] ? 'text-cyan-400' : ''}> · {_abbr(mLeader)} leads matches by {gap}</span>
+              })()}
               {seriesDraws > 0 && ` · ${seriesDraws} draw${seriesDraws > 1 ? 's' : ''}`}
               {winStreak >= 2 && ` · 🔥 ${winStreak} in a row`}
             </p>
