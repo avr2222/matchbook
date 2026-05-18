@@ -349,7 +349,7 @@ export default function Dashboard() {
             </div>
             {/* Week sequence strip */}
             <div className="px-3 pb-2 overflow-x-auto" ref={stripRef}>
-              <div className="flex gap-1 w-max">
+              <div className="flex gap-1 w-max pr-3">
                 {_chronoWeeks.map(w => {
                   const winner = w.winning_team || _parseWinner(w.result)
                   const dotCls = winner

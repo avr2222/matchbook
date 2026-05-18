@@ -137,7 +137,7 @@ export default function PlayerDetail() {
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-2 mb-4 text-center">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4 text-center">
             <div>
               <div className="font-bold text-gray-800 text-sm">
                 {careerBalls > 0 ? ((careerRuns / careerBalls) * 100).toFixed(1) : '—'}
