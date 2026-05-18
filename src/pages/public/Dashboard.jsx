@@ -22,6 +22,11 @@ export default function Dashboard() {
   const { data: txnData } = useTransactions()
   const { data: perfData } = useLeaderboard(cfg?.active_tournament_id)
 
+  // Must be before early return — scroll week strip to show most recent on data load
+  useEffect(() => {
+    if (stripRef.current) stripRef.current.scrollLeft = stripRef.current.scrollWidth
+  }, [wData])
+
   if (pLoad) return <PageSpinner />
 
   const activeTournamentId = tData?.active_tournament_id ?? cfg?.active_tournament_id
@@ -206,11 +211,6 @@ export default function Dashboard() {
     .filter(Boolean)
     .sort((a, b) => b.perfScore - a.perfScore)
     .slice(0, 3)
-
-  // Auto-scroll week badge strip to show most recent matches
-  useEffect(() => {
-    if (stripRef.current) stripRef.current.scrollLeft = stripRef.current.scrollWidth
-  }, [completed.length])
 
   const EXPENSE_LABELS = {
     match_cost: 'Match Cost', ground_booking: 'Ground Booking', cricket_ball: 'Cricket Ball',
