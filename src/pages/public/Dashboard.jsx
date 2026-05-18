@@ -65,6 +65,13 @@ export default function Dashboard() {
       else break
     }
   }
+  const matchLeaderName = Object.entries(matchWinMap).sort((a, b) => b[1] - a[1])[0]?.[0]
+  const _abbr = name => name ? name.split(/[\s\-(]/)[0].slice(0, 3).toUpperCase() : '?'
+  const _teamColorMap = {
+    ..._t0 ? { [_t0]: 'bg-amber-400 text-black' } : {},
+    ..._t1 ? { [_t1]: 'bg-sky-400 text-white'   } : {},
+  }
+  const _chronoWeeks = [...completed].sort((a, b) => a.match_date.localeCompare(b.match_date))
 
   const statusCounts = { good: 0, collect_soon: 0, urgent: 0, overdue: 0 }
   corpusPlayers.forEach(p => { if (statusCounts[p.balance_status] !== undefined) statusCounts[p.balance_status]++ })
@@ -303,9 +310,15 @@ export default function Dashboard() {
                       i === 0 ? 'text-white/90' : 'text-white/40'
                     }`} title={name}>{name}</div>
                     {matchWinMap[name] > 0 && (
-                      <div className={`text-xs mt-0.5 tabular-nums ${
-                        i === 0 ? 'text-white/55' : 'text-white/25'
-                      }`}>{matchWinMap[name]} matches</div>
+                      <div className={`flex items-center gap-1 text-xs mt-0.5 tabular-nums ${
+                        matchLeaderName === name && i !== 0
+                          ? 'text-cyan-300 font-bold'
+                          : i === 0 ? 'text-white/55' : 'text-white/25'
+                      }`}>
+                        {matchLeaderName === name && i !== 0 && <span>📊</span>}
+                        {matchWinMap[name]} matches
+                        {matchLeaderName === name && i !== 0 && <span className="text-[9px] text-cyan-400/70 ml-0.5">lead</span>}
+                      </div>
                     )}
                   </div>
                 ))}
@@ -318,14 +331,29 @@ export default function Dashboard() {
                 )}
               </div>
             </div>
-            <div className="h-1 bg-white/10">
-              <div
-                className="h-full bg-gradient-to-r from-amber-400 to-emerald-300 transition-all duration-700"
-                style={{ width: `${(seriesLeader[1] / completed.length) * 100}%` }}
-              />
+            {/* Week sequence strip */}
+            <div className="px-3 pb-2 overflow-x-auto">
+              <div className="flex gap-1 w-max">
+                {_chronoWeeks.map(w => {
+                  const winner = w.winning_team || _parseWinner(w.result)
+                  const dotCls = winner
+                    ? (_teamColorMap[winner] ?? 'bg-white/20 text-white')
+                    : 'bg-white/10 text-white/30'
+                  return (
+                    <div key={w.week_id}
+                      title={winner || 'Draw'}
+                      className={`h-7 px-1.5 min-w-[26px] rounded-md flex items-center justify-center text-[9px] font-black shrink-0 ${dotCls}`}>
+                      {winner ? _abbr(winner) : '='}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
-            <p className="text-xs text-white/45 text-center py-2">
-              {seriesLeader[0].split(' ')[0]} leads
+            <p className="text-xs text-white/45 text-center pb-2.5 px-4">
+              {seriesLeader[0].split(' ')[0]} leads weeks
+              {matchLeaderName && matchLeaderName !== seriesLeader[0] && (
+                <span className="text-cyan-400"> · {matchLeaderName.split(' ')[0]} leads matches</span>
+              )}
               {seriesDraws > 0 && ` · ${seriesDraws} draw${seriesDraws > 1 ? 's' : ''}`}
               {winStreak >= 2 && ` · 🔥 ${winStreak} in a row`}
             </p>
