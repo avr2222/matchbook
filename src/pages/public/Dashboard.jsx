@@ -44,6 +44,7 @@ export default function Dashboard() {
   })
   const seriesTeams = Object.entries(seriesWins).sort((a, b) => b[1] - a[1])
   const seriesLeader = seriesTeams[0]
+  const seriesDraws = completed.filter(w => !(w.winning_team || _parseWinner(w.result))).length
 
   const statusCounts = { good: 0, collect_soon: 0, urgent: 0, overdue: 0 }
   corpusPlayers.forEach(p => { if (statusCounts[p.balance_status] !== undefined) statusCounts[p.balance_status]++ })
@@ -233,8 +234,8 @@ export default function Dashboard() {
 
         {/* Series scoreboard */}
         {seriesLeader && (
-          <div className="mt-4 bg-white/15 backdrop-blur-sm rounded-2xl px-4 py-3">
-            <p className="text-green-200 text-xs font-bold uppercase tracking-widest mb-3">
+          <div className="mt-4 bg-black/25 backdrop-blur-sm rounded-2xl px-4 py-3 border border-white/15">
+            <p className="text-white/80 text-xs font-bold uppercase tracking-widest mb-3">
               ⚔️ Series Standing
             </p>
             <div className="flex items-center gap-3">
@@ -243,24 +244,27 @@ export default function Dashboard() {
                   <div className={`text-3xl font-black tabular-nums leading-none ${i === 0 ? 'text-white' : 'text-white/80'}`}>
                     {wins}
                   </div>
-                  <div className="text-xs text-white/70 mt-0.5 truncate leading-tight">{name}</div>
+                  <div className="text-xs text-white/50 font-semibold uppercase tracking-widest leading-none mt-0.5">wins</div>
+                  <div className="text-xs text-white/70 mt-1 truncate leading-tight">{name}</div>
                 </div>
               ))}
               {seriesTeams.length === 1 && (
                 <div className="flex-1 opacity-50">
                   <div className="text-3xl font-black tabular-nums leading-none text-white/60">0</div>
-                  <div className="text-xs text-white/50 mt-0.5">Opponent</div>
+                  <div className="text-xs text-white/40 font-semibold uppercase tracking-widest leading-none mt-0.5">wins</div>
+                  <div className="text-xs text-white/50 mt-1">Opponent</div>
                 </div>
               )}
             </div>
-            <div className="mt-3 h-1.5 rounded-full overflow-hidden bg-white/20">
+            <div className="mt-3 h-1.5 rounded-full overflow-hidden bg-white/15">
               <div
-                className="h-full bg-white/75 rounded-full transition-all duration-500"
+                className="h-full bg-white/70 rounded-full transition-all duration-500"
                 style={{ width: `${(seriesLeader[1] / completed.length) * 100}%` }}
               />
             </div>
-            <p className="text-right text-xs text-white/50 mt-1">
+            <p className="text-xs text-white/50 mt-1.5 text-center">
               {seriesLeader[0].split(' ')[0]} leads
+              {seriesDraws > 0 && ` · ${seriesDraws} draw${seriesDraws > 1 ? 's' : ''}`}
             </p>
           </div>
         )}

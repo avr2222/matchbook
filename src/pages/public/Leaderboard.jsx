@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { usePlayers, useConfig, useLeaderboard } from '../../hooks/useData'
+import { usePlayers, useConfig, useLeaderboard, useWeeks } from '../../hooks/useData'
 import { PageSpinner } from '../../components/ui/Spinner'
 
 function overs(balls) {
@@ -23,8 +23,11 @@ export default function Leaderboard() {
   const navigate = useNavigate()
   const { data: cfg, isLoading: cfgLoading } = useConfig()
   const { data: pData, isLoading: playersLoading } = usePlayers()
+  const { data: wData } = useWeeks()
   const tournamentId = cfg?.active_tournament_id
   const { data: perfData, isLoading: perfLoading } = useLeaderboard(tournamentId)
+  const totalSessions = (wData?.weeks ?? [])
+    .filter(w => w.tournament_id === tournamentId && w.status === 'completed').length
 
   if (cfgLoading || playersLoading) return <PageSpinner />
 
@@ -113,6 +116,11 @@ export default function Leaderboard() {
   const wideMan      = [...allStats].filter(s => s.wides > 0).sort((a,b) => b.wides - a.wides)[0]
   const noBallKing   = [...allStats].filter(s => s.no_balls > 0).sort((a,b) => b.no_balls - a.no_balls)[0]
   const costlyBowler = [...allStats].filter(s => s.balls_bowled >= MIN_BOWL).sort((a,b) => (b.runs_given/b.balls_bowled)-(a.runs_given/a.balls_bowled))[0]
+  const topAttendee  = totalSessions > 0
+    ? [...allStats].filter(s => s.matches > 0)
+        .map(s => ({ ...s, attend_pct: Math.round((s.matches / totalSessions) * 100) }))
+        .sort((a, b) => b.attend_pct - a.attend_pct)[0]
+    : null
 
   const tabs = [
     { id: 'batting', label: 'Batting' },
@@ -343,6 +351,7 @@ export default function Leaderboard() {
                 <ACard emoji="💥" title="Six Machine"     pid={sixMachine?.player_id} stat={sixMachine?.sixes}             unit="sixes"   variant="gold" />
                 <ACard emoji="🦇" title="Best Batsman"    pid={topBba?.player_id}     stat={topBba?.bba_count}             unit="awards"  variant="gold" />
                 <ACard emoji="🎳" title="Best Bowler"     pid={topBbo?.player_id}     stat={topBbo?.bbo_count}             unit="awards"  variant="gold" />
+                <ACard emoji="🎽" title="Iron Man"        pid={topAttendee?.player_id} stat={topAttendee ? `${topAttendee.attend_pct}%` : null} unit={`${topAttendee?.matches ?? 0}/${totalSessions} sessions`} variant="gold" />
               </div>
             </div>
 

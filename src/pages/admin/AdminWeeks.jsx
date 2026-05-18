@@ -635,7 +635,7 @@ function AttendanceList({ players, attendanceMap, onToggle, corpusPlayers, deduc
         {/* Free toggle + Deduct-from selector: shown for played non-PPM players */}
         {status === 'played' && !isPPM && (
           <div className="mt-1.5 ml-6 flex items-center gap-2 flex-wrap">
-            {isCorpus && (
+            {(isCorpus || isGuest) && (
               <button
                 onClick={() => onToggleFree(p.id)}
                 className={`px-2 py-0.5 rounded text-xs font-semibold transition-colors ${
