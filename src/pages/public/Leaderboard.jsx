@@ -21,6 +21,8 @@ function strikeRate(runs, balls) {
 export default function Leaderboard() {
   const [tab, setTab] = useState('batting')
   const [selectedTId, setSelectedTId] = useState(null)
+  const [sortCol, setSortCol] = useState(null)
+  const [sortDir, setSortDir] = useState('desc')
   const navigate = useNavigate()
   const { data: cfg, isLoading: cfgLoading } = useConfig()
   const { data: pData, isLoading: playersLoading } = usePlayers()
@@ -149,6 +151,19 @@ export default function Leaderboard() {
         .sort((a, b) => b.attend_pct - a.attend_pct)[0]
     : null
 
+  const _ru = (sorted, winGroup, fmt) => {
+    const next = sorted.find(s => !winGroup.includes(s))
+    if (!next) return null
+    const nm = playerMap[next.player_id]?.display_name ?? '?'
+    return `2nd: ${nm} (${fmt(next)})`
+  }
+  const _potmSorted   = [...allStats].filter(s => s.potm_count > 0).sort((a,b) => b.potm_count - a.potm_count)
+  const _wicketSorted = [...allStats].filter(s => s.wickets > 0).sort((a,b) => b.wickets - a.wickets)
+  const mvpRU    = _ru(mvps,          mvps.filter(s => s.mvp_score === mvps[0]?.mvp_score),  s => s.mvp_score.toFixed(1) + ' pts')
+  const scorerRU = _ru(batters,       batters.filter(s => s.runs === batters[0]?.runs),       s => s.runs + ' runs')
+  const wicketRU = _ru(_wicketSorted, wicketWiz,                                              s => s.wickets + ' wkts')
+  const potmRU   = _ru(_potmSorted,   topPotm,                                                s => s.potm_count + 'x')
+
   const tabs = [
     { id: 'batting',  label: 'Batting'  },
     { id: 'bowling',  label: 'Bowling'  },
@@ -158,6 +173,33 @@ export default function Leaderboard() {
     { id: 'awards',   label: 'Awards'   },
   ]
   const tournaments = [...(tData?.tournaments ?? [])].sort((a, b) => b.id.localeCompare(a.id))
+
+  const toggleSort = col => {
+    if (sortCol === col) setSortDir(d => d === 'desc' ? 'asc' : 'desc')
+    else { setSortCol(col); setSortDir('desc') }
+  }
+  const sortArrow = col => sortCol === col ? (sortDir === 'desc' ? ' ↓' : ' ↑') : ''
+  const thClass = col => `cursor-pointer select-none hover:text-gray-600 whitespace-nowrap${sortCol === col ? ' text-green-700 font-black' : ''}`
+
+  const displayBatters = (() => {
+    const enriched = batters.map(s => ({
+      ...s,
+      avg: s.matches > 0 ? s.runs / s.matches : 0,
+      sr:  s.balls_faced > 0 ? (s.runs / s.balls_faced) * 100 : 0,
+    }))
+    if (!sortCol) return enriched
+    return [...enriched].sort((a, b) => sortDir === 'desc' ? (b[sortCol] ?? 0) - (a[sortCol] ?? 0) : (a[sortCol] ?? 0) - (b[sortCol] ?? 0))
+  })()
+
+  const displayBowlers = (() => {
+    const enriched = bowlers.map(s => ({
+      ...s,
+      econ: s.balls_bowled > 0 ? (s.runs_given / s.balls_bowled) * 6 : Infinity,
+    }))
+    if (!sortCol) return enriched
+    const dir = sortCol === 'econ' ? (sortDir === 'desc' ? 1 : -1) : (sortDir === 'desc' ? -1 : 1)
+    return [...enriched].sort((a, b) => dir * ((a[sortCol] ?? 0) - (b[sortCol] ?? 0)))
+  })()
 
   return (
     <div className="max-w-2xl mx-auto px-4 pb-12 pt-6">
@@ -194,7 +236,7 @@ export default function Leaderboard() {
           {tabs.map(t => (
             <button
               key={t.id}
-              onClick={() => setTab(t.id)}
+              onClick={() => { setTab(t.id); setSortCol(null); setSortDir('desc') }}
               className={`py-2 px-3 text-sm font-bold rounded-xl transition-all whitespace-nowrap ${
                 tab === t.id ? 'bg-white shadow-sm text-green-700' : 'text-gray-400 hover:text-gray-600'
               }`}
@@ -223,19 +265,19 @@ export default function Leaderboard() {
               <tr className="text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100">
                 <th className="text-left pb-2 w-6">#</th>
                 <th className="text-left pb-2 pr-2">Player</th>
-                <th className="text-right pb-2 pr-2">M</th>
-                <th className="text-right pb-2 pr-2">Runs</th>
-                <th className="text-right pb-2 pr-2">Avg</th>
-                <th className="text-right pb-2 pr-2">SR</th>
-                <th className="text-right pb-2 pr-2">HS</th>
-                <th className="text-right pb-2 pr-2">4s</th>
-                <th className="text-right pb-2">6s</th>
+                <th className={`text-right pb-2 pr-2 ${thClass('matches')}`} onClick={() => toggleSort('matches')}>M{sortArrow('matches')}</th>
+                <th className={`text-right pb-2 pr-2 ${thClass('runs')}`}    onClick={() => toggleSort('runs')}>Runs{sortArrow('runs')}</th>
+                <th className={`text-right pb-2 pr-2 ${thClass('avg')}`}     onClick={() => toggleSort('avg')}>Avg{sortArrow('avg')}</th>
+                <th className={`text-right pb-2 pr-2 ${thClass('sr')}`}      onClick={() => toggleSort('sr')}>SR{sortArrow('sr')}</th>
+                <th className={`text-right pb-2 pr-2 ${thClass('high_score')}`} onClick={() => toggleSort('high_score')}>HS{sortArrow('high_score')}</th>
+                <th className={`text-right pb-2 pr-2 ${thClass('fours')}`}   onClick={() => toggleSort('fours')}>4s{sortArrow('fours')}</th>
+                <th className={`text-right pb-2 ${thClass('sixes')}`}        onClick={() => toggleSort('sixes')}>6s{sortArrow('sixes')}</th>
                 <th className="pb-2 w-6"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {batters.map((s, i) => (
-                <tr key={s.player_id} className={i === 0 ? 'font-semibold' : ''}>
+              {displayBatters.map((s, i) => (
+                <tr key={s.player_id} className={i === 0 && !sortCol ? 'font-semibold' : ''}>
                   <td className="py-2 text-gray-400 text-xs">{i + 1}</td>
                   <td className="py-2 pr-2 font-medium max-w-[140px]">
                     <Link to={`/player/${s.player_id}`} className="text-gray-900 hover:text-green-700 hover:underline truncate block">
@@ -248,9 +290,9 @@ export default function Leaderboard() {
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-500">{s.matches}</td>
                   <td className="py-2 pr-2 text-right tabular-nums font-bold text-green-700">{s.runs}</td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-600">
-                    {s.matches > 0 ? (s.runs / s.matches).toFixed(1) : '—'}
+                    {s.matches > 0 ? s.avg.toFixed(1) : '—'}
                   </td>
-                  <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{strikeRate(s.runs, s.balls_faced)}</td>
+                  <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{s.balls_faced > 0 ? s.sr.toFixed(1) : '—'}</td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{s.high_score}</td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-500">{s.fours}</td>
                   <td className="py-2 text-right tabular-nums text-gray-500">{s.sixes}</td>
@@ -276,18 +318,18 @@ export default function Leaderboard() {
               <tr className="text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100">
                 <th className="text-left pb-2 w-6">#</th>
                 <th className="text-left pb-2 pr-2">Player</th>
-                <th className="text-right pb-2 pr-2">M</th>
-                <th className="text-right pb-2 pr-2">Wkts</th>
-                <th className="text-right pb-2 pr-2">Overs</th>
-                <th className="text-right pb-2 pr-2">Runs</th>
-                <th className="text-right pb-2 pr-2">Econ</th>
-                <th className="text-right pb-2">Mdns</th>
+                <th className={`text-right pb-2 pr-2 ${thClass('matches')}`}     onClick={() => toggleSort('matches')}>M{sortArrow('matches')}</th>
+                <th className={`text-right pb-2 pr-2 ${thClass('wickets')}`}     onClick={() => toggleSort('wickets')}>Wkts{sortArrow('wickets')}</th>
+                <th className={`text-right pb-2 pr-2 ${thClass('balls_bowled')}`} onClick={() => toggleSort('balls_bowled')}>Ovrs{sortArrow('balls_bowled')}</th>
+                <th className={`text-right pb-2 pr-2 ${thClass('runs_given')}`}  onClick={() => toggleSort('runs_given')}>Runs{sortArrow('runs_given')}</th>
+                <th className={`text-right pb-2 pr-2 ${thClass('econ')}`}        onClick={() => toggleSort('econ')}>Econ{sortArrow('econ')}</th>
+                <th className={`text-right pb-2 ${thClass('maidens')}`}          onClick={() => toggleSort('maidens')}>Mdns{sortArrow('maidens')}</th>
                 <th className="pb-2 w-6"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {bowlers.map((s, i) => (
-                <tr key={s.player_id} className={i === 0 ? 'font-semibold' : ''}>
+              {displayBowlers.map((s, i) => (
+                <tr key={s.player_id} className={i === 0 && !sortCol ? 'font-semibold' : ''}>
                   <td className="py-2 text-gray-400 text-xs">{i + 1}</td>
                   <td className="py-2 pr-2 font-medium max-w-[140px]">
                     <Link to={`/player/${s.player_id}`} className="text-gray-900 hover:text-green-700 hover:underline truncate block">
@@ -301,7 +343,7 @@ export default function Leaderboard() {
                   <td className="py-2 pr-2 text-right tabular-nums font-bold text-purple-700">{s.wickets}</td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{overs(s.balls_bowled)}</td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{s.runs_given}</td>
-                  <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{economy(s.runs_given, s.balls_bowled)}</td>
+                  <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{s.balls_bowled > 0 ? s.econ.toFixed(2) : '—'}</td>
                   <td className="py-2 text-right tabular-nums text-gray-500">{s.maidens}</td>
                   <td className="py-2 pl-1">
                     <button
@@ -445,7 +487,7 @@ export default function Leaderboard() {
       )}
 
       {!perfLoading && !isEmpty && tab === 'awards' && (() => {
-        function ACard({ emoji, title, group = [], stat, unit, variant = 'default' }) {
+        function ACard({ emoji, title, group = [], stat, unit, sub, variant = 'default' }) {
           const bg = variant === 'gold'  ? 'bg-gradient-to-br from-amber-50 to-yellow-50 border-amber-200'
                    : variant === 'spoon' ? 'bg-slate-50 border-slate-200'
                    : 'bg-gray-50 border-gray-100'
@@ -469,6 +511,7 @@ export default function Leaderboard() {
               <div className="font-semibold text-gray-900 text-sm leading-snug" title={names}>{names}</div>
               <div className={`text-xl font-black tabular-nums leading-none mt-1 ${sc}`}>{stat}</div>
               <div className="text-xs text-gray-400 mt-0.5">{unit}</div>
+              {sub && <div className="text-[10px] text-gray-400 mt-1 truncate" title={sub}>{sub}</div>}
             </>
           )
           return group.length === 1
@@ -482,11 +525,36 @@ export default function Leaderboard() {
               <div className="bg-gradient-to-r from-amber-500 to-yellow-400 px-5 py-3">
                 <h2 className="font-black text-white text-sm uppercase tracking-widest">Season Champions 🏆</h2>
               </div>
-              <div className="p-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <ACard emoji="🌟" title="Season MVP"       group={mvps.filter(s => s.mvp_score === mvps[0]?.mvp_score)}  stat={mvps[0]?.mvp_score.toFixed(1)} unit="pts"     variant="gold" />
-                <ACard emoji="🏅" title="Most POTM Wins"  group={topPotm}    stat={topPotm[0]?.potm_count}   unit="times"   variant="gold" />
-                <ACard emoji="🏏" title="Top Scorer"      group={batters.filter(s => s.runs === batters[0]?.runs)}        stat={batters[0]?.runs}              unit="runs"    variant="gold" />
-                <ACard emoji="🎯" title="Wicket Wizard"   group={wicketWiz}  stat={wicketWiz[0]?.wickets}    unit="wickets" variant="gold" />
+              {/* MVP — featured full-width */}
+              {mvps.length > 0 && (() => {
+                const mvpGroup = mvps.filter(s => s.mvp_score === mvps[0]?.mvp_score)
+                const names = mvpGroup.map(s => playerMap[s.player_id]?.display_name ?? '—').join(', ')
+                const inner = (
+                  <div className="bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-4">
+                    <div className="text-4xl">🌟</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Season MVP</div>
+                      <div className="font-bold text-gray-900 text-base leading-snug truncate">{names}</div>
+                      {mvpRU && <div className="text-[10px] text-gray-400 mt-0.5 truncate">{mvpRU}</div>}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-3xl font-black tabular-nums text-amber-600 leading-none">{mvps[0].mvp_score.toFixed(1)}</div>
+                      <div className="text-xs text-gray-400 mt-0.5">pts</div>
+                    </div>
+                  </div>
+                )
+                return (
+                  <div className="px-4 pt-4 pb-2">
+                    {mvpGroup.length === 1
+                      ? <Link to={`/player/${mvpGroup[0].player_id}`} className="hover:scale-[1.01] hover:shadow-md transition-all duration-150 block rounded-2xl">{inner}</Link>
+                      : inner}
+                  </div>
+                )
+              })()}
+              <div className="px-4 pb-4 pt-2 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <ACard emoji="🏅" title="Most POTM Wins"  group={topPotm}    stat={topPotm[0]?.potm_count}   unit="times"   variant="gold" sub={potmRU}   />
+                <ACard emoji="🏏" title="Top Scorer"      group={batters.filter(s => s.runs === batters[0]?.runs)}  stat={batters[0]?.runs}  unit="runs"    variant="gold" sub={scorerRU} />
+                <ACard emoji="🎯" title="Wicket Wizard"   group={wicketWiz}  stat={wicketWiz[0]?.wickets}    unit="wickets" variant="gold" sub={wicketRU}  />
                 <ACard emoji="💥" title="Six Machine"     group={sixMachine} stat={sixMachine[0]?.sixes}     unit="sixes"   variant="gold" />
                 <ACard emoji="🦇" title="Best Batsman"    group={topBba}     stat={topBba[0]?.bba_count}     unit="awards"  variant="gold" />
                 <ACard emoji="🎳" title="Best Bowler"     group={topBbo}     stat={topBbo[0]?.bbo_count}     unit="awards"  variant="gold" />

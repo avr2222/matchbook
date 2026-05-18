@@ -274,7 +274,8 @@ export default function PlayerPay() {
     const wb = weeks.find(w => w.week_id === b.week_id)
     return (wb?.match_date ?? '').localeCompare(wa?.match_date ?? '')
   })
-  const last5 = sortedPerfs.slice(0, 5)
+  const last5      = sortedPerfs.slice(0, 5)
+  const totalGames = perfs.reduce((s, p) => s + (p.match_count || 1), 0)
 
   // Achievement badges
   const totalPotm = perfs.reduce((s, p) => s + (p.potm_count || 0), 0)
@@ -428,7 +429,10 @@ export default function PlayerPay() {
               </div>
               <div className="bg-blue-50 rounded-xl p-3 text-center">
                 <div className="text-2xl font-extrabold text-blue-700">{perfs.length}</div>
-                <div className="text-xs text-gray-500 mt-0.5">Matches</div>
+                <div className="text-xs text-gray-500 mt-0.5">Weeks</div>
+                {totalGames > perfs.length && (
+                  <div className="text-[10px] text-blue-400 mt-0.5">{totalGames} matches</div>
+                )}
               </div>
             </div>
             <div className="grid grid-cols-4 gap-2 text-center mb-4">

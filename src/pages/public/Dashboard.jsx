@@ -283,38 +283,48 @@ export default function Dashboard() {
 
         {/* Series scoreboard */}
         {seriesLeader && (
-          <div className="mt-4 bg-black/25 backdrop-blur-sm rounded-2xl px-4 py-3 border border-white/15">
-            <p className="text-white/80 text-xs font-bold uppercase tracking-widest mb-3">
-              ⚔️ Series Standing
-            </p>
-            <div className="flex items-center gap-3">
-              {seriesTeams.map(([name, wins], i) => (
-                <div key={name} className={`flex-1 ${i === 1 ? 'opacity-65' : ''}`}>
-                  <div className={`text-3xl font-black tabular-nums leading-none ${i === 0 ? 'text-white' : 'text-white/80'}`}>
-                    {wins}
+          <div className="mt-4 rounded-2xl overflow-hidden border border-white/20" style={{background:'rgba(0,0,0,0.38)'}}>
+            <div className="px-4 pt-4 pb-3">
+              <p className="text-white/60 text-[10px] font-bold uppercase tracking-[0.15em] mb-4">⚔️ Series Standing</p>
+              <div className="flex gap-3">
+                {seriesTeams.map(([name, wins], i) => (
+                  <div key={name} className={`flex-1 rounded-xl px-3 py-2.5 ${
+                    i === 0
+                      ? 'bg-white/15 border border-white/25 shadow-lg'
+                      : 'bg-white/5 border border-white/10'
+                  }`}>
+                    <div className={`tabular-nums font-black leading-none ${
+                      i === 0 ? 'text-6xl text-amber-300' : 'text-4xl text-white/40'
+                    }`}>{wins}</div>
+                    <div className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${
+                      i === 0 ? 'text-amber-300/60' : 'text-white/25'
+                    }`}>weeks</div>
+                    <div className={`text-xs mt-1.5 truncate font-semibold leading-tight ${
+                      i === 0 ? 'text-white/90' : 'text-white/40'
+                    }`} title={name}>{name}</div>
+                    {matchWinMap[name] > 0 && (
+                      <div className={`text-xs mt-0.5 tabular-nums ${
+                        i === 0 ? 'text-white/55' : 'text-white/25'
+                      }`}>{matchWinMap[name]} matches</div>
+                    )}
                   </div>
-                  <div className="text-xs text-white/50 font-semibold uppercase tracking-widest leading-none mt-0.5">weeks</div>
-                  <div className="text-xs text-white/70 mt-1 truncate leading-tight">{name}</div>
-                  {matchWinMap[name] > 0 && (
-                    <div className="text-xs text-white/40 mt-0.5 tabular-nums">{matchWinMap[name]} matches</div>
-                  )}
-                </div>
-              ))}
-              {seriesTeams.length === 1 && (
-                <div className="flex-1 opacity-50">
-                  <div className="text-3xl font-black tabular-nums leading-none text-white/60">0</div>
-                  <div className="text-xs text-white/40 font-semibold uppercase tracking-widest leading-none mt-0.5">weeks</div>
-                  <div className="text-xs text-white/50 mt-1">Opponent</div>
-                </div>
-              )}
+                ))}
+                {seriesTeams.length === 1 && (
+                  <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2.5">
+                    <div className="text-4xl font-black text-white/20 leading-none">0</div>
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-white/20 mt-1">weeks</div>
+                    <div className="text-xs text-white/25 mt-1.5 font-semibold">Opponent</div>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="mt-3 h-1.5 rounded-full overflow-hidden bg-white/15">
+            <div className="h-1 bg-white/10">
               <div
-                className="h-full bg-white/70 rounded-full transition-all duration-500"
+                className="h-full bg-gradient-to-r from-amber-400 to-emerald-300 transition-all duration-700"
                 style={{ width: `${(seriesLeader[1] / completed.length) * 100}%` }}
               />
             </div>
-            <p className="text-xs text-white/50 mt-1.5 text-center">
+            <p className="text-xs text-white/45 text-center py-2">
               {seriesLeader[0].split(' ')[0]} leads
               {seriesDraws > 0 && ` · ${seriesDraws} draw${seriesDraws > 1 ? 's' : ''}`}
               {winStreak >= 2 && ` · 🔥 ${winStreak} in a row`}
