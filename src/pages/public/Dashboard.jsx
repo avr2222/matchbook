@@ -44,6 +44,18 @@ export default function Dashboard() {
   })
   const seriesTeams = Object.entries(seriesWins).sort((a, b) => b[1] - a[1])
   const seriesLeader = seriesTeams[0]
+  const matchWinMap  = {}
+  const _t0 = seriesTeams[0]?.[0], _t1 = seriesTeams[1]?.[0]
+  completed.forEach(w => {
+    const rm = (w.result ?? '').match(/^(.+?)\s+(\d+)-(\d+)$/)
+    if (!rm) return
+    const wName  = (w.winning_team || rm[1]).trim()
+    const wScore = parseInt(rm[2])
+    const lScore = parseInt(rm[3])
+    matchWinMap[wName] = (matchWinMap[wName] || 0) + wScore
+    const loser = wName === _t0 ? _t1 : wName === _t1 ? _t0 : null
+    if (loser) matchWinMap[loser] = (matchWinMap[loser] || 0) + lScore
+  })
   const seriesDraws = completed.filter(w => !(w.winning_team || _parseWinner(w.result))).length
   const sortedCompleted = [...completed].sort((a, b) => b.match_date.localeCompare(a.match_date))
   let winStreak = 0
@@ -288,6 +300,9 @@ export default function Dashboard() {
                   </div>
                   <div className="text-xs text-white/50 font-semibold uppercase tracking-widest leading-none mt-0.5">weeks</div>
                   <div className="text-xs text-white/70 mt-1 truncate leading-tight">{name}</div>
+                  {matchWinMap[name] > 0 && (
+                    <div className="text-xs text-white/40 mt-0.5 tabular-nums">{matchWinMap[name]} matches</div>
+                  )}
                 </div>
               ))}
               {seriesTeams.length === 1 && (
