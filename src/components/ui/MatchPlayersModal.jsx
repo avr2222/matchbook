@@ -86,20 +86,25 @@ export default function MatchPlayersModal({ week, players, records, expenses, pe
             { key: 'bba_count',  emoji: '🦇', label: 'Best Bat' },
             { key: 'bbo_count',  emoji: '🎳', label: 'Best Bowl' },
           ].map(({ key, emoji, label }) => {
-            const top = perfRows.filter(p => p[key] > 0).sort((a, b) => b[key] - a[key])[0]
-            return top ? { emoji, label, name: playerById[top.player_id]?.display_name ?? top.player_id } : null
+            const winners = perfRows.filter(p => p[key] > 0).sort((a, b) => b[key] - a[key])
+            if (!winners.length) return null
+            const names = winners.map(p => {
+              const nm = playerById[p.player_id]?.display_name ?? p.player_id
+              return p[key] > 1 ? `${nm} ×${p[key]}` : nm
+            }).join(', ')
+            return { emoji, label, names }
           }).filter(Boolean)
           if (!stars.length) return null
           return (
             <div className="px-5 py-3 border-b border-gray-100 bg-amber-50/60">
               <p className="text-xs font-bold text-amber-700 uppercase tracking-widest mb-2">Match Stars ✨</p>
               <div className="flex flex-wrap gap-2">
-                {stars.map(({ emoji, label, name }) => (
+                {stars.map(({ emoji, label, names }) => (
                   <div key={label} className="flex items-center gap-1.5 bg-white rounded-xl px-3 py-1.5 shadow-sm border border-amber-100">
                     <span>{emoji}</span>
                     <div>
                       <div className="text-xs text-gray-400 leading-none">{label}</div>
-                      <div className="text-sm font-bold text-gray-800 leading-tight">{name}</div>
+                      <div className="text-sm font-bold text-gray-800 leading-tight">{names}</div>
                     </div>
                   </div>
                 ))}

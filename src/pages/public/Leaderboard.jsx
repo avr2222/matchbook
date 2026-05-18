@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { usePlayers, useConfig, useLeaderboard, useWeeks } from '../../hooks/useData'
+import { usePlayers, useConfig, useLeaderboard, useWeeks, useTournaments } from '../../hooks/useData'
 import { PageSpinner } from '../../components/ui/Spinner'
 
 function overs(balls) {
@@ -20,11 +20,13 @@ function strikeRate(runs, balls) {
 
 export default function Leaderboard() {
   const [tab, setTab] = useState('batting')
+  const [selectedTId, setSelectedTId] = useState(null)
   const navigate = useNavigate()
   const { data: cfg, isLoading: cfgLoading } = useConfig()
   const { data: pData, isLoading: playersLoading } = usePlayers()
   const { data: wData } = useWeeks()
-  const tournamentId = cfg?.active_tournament_id
+  const { data: tData } = useTournaments()
+  const tournamentId = selectedTId ?? cfg?.active_tournament_id
   const { data: perfData, isLoading: perfLoading } = useLeaderboard(tournamentId)
   const totalSessions = (wData?.weeks ?? [])
     .filter(w => w.tournament_id === tournamentId && w.status === 'completed').length
@@ -99,6 +101,21 @@ export default function Leaderboard() {
     .filter(s => s.mvp_score > 0)
     .sort((a, b) => b.mvp_score - a.mvp_score)
 
+  const fielders = [...allStats]
+    .filter(s => (s.catches + s.run_outs + s.stumpings) > 0)
+    .sort((a, b) => (b.catches + b.run_outs + b.stumpings) - (a.catches + a.run_outs + a.stumpings))
+
+  const allrounders = [...allStats]
+    .filter(s => s.matches >= 2)
+    .map(s => {
+      const bat = (s.runs / 10) * 1.08
+      const bowl = s.wickets * WKT_PTS + Math.floor(s.maidens / 2) * WKT_PTS
+      const fld  = (s.catches + s.stumpings) * (WKT_PTS * 0.2) + s.run_outs * WKT_PTS
+      return { ...s, ar_score: parseFloat((bat + bowl + fld).toFixed(1)) }
+    })
+    .filter(s => s.ar_score > 0)
+    .sort((a, b) => b.ar_score - a.ar_score)
+
   // Awards tab
   const MIN_BAT = 40, MIN_BOWL = 30
   const _tg = (sorted, fn) => {
@@ -133,11 +150,14 @@ export default function Leaderboard() {
     : null
 
   const tabs = [
-    { id: 'batting', label: 'Batting' },
-    { id: 'bowling', label: 'Bowling' },
-    { id: 'mvp',     label: 'MVP' },
-    { id: 'awards',  label: 'Awards' },
+    { id: 'batting',  label: 'Batting'  },
+    { id: 'bowling',  label: 'Bowling'  },
+    { id: 'fielding', label: 'Fielding' },
+    { id: 'allround', label: 'All-Round' },
+    { id: 'mvp',      label: 'MVP'      },
+    { id: 'awards',   label: 'Awards'   },
   ]
+  const tournaments = [...(tData?.tournaments ?? [])].sort((a, b) => b.id.localeCompare(a.id))
 
   return (
     <div className="max-w-2xl mx-auto px-4 pb-12 pt-6">
@@ -149,18 +169,40 @@ export default function Leaderboard() {
         </div>
       </div>
 
-      <div className="flex gap-1 bg-gray-100/80 p-1 rounded-2xl mb-6">
-        {tabs.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`flex-1 py-2 text-sm font-bold rounded-xl transition-all ${
-              tab === t.id ? 'bg-white shadow-sm text-green-700' : 'text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
+      {tournaments.length > 1 && (
+        <div className="overflow-x-auto -mx-1 px-1 mb-4">
+          <div className="flex gap-2 w-max">
+            {tournaments.map(t => (
+              <button
+                key={t.id}
+                onClick={() => setSelectedTId(t.id === cfg?.active_tournament_id ? null : t.id)}
+                className={`shrink-0 px-3 py-1.5 rounded-full text-sm font-semibold transition-all ${
+                  tournamentId === t.id
+                    ? 'bg-green-600 text-white shadow-sm'
+                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                }`}
+              >
+                {t.short_name ?? t.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="overflow-x-auto -mx-4 px-4 mb-6">
+        <div className="flex gap-1 bg-gray-100/80 p-1 rounded-2xl w-max min-w-full">
+          {tabs.map(t => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`py-2 px-3 text-sm font-bold rounded-xl transition-all whitespace-nowrap ${
+                tab === t.id ? 'bg-white shadow-sm text-green-700' : 'text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {perfLoading && <PageSpinner />}
@@ -272,6 +314,89 @@ export default function Leaderboard() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {!perfLoading && !isEmpty && tab === 'fielding' && (
+        <div className="card overflow-x-auto">
+          <h2 className="font-bold text-gray-900 mb-3">Top Fielders</h2>
+          <table className="w-full text-sm min-w-[360px]">
+            <thead>
+              <tr className="text-xs text-gray-400 uppercase tracking-wider border-b border-gray-100">
+                <th className="text-left pb-2 w-6">#</th>
+                <th className="text-left pb-2 pr-2">Player</th>
+                <th className="text-right pb-2 pr-2">M</th>
+                <th className="text-right pb-2 pr-2">Ct</th>
+                <th className="text-right pb-2 pr-2">RO</th>
+                <th className="text-right pb-2 pr-2">St</th>
+                <th className="text-right pb-2">Total</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {fielders.map((s, i) => (
+                <tr key={s.player_id} className={i === 0 ? 'font-semibold' : ''}>
+                  <td className="py-2 text-gray-400 text-xs">{i + 1}</td>
+                  <td className="py-2 pr-2 font-medium max-w-[140px]">
+                    <Link to={`/player/${s.player_id}`} className="text-gray-900 hover:text-green-700 hover:underline truncate block">
+                      {playerMap[s.player_id]?.display_name ?? s.player_id}
+                    </Link>
+                  </td>
+                  <td className="py-2 pr-2 text-right tabular-nums text-gray-500">{s.matches}</td>
+                  <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{s.catches}</td>
+                  <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{s.run_outs}</td>
+                  <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{s.stumpings}</td>
+                  <td className="py-2 text-right tabular-nums font-bold text-teal-700">
+                    {s.catches + s.run_outs + s.stumpings}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {!perfLoading && !isEmpty && tab === 'allround' && (
+        <div className="card">
+          <h2 className="font-bold text-gray-900 mb-1">All-Round Performers</h2>
+          <p className="text-xs text-gray-400 mb-4">CricHeroes formula · min 2 matches · bat + bowl + field</p>
+          <div className="space-y-2">
+            {allrounders.map((s, i) => i < 3 ? (
+              <div key={s.player_id} className={`flex items-center gap-4 p-4 rounded-2xl border ${
+                i === 0 ? 'bg-amber-50 border-amber-200'
+                : i === 1 ? 'bg-slate-50 border-slate-200'
+                : 'bg-orange-50 border-orange-200'
+              }`}>
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-black shrink-0 ${
+                  i === 0 ? 'bg-amber-400 text-white shadow-md shadow-amber-200'
+                  : i === 1 ? 'bg-slate-400 text-white shadow-md shadow-slate-200'
+                  : 'bg-orange-400 text-white shadow-md shadow-orange-200'
+                }`}>{i + 1}</div>
+                <div className="flex-1 min-w-0">
+                  <Link to={`/player/${s.player_id}`} className="font-bold text-gray-900 hover:text-green-700 truncate block">
+                    {playerMap[s.player_id]?.display_name ?? s.player_id}
+                  </Link>
+                  <div className="text-xs text-gray-500 mt-0.5">{s.runs}r · {s.wickets}w · {s.catches + s.run_outs + s.stumpings}dis</div>
+                </div>
+                <div className="text-right shrink-0">
+                  <div className={`text-2xl font-black tabular-nums ${
+                    i === 0 ? 'text-amber-600' : i === 1 ? 'text-slate-500' : 'text-orange-500'
+                  }`}>{s.ar_score.toFixed(1)}</div>
+                  <div className="text-xs text-gray-400">pts</div>
+                </div>
+              </div>
+            ) : (
+              <div key={s.player_id} className="flex items-center gap-3 py-2 px-3 rounded-xl bg-gray-50">
+                <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500 shrink-0">{i + 1}</div>
+                <Link to={`/player/${s.player_id}`} className="flex-1 font-medium text-sm text-gray-900 hover:text-green-700 truncate">
+                  {playerMap[s.player_id]?.display_name ?? s.player_id}
+                </Link>
+                <div className="text-xs text-gray-500 shrink-0">{s.runs}r · {s.wickets}w · {s.catches + s.run_outs + s.stumpings}dis</div>
+                <div className="text-sm font-bold tabular-nums text-gray-600 shrink-0">
+                  {s.ar_score.toFixed(1)} <span className="text-xs text-gray-400 font-normal">pts</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

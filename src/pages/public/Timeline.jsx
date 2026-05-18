@@ -31,6 +31,13 @@ export default function Timeline() {
     .filter(w => w.tournament_id === activeTId && w.status === 'completed')
     .sort((a, b) => b.match_date.localeCompare(a.match_date))
 
+  const venueCounts = {}
+  sessions.forEach(w => {
+    const v = (w.venue ?? '').split(',')[0].trim() || 'Other'
+    venueCounts[v] = (venueCounts[v] || 0) + 1
+  })
+  const topVenues = Object.entries(venueCounts).sort((a, b) => b[1] - a[1]).slice(0, 3)
+
   const expenses = []
 
   const playerById = Object.fromEntries(players.map(p => [p.id, p]))
@@ -39,14 +46,23 @@ export default function Timeline() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 pb-12 pt-6">
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-3">
         <Link to="/" className="text-gray-400 hover:text-gray-600 text-sm">← Home</Link>
         <span className="text-gray-300">|</span>
         <div>
           <h1 className="text-xl font-bold text-gray-900">Season Timeline</h1>
-          <p className="text-xs text-gray-400">{sessions.length} session{sessions.length !== 1 ? 's' : ''} · {cfg?.team_name ?? ''}</p>
+          <p className="text-xs text-gray-400">{sessions.length} week{sessions.length !== 1 ? 's' : ''} · {cfg?.team_name ?? ''}</p>
         </div>
       </div>
+      {topVenues.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-6">
+          {topVenues.map(([venue, count]) => (
+            <span key={venue} className="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-100 rounded-full px-2.5 py-1">
+              📍 {venue} ×{count}
+            </span>
+          ))}
+        </div>
+      )}
 
       {sessions.length === 0 ? (
         <div className="card text-center py-12">
@@ -103,6 +119,26 @@ export default function Timeline() {
                             </span>
                           )}
                           <span className="text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded-lg">👥 {played}</span>
+                          <button
+                            title="Share on WhatsApp"
+                            onClick={e => {
+                              e.stopPropagation()
+                              const venue = (w.venue ?? '').split(',')[0]
+                              const date  = format(parseISO(w.match_date), 'MMM d, yyyy')
+                              const potmNames = sessionPerfs
+                                .filter(p => p.potm_count > 0)
+                                .sort((a, b) => b.potm_count - a.potm_count)
+                                .map(p => playerById[p.player_id]?.display_name).filter(Boolean).join(', ')
+                              const lines = [
+                                `🏏 ${date}${venue ? ` · ${venue}` : ''}`,
+                                winner ? `🏆 ${winner} won` : (w.result || ''),
+                                potmNames ? `🏅 POTM: ${potmNames}` : '',
+                                `👥 ${played} players`,
+                              ].filter(Boolean).join('\n')
+                              window.open(`https://wa.me/?text=${encodeURIComponent(lines)}`, '_blank')
+                            }}
+                            className="text-gray-300 hover:text-green-600 transition-colors text-sm leading-none"
+                          >📤</button>
                         </div>
                       </div>
 

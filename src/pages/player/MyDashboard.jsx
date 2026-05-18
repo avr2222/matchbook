@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { usePlayers, useWeeks, useAttendance, useTransactions, useConfig, useAnnouncements, usePaymentRequests } from '../../hooks/useData'
+import { usePlayers, useWeeks, useAttendance, useTransactions, useConfig, useAnnouncements, usePaymentRequests, useMatchPerformances } from '../../hooks/useData'
 import { writePaymentRequests } from '../../api/dataWriter'
 import { useAuthStore } from '../../store/authStore'
 import BalanceBadge from '../../components/ui/BalanceBadge'
@@ -149,6 +149,7 @@ export default function MyDashboard() {
   const { data: tData }            = useTransactions()
   const { data: annData }          = useAnnouncements()
   const { data: reqData }          = usePaymentRequests()
+  const { data: myPerfData }       = useMatchPerformances(playerId)
 
   const claimPlayer = useAuthStore(s => s.claimPlayer)
   const [claimId, setClaimId]       = useState('')
@@ -229,6 +230,14 @@ export default function MyDashboard() {
   const total  = completedWeeks.length
   const pct    = total > 0 ? Math.round((played / total) * 100) : 0
 
+  const myPerfs      = myPerfData?.performances ?? []
+  const myPerfWkIds  = new Set(myPerfs.map(p => p.week_id))
+  let attendStreak   = 0
+  for (const w of completedWeeks) {
+    if (myPerfWkIds.has(w.week_id)) attendStreak++
+    else break
+  }
+
   const missedWeeks = completedWeeks
     .filter(w => {
       const r = myAttendance.find(a => a.week_id === w.week_id)
@@ -272,6 +281,13 @@ export default function MyDashboard() {
         <div className="absolute inset-0 opacity-10 pointer-events-none select-none text-[140px] leading-none flex items-center justify-end pr-4">🏏</div>
         <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-2">{cfg?.team_name ?? 'Cricket Team'}</p>
         <h1 className="text-2xl font-extrabold">Hi, {player.display_name} 👋</h1>
+        {attendStreak >= 2 && (
+          <div className="mt-1.5">
+            <span className="inline-flex items-center gap-1 bg-white/20 rounded-full px-3 py-1 text-sm font-semibold">
+              🔥 {attendStreak}-week streak
+            </span>
+          </div>
+        )}
         <div className="mt-3 flex items-end gap-3">
           <div>
             <p className="text-white/60 text-xs">Corpus Balance</p>

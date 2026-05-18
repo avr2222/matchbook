@@ -45,6 +45,14 @@ export default function Dashboard() {
   const seriesTeams = Object.entries(seriesWins).sort((a, b) => b[1] - a[1])
   const seriesLeader = seriesTeams[0]
   const seriesDraws = completed.filter(w => !(w.winning_team || _parseWinner(w.result))).length
+  const sortedCompleted = [...completed].sort((a, b) => b.match_date.localeCompare(a.match_date))
+  let winStreak = 0
+  if (seriesLeader) {
+    for (const w of sortedCompleted) {
+      if ((w.winning_team || _parseWinner(w.result)) === seriesLeader[0]) winStreak++
+      else break
+    }
+  }
 
   const statusCounts = { good: 0, collect_soon: 0, urgent: 0, overdue: 0 }
   corpusPlayers.forEach(p => { if (statusCounts[p.balance_status] !== undefined) statusCounts[p.balance_status]++ })
@@ -151,6 +159,33 @@ export default function Dashboard() {
   const topMvp = _mvpSorted.length ? _topGroup(_mvpSorted, s => s.score) : []
   const perfPlayerMap = Object.fromEntries((pData?.players ?? []).map(p => [p.id, p]))
 
+  const recentWeekIds = new Set(recentWeeks.slice(0, 3).map(w => w.week_id))
+  const recentPerfs   = perfs.filter(p => recentWeekIds.has(p.week_id))
+  const recentMap     = {}
+  recentPerfs.forEach(p => {
+    if (!recentMap[p.player_id]) recentMap[p.player_id] = { runs: 0, wickets: 0, matches: 0 }
+    recentMap[p.player_id].runs    += p.runs    || 0
+    recentMap[p.player_id].wickets += p.wickets || 0
+    recentMap[p.player_id].matches += 1
+  })
+  const hotPlayers = Object.entries(recentMap)
+    .map(([pid, recent]) => {
+      const season = _sMap[pid]
+      if (!season || season.match_count < 3) return null
+      const avgRuns = season.runs / season.match_count
+      const avgWkts = season.wickets / season.match_count
+      const recentAvgRuns = recent.runs / recent.matches
+      const recentAvgWkts = recent.wickets / recent.matches
+      const score = ((recentAvgRuns - avgRuns) / Math.max(avgRuns, 1)) +
+                    ((recentAvgWkts - avgWkts) / Math.max(avgWkts, 0.5))
+      return score > 0.3
+        ? { pid, score, recentRuns: recent.runs, recentWkts: recent.wickets, matches: recent.matches }
+        : null
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+
   const EXPENSE_LABELS = {
     match_cost: 'Match Cost', ground_booking: 'Ground Booking', cricket_ball: 'Cricket Ball',
     cricket_bat: 'Cricket Bat', equipment: 'Equipment', refreshments: 'Refreshments',
@@ -236,7 +271,7 @@ export default function Dashboard() {
         <p className="text-green-200 text-sm font-semibold uppercase tracking-widest mb-1">{seasonName}</p>
         <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-1">{cfg?.team_name ?? 'MatchBook'}</h1>
         <p className="text-green-100 text-sm mt-1">
-          {completed.length} session{completed.length !== 1 ? 's' : ''} played · {allActive.length} active players
+          {completed.length} week{completed.length !== 1 ? 's' : ''} played · {allActive.length} active players
         </p>
 
         {/* Series scoreboard */}
@@ -251,14 +286,14 @@ export default function Dashboard() {
                   <div className={`text-3xl font-black tabular-nums leading-none ${i === 0 ? 'text-white' : 'text-white/80'}`}>
                     {wins}
                   </div>
-                  <div className="text-xs text-white/50 font-semibold uppercase tracking-widest leading-none mt-0.5">wins</div>
+                  <div className="text-xs text-white/50 font-semibold uppercase tracking-widest leading-none mt-0.5">weeks</div>
                   <div className="text-xs text-white/70 mt-1 truncate leading-tight">{name}</div>
                 </div>
               ))}
               {seriesTeams.length === 1 && (
                 <div className="flex-1 opacity-50">
                   <div className="text-3xl font-black tabular-nums leading-none text-white/60">0</div>
-                  <div className="text-xs text-white/40 font-semibold uppercase tracking-widest leading-none mt-0.5">wins</div>
+                  <div className="text-xs text-white/40 font-semibold uppercase tracking-widest leading-none mt-0.5">weeks</div>
                   <div className="text-xs text-white/50 mt-1">Opponent</div>
                 </div>
               )}
@@ -272,6 +307,7 @@ export default function Dashboard() {
             <p className="text-xs text-white/50 mt-1.5 text-center">
               {seriesLeader[0].split(' ')[0]} leads
               {seriesDraws > 0 && ` · ${seriesDraws} draw${seriesDraws > 1 ? 's' : ''}`}
+              {winStreak >= 2 && ` · 🔥 ${winStreak} in a row`}
             </p>
           </div>
         )}
@@ -480,6 +516,30 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {hotPlayers.length > 0 && (
+        <div className="card mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-bold text-gray-900">Who's Hot 🔥</h2>
+            <span className="text-xs text-gray-400">Last 3 sessions</span>
+          </div>
+          <div className="space-y-1">
+            {hotPlayers.map(({ pid, recentRuns, recentWkts, matches }) => (
+              <Link key={pid} to={`/player/${pid}`}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors">
+                <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center shrink-0 text-sm">🔥</div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-900 text-sm truncate">{perfPlayerMap[pid]?.display_name ?? pid}</p>
+                  <p className="text-xs text-gray-400">
+                    {recentRuns}r{recentWkts > 0 ? ` · ${recentWkts}w` : ''} in last {matches} match{matches !== 1 ? 'es' : ''}
+                  </p>
+                </div>
+                <span className="text-xs font-semibold text-green-600 shrink-0">In form ↑</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Recent Financial Activity */}
       {recentActivity.length > 0 && (
