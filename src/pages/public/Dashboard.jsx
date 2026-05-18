@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { usePlayers, useWeeks, useAttendance, useTournaments, useConfig, useAnnouncements, useExpenses, useTransactions, useLeaderboard } from '../../hooks/useData'
 import { PageSpinner } from '../../components/ui/Spinner'
@@ -11,6 +11,7 @@ export default function Dashboard() {
   const [payAmt, setPayAmt]         = useState('')
   const [copied, setCopied]         = useState(false)
   const [activeStatus, setActiveStatus] = useState(null) // 'good'|'collect_soon'|'urgent'|'overdue'
+  const stripRef = useRef(null)
   const { data: cfg }     = useConfig()
   const { data: tData }   = useTournaments()
   const { data: pData, isLoading: pLoad } = usePlayers()
@@ -206,6 +207,11 @@ export default function Dashboard() {
     .sort((a, b) => b.perfScore - a.perfScore)
     .slice(0, 3)
 
+  // Auto-scroll week badge strip to show most recent matches
+  useEffect(() => {
+    if (stripRef.current) stripRef.current.scrollLeft = stripRef.current.scrollWidth
+  }, [completed.length])
+
   const EXPENSE_LABELS = {
     match_cost: 'Match Cost', ground_booking: 'Ground Booking', cricket_ball: 'Cricket Ball',
     cricket_bat: 'Cricket Bat', equipment: 'Equipment', refreshments: 'Refreshments',
@@ -314,8 +320,8 @@ export default function Dashboard() {
                         <>
                           <div className={`tabular-nums font-black leading-none mt-1.5 ${
                             isMatchLeader
-                              ? (i === 0 ? 'text-5xl text-amber-300' : 'text-5xl text-cyan-300')
-                              : (i === 0 ? 'text-4xl text-white/55' : 'text-3xl text-white/30')
+                              ? (i === 0 ? 'text-4xl sm:text-5xl text-amber-300' : 'text-4xl sm:text-5xl text-cyan-300')
+                              : (i === 0 ? 'text-3xl sm:text-4xl text-white/55' : 'text-2xl sm:text-3xl text-white/30')
                           }`}>{mWins}</div>
                           <div className={`text-[10px] font-bold uppercase tracking-widest ${
                             isMatchLeader ? (i === 0 ? 'text-amber-300/55' : 'text-cyan-400/55') : 'text-white/20'
@@ -332,7 +338,7 @@ export default function Dashboard() {
                 {seriesTeams.length === 1 && (
                   <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2.5">
                     <div className="text-[10px] font-bold text-white/25">Opponent</div>
-                    <div className="text-3xl font-black text-white/20 leading-none mt-1.5">0</div>
+                    <div className="text-2xl sm:text-3xl font-black text-white/20 leading-none mt-1.5">0</div>
                     <div className="text-[10px] font-bold uppercase tracking-widest text-white/15">matches</div>
                     <div className="mt-2 flex items-baseline gap-1">
                       <span className="text-xl font-black tabular-nums text-white/15">0</span>
@@ -343,7 +349,7 @@ export default function Dashboard() {
               </div>
             </div>
             {/* Week sequence strip */}
-            <div className="px-3 pb-2 overflow-x-auto">
+            <div className="px-3 pb-2 overflow-x-auto" ref={stripRef}>
               <div className="flex gap-1 w-max">
                 {_chronoWeeks.map(w => {
                   const winner = w.winning_team || _parseWinner(w.result)
@@ -469,7 +475,7 @@ export default function Dashboard() {
             <button
               key={key}
               onClick={() => setActiveStatus(activeStatus === key ? null : key)}
-              className={`flex items-center gap-2 rounded-xl px-3 py-2 text-left transition-all ${
+              className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-left transition-all ${
                 activeStatus === key
                   ? 'bg-gray-200 ring-2 ring-gray-400'
                   : 'bg-gray-50 hover:bg-gray-100'
