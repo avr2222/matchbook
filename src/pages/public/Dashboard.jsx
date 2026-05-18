@@ -183,19 +183,14 @@ export default function Dashboard() {
   const hotPlayers = Object.entries(recentMap)
     .map(([pid, recent]) => {
       const season = _sMap[pid]
-      if (!season || season.match_count < 3) return null
-      const avgRuns = season.runs / season.match_count
-      const avgWkts = season.wickets / season.match_count
-      const recentAvgRuns = recent.runs / recent.matches
-      const recentAvgWkts = recent.wickets / recent.matches
-      const score = ((recentAvgRuns - avgRuns) / Math.max(avgRuns, 1)) +
-                    ((recentAvgWkts - avgWkts) / Math.max(avgWkts, 0.5))
-      return score > 0.3
-        ? { pid, score, recentRuns: recent.runs, recentWkts: recent.wickets, matches: recent.matches }
+      if (!season || season.match_count < 3 || recent.matches < 2) return null
+      const perfScore = recent.runs + recent.wickets * 8
+      return perfScore > 0
+        ? { pid, perfScore, recentRuns: recent.runs, recentWkts: recent.wickets, matches: recent.matches }
         : null
     })
     .filter(Boolean)
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => b.perfScore - a.perfScore)
     .slice(0, 3)
 
   const EXPENSE_LABELS = {
