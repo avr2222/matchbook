@@ -51,7 +51,7 @@ export default function PlayerDetail() {
   const careerBallsBowled  = perfs.reduce((s, p) => s + (p.balls_bowled || 0), 0)
   const careerHighScore    = perfs.reduce((max, p) => Math.max(max, p.runs || 0), 0)
   const careerBestWkts     = perfs.reduce((max, p) => Math.max(max, p.wickets || 0), 0)
-  const totalGames         = perfs.reduce((s, p) => s + (p.match_count || 1), 0)
+  const totalGames         = perfs.length
   const sortedPerfs = [...perfs].sort((a, b) => {
     const wa = weeks.find(w => w.week_id === a.week_id)
     const wb = weeks.find(w => w.week_id === b.week_id)

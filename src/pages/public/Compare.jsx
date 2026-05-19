@@ -33,7 +33,7 @@ export default function Compare() {
     if (!playerPerfs.length) return { player_id: pid, matches: 0, runs: 0, balls_faced: 0, fours: 0, sixes: 0, high_score: 0, wickets: 0, runs_given: 0, balls_bowled: 0, maidens: 0, catches: 0, run_outs: 0, stumpings: 0, potm_count: 0, bba_count: 0, bbo_count: 0, attend_pct: 0 }
     const s = { player_id: pid, matches: 0, runs: 0, balls_faced: 0, fours: 0, sixes: 0, high_score: 0, wickets: 0, runs_given: 0, balls_bowled: 0, maidens: 0, catches: 0, run_outs: 0, stumpings: 0, potm_count: 0, bba_count: 0, bbo_count: 0 }
     for (const p of playerPerfs) {
-      s.matches     += p.match_count  || 1
+      s.matches     += 1
       s.runs        += p.runs         || 0
       s.balls_faced += p.balls_faced  || 0
       s.fours       += p.fours        || 0

@@ -359,7 +359,7 @@ def _empty_perf():
         "dismissal": "", "batting_pos": None,
         "wickets": 0, "runs_given": 0, "balls_bowled": 0, "maidens": 0,
         "catches": 0, "run_outs": 0, "stumpings": 0,
-        "match_count": 0, "wides": 0, "no_balls": 0, "potm_count": 0, "ducks": 0,
+        "match_count": 1, "wides": 0, "no_balls": 0, "potm_count": 0, "ducks": 0,
         "bba_count": 0, "bbo_count": 0,
     }
 
@@ -818,40 +818,28 @@ def sync():
                         })
                         changed = True
 
-        # Extract and aggregate batting/bowling stats for this session
+        # Extract per-game batting/bowling stats (one row per player per game)
         if need_performances and existing_perf_week_ids is not None:
-            session_perfs = {}
-            for sd_tuple in all_scorecard_data:
+            for game_idx, sd_tuple in enumerate(all_scorecard_data):
                 sd, potm_id, bba_id, bbo_id = sd_tuple if len(sd_tuple) == 4 else (*sd_tuple, None, None)
-                for internal_id, stats in extract_performances_from_scorecard(sd, ch_to_internal).items():
-                    if internal_id not in session_perfs:
-                        session_perfs[internal_id] = _empty_perf()
-                    sp = session_perfs[internal_id]
-                    for k in ("runs", "balls_faced", "fours", "sixes", "wickets",
-                              "runs_given", "balls_bowled", "maidens", "catches",
-                              "run_outs", "stumpings", "wides", "no_balls", "ducks"):
-                        sp[k] += stats[k]
-                    if not sp["dismissal"] and stats["dismissal"]:
-                        sp["dismissal"] = stats["dismissal"]
-                    if sp["batting_pos"] is None and stats["batting_pos"] is not None:
-                        sp["batting_pos"] = stats["batting_pos"]
-                    sp["match_count"] += 1
+                ch_match_id = all_match_ids[game_idx]
+                game_perfs = extract_performances_from_scorecard(sd, ch_to_internal)
                 for award_id, award_key in ((potm_id, "potm_count"), (bba_id, "bba_count"), (bbo_id, "bbo_count")):
                     if award_id:
-                        if award_id not in session_perfs:
-                            session_perfs[award_id] = _empty_perf()
-                        session_perfs[award_id][award_key] += 1
-
-            for internal_id, stats in session_perfs.items():
-                new_performances.append({
-                    "id":            f"PERF_{internal_id}_{actual_wid}",
-                    "player_id":     internal_id,
-                    "week_id":       actual_wid,  # use actual DB week_id (handles ±1 day offset)
-                    "tournament_id": active_tournament_id,
-                    **stats,
-                })
-            if session_perfs:
-                print(f"  Extracted performances for {len(session_perfs)} player(s)")
+                        if award_id not in game_perfs:
+                            game_perfs[award_id] = _empty_perf()
+                        game_perfs[award_id][award_key] = 1
+                for internal_id, stats in game_perfs.items():
+                    new_performances.append({
+                        "id":                  f"PERF_{internal_id}_{ch_match_id}",
+                        "player_id":           internal_id,
+                        "week_id":             actual_wid,
+                        "tournament_id":       active_tournament_id,
+                        "cricheroes_match_id": ch_match_id,
+                        **stats,
+                    })
+            if new_performances:
+                print(f"  Extracted {len(new_performances)} per-game performance row(s)")
                 changed = True
 
     if not changed:

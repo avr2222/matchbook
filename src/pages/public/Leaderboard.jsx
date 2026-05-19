@@ -39,6 +39,7 @@ export default function Leaderboard() {
   const playerMap   = Object.fromEntries((pData?.players ?? []).map(p => [p.id, p]))
   const perfs       = perfData?.performances ?? []
 
+  const seenWeekPlayer = new Set()
   const statsMap = {}
   for (const perf of perfs) {
     if (!statsMap[perf.player_id]) {
@@ -52,8 +53,12 @@ export default function Leaderboard() {
       }
     }
     const s = statsMap[perf.player_id]
-    s.weeks_attended += 1
-    s.matches    += perf.match_count || 1
+    const wpKey = `${perf.player_id}:${perf.week_id}`
+    if (!seenWeekPlayer.has(wpKey)) {
+      s.weeks_attended += 1
+      seenWeekPlayer.add(wpKey)
+    }
+    s.matches    += 1
     s.runs        += perf.runs        || 0
     s.balls_faced += perf.balls_faced || 0
     s.fours       += perf.fours       || 0
