@@ -257,8 +257,11 @@ export default function PlayerPay() {
     ? Math.round((perfs.length / completedWeeks.length) * 100)
     : 0
 
-  // Corpus forecast
-  const matchFee    = cfg?.default_match_fee ?? nextMatch?.match_fee ?? 500
+  // Corpus forecast — avg fee from sessions this player actually attended
+  const _attendedWithFee = completedWeeks.filter(w => perfWeekIds.has(w.week_id) && (w.match_fee || 0) > 0)
+  const matchFee = _attendedWithFee.length > 0
+    ? Math.round(_attendedWithFee.reduce((s, w) => s + w.match_fee, 0) / _attendedWithFee.length)
+    : (cfg?.default_match_fee ?? 500)
   const matchesLeft = balance > 0 && matchFee > 0 ? Math.floor(balance / matchFee) : 0
 
   // Career stats

@@ -44,6 +44,7 @@ export default function Leaderboard() {
     if (!statsMap[perf.player_id]) {
       statsMap[perf.player_id] = {
         player_id: perf.player_id,
+        weeks_attended: 0,
         matches: 0, runs: 0, balls_faced: 0, fours: 0, sixes: 0, high_score: 0,
         wickets: 0, runs_given: 0, balls_bowled: 0, maidens: 0, catches: 0,
         run_outs: 0, stumpings: 0, wides: 0, no_balls: 0, potm_count: 0, ducks: 0,
@@ -51,6 +52,7 @@ export default function Leaderboard() {
       }
     }
     const s = statsMap[perf.player_id]
+    s.weeks_attended += 1
     s.matches    += perf.match_count || 1
     s.runs        += perf.runs        || 0
     s.balls_faced += perf.balls_faced || 0
@@ -146,8 +148,8 @@ export default function Leaderboard() {
   const noBallKing   = _tg([...allStats].filter(s => s.no_balls > 0).sort((a,b) => b.no_balls - a.no_balls), s => s.no_balls)
   const costlyBowler = _tgf([...allStats].filter(s => s.balls_bowled >= MIN_BOWL).sort((a,b) => (b.runs_given/b.balls_bowled)-(a.runs_given/a.balls_bowled)), s => s.runs_given/s.balls_bowled)
   const topAttendee  = totalSessions > 0
-    ? [...allStats].filter(s => s.matches > 0)
-        .map(s => ({ ...s, attend_pct: Math.round((s.matches / totalSessions) * 100) }))
+    ? [...allStats].filter(s => s.weeks_attended > 0)
+        .map(s => ({ ...s, attend_pct: Math.round((s.weeks_attended / totalSessions) * 100) }))
         .sort((a, b) => b.attend_pct - a.attend_pct)[0]
     : null
 
@@ -558,7 +560,7 @@ export default function Leaderboard() {
                 <ACard emoji="💥" title="Six Machine"     group={sixMachine} stat={sixMachine[0]?.sixes}     unit="sixes"   variant="gold" />
                 <ACard emoji="🦇" title="Best Batsman"    group={topBba}     stat={topBba[0]?.bba_count}     unit="awards"  variant="gold" />
                 <ACard emoji="🎳" title="Best Bowler"     group={topBbo}     stat={topBbo[0]?.bbo_count}     unit="awards"  variant="gold" />
-                <ACard emoji="🎽" title="Iron Man"        group={topAttendee ? [topAttendee] : []} stat={topAttendee ? `${topAttendee.attend_pct}%` : null} unit={`${topAttendee?.matches ?? 0}/${totalSessions} sessions`} variant="gold" />
+                <ACard emoji="🎽" title="Iron Man"        group={topAttendee ? [topAttendee] : []} stat={topAttendee ? `${topAttendee.attend_pct}%` : null} unit={`${topAttendee?.weeks_attended ?? 0}/${totalSessions} sessions`} variant="gold" />
               </div>
             </div>
 
