@@ -314,8 +314,9 @@ export default function Dashboard() {
                     <div key={name} className={`flex-1 rounded-xl px-3 py-2.5 ${
                       i === 0 ? 'bg-white/15 border border-white/25' : 'bg-white/5 border border-white/10'
                     }`}>
-                      <div className={`text-[10px] font-medium truncate leading-snug ${i === 0 ? 'text-white/65' : 'text-white/25'}`} title={name}>
-                        {name}
+                      <div className={`text-[10px] font-medium leading-snug flex items-center gap-1 ${i === 0 ? 'text-white/65' : 'text-white/25'}`} title={name}>
+                        <span className="truncate">{name}</span>
+                        {isMatchLeader && <IconTrophy size={11} className={`shrink-0 ${i === 0 ? 'text-amber-300' : 'text-cyan-300'}`} />}
                       </div>
                       {mWins > 0 && (
                         <>
