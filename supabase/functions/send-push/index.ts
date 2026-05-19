@@ -31,8 +31,21 @@ async function getAdminUserIds(): Promise<string[]> {
   return (users ?? []).filter(u => u.app_metadata?.is_admin === true).map(u => u.id)
 }
 
+async function pushToAllUsers(title: string, body: string, url: string) {
+  const { data: subs } = await sb
+    .from('push_subscriptions')
+    .select('endpoint, p256dh, auth')
+  const payload = JSON.stringify({ title, body, url })
+  await Promise.allSettled(
+    (subs ?? []).map(s =>
+      webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload)
+    )
+  )
+}
+
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return new Response('Method Not Allowed', { status: 405 })
+  try {
 
   const { type, table, record, old_record } = await req.json()
 
@@ -102,7 +115,19 @@ Deno.serve(async (req) => {
         }
       }
     }
+  } else if (table === 'announcements') {
+    if (type === 'INSERT') {
+      await pushToAllUsers(
+        `📢 ${record.title ?? 'New Announcement'}`,
+        record.body ?? '',
+        '/matchbook/#/announcements',
+      )
+    }
   }
 
   return new Response(JSON.stringify({ ok: true }), { headers: { 'Content-Type': 'application/json' } })
+  } catch (err) {
+    console.error('send-push error:', err)
+    return new Response(JSON.stringify({ error: String(err) }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+  }
 })

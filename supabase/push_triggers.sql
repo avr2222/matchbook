@@ -10,7 +10,7 @@ BEGIN
     url     := 'https://tzcernzuwtwgrsattjaw.supabase.co/functions/v1/send-push',
     headers := jsonb_build_object(
       'Content-Type',  'application/json',
-      'Authorization', 'Bearer sb_publishable_eCi5dQTErI553bJzFK-RQQ_CazVwaNl'
+      'Authorization', 'Bearer sb_publishable_qTZL-nfangfMUqdBcBvgww_q_ucMvXR'
     ),
     body := jsonb_build_object(
       'type',       TG_OP,
@@ -50,3 +50,9 @@ CREATE TRIGGER push_payment_update
   FOR EACH ROW
   WHEN (OLD.status = 'pending' AND NEW.status IN ('confirmed', 'rejected'))
   EXECUTE FUNCTION _notify_push();
+
+-- 5. New announcement → notify all subscribed users
+DROP TRIGGER IF EXISTS push_announcement_insert ON announcements;
+CREATE TRIGGER push_announcement_insert
+  AFTER INSERT ON announcements
+  FOR EACH ROW EXECUTE FUNCTION _notify_push();
