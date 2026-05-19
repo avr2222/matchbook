@@ -314,17 +314,19 @@ export default function Dashboard() {
                     <div key={name} className={`flex-1 rounded-xl px-3 py-2.5 ${
                       i === 0 ? 'bg-white/15 border border-white/25' : 'bg-white/5 border border-white/10'
                     }`}>
-                      <div className={`text-[10px] font-medium leading-snug flex items-center gap-1 ${i === 0 ? 'text-white/65' : 'text-white/25'}`} title={name}>
-                        <span className="truncate">{name}</span>
-                        {isMatchLeader && <IconTrophy size={11} className={`shrink-0 ${i === 0 ? 'text-amber-300' : 'text-cyan-300'}`} />}
+                      <div className={`text-[10px] font-medium truncate leading-snug ${i === 0 ? 'text-white/65' : 'text-white/25'}`} title={name}>
+                        {name}
                       </div>
                       {mWins > 0 && (
                         <>
-                          <div className={`tabular-nums font-medium leading-none mt-1.5 ${
+                          <div className={`flex items-center gap-2 tabular-nums font-medium leading-none mt-1.5 ${
                             isMatchLeader
                               ? (i === 0 ? 'text-4xl sm:text-5xl text-amber-300' : 'text-4xl sm:text-5xl text-cyan-300')
                               : (i === 0 ? 'text-3xl sm:text-4xl text-white/55' : 'text-2xl sm:text-3xl text-white/30')
-                          }`}>{mWins}</div>
+                          }`}>
+                            <span>{mWins}</span>
+                            {isMatchLeader && <IconTrophy size={40} className={`shrink-0 ${i === 0 ? 'text-amber-300' : 'text-cyan-300'}`} />}
+                          </div>
                           <div className={`text-[10px] font-medium uppercase tracking-widest ${
                             isMatchLeader ? (i === 0 ? 'text-amber-300/55' : 'text-cyan-400/55') : 'text-white/20'
                           }`}>matches</div>
