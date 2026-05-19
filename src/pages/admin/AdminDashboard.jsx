@@ -9,6 +9,7 @@ import { useAuthStore } from '../../store/authStore'
 import { showToast } from '../../components/ui/Toast'
 import { supabase } from '../../lib/supabase'
 import { format, parseISO } from 'date-fns'
+import { IconUsers, IconAlertTriangle, IconCurrencyRupee, IconCreditCard, IconReceipt, IconLink, IconUser, IconCalendar } from '@tabler/icons-react'
 
 export default function AdminDashboard() {
   const isAdmin    = useIsAdmin()
@@ -84,79 +85,79 @@ export default function AdminDashboard() {
   const unmatched   = mapData?.unmatched ?? []
   const staleMaps   = (mapData?.player_mappings ?? []).filter(m => !m.confirmed).length
   const expenses    = eData?.expenses ?? []
-  const recentWeeks   = [...completed].sort((a, b) => b.match_date.localeCompare(a.match_date)).slice(0, 3)
+  const recentWeeks = [...completed].sort((a, b) => b.match_date.localeCompare(a.match_date)).slice(0, 3)
 
-  // Corpus health — how many more matches the pool can cover per player
-  const corpusPlayers   = players.filter(p => p.type === 'corpus' || p.type === 'new')
-  const totalPool       = corpusPlayers.reduce((s, p) => s + (p.corpus_balance ?? 0), 0)
-  const avgMatchFee     = completed.length > 0
+  const corpusPlayers  = players.filter(p => p.type === 'corpus' || p.type === 'new')
+  const totalPool      = corpusPlayers.reduce((s, p) => s + (p.corpus_balance ?? 0), 0)
+  const avgMatchFee    = completed.length > 0
     ? completed.reduce((s, w) => s + (w.match_fee ?? 0), 0) / completed.length
     : cfg?.default_match_fee ?? 500
-  const matchesCovered  = avgMatchFee > 0 && corpusPlayers.length > 0
+  const matchesCovered = avgMatchFee > 0 && corpusPlayers.length > 0
     ? totalPool / avgMatchFee / corpusPlayers.length
     : 0
 
-  // Season budget tracking
-  const budget     = cfg?.season_budget ?? 0
+  const budget    = cfg?.season_budget ?? 0
   const totalSpent = expenses.reduce((s, e) => s + (e.amount ?? 0), 0)
   const budgetPct  = budget > 0 ? Math.min(100, Math.round((totalSpent / budget) * 100)) : 0
+
+  const statCards = [
+    { label: 'Active players', value: players.length,   Icon: IconUsers,          to: '/admin/players'      },
+    { label: 'Weeks played',   value: completed.length, Icon: IconCalendar,       to: '/admin/weeks'        },
+    { label: 'At risk',        value: atRisk.length,    Icon: IconAlertTriangle,  to: '/admin/players', warn: atRisk.length > 0 },
+    { label: 'Corpus pool',    value: `₹${Math.round(totalPool).toLocaleString('en-IN')}`, Icon: IconCurrencyRupee, to: '/admin/transactions' },
+  ]
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
+        <h1 className="text-[22px] font-medium text-gray-900">Admin dashboard</h1>
         {isAdmin && (
           <a
             href={`https://github.com/${import.meta.env.VITE_GITHUB_REPO ?? ''}/actions/workflows/sync-cricheroes.yml`}
             target="_blank" rel="noreferrer"
-            className="btn-primary text-sm flex items-center gap-2"
+            className="btn-primary text-sm"
           >
-            🔄 Run CricHeroes Sync
+            Run CricHeroes sync
           </a>
         )}
       </div>
 
       {/* Warning banners */}
       {unmatched.length > 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-2xl px-4 py-3 text-sm text-yellow-800 flex items-center justify-between gap-3">
-          <span>⚠️ {unmatched.length} player(s) from last CricHeroes sync could not be matched.</span>
-          <Link to="/admin/mapping" className="underline font-semibold shrink-0">Fix →</Link>
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800 flex items-center justify-between gap-3">
+          <span className="flex items-center gap-2"><IconAlertTriangle size={15} />{unmatched.length} player(s) from last CricHeroes sync could not be matched.</span>
+          <Link to="/admin/mapping" className="underline font-medium shrink-0">Fix →</Link>
         </div>
       )}
       {staleMaps > 0 && (
-        <div className="bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3 text-sm text-orange-800 flex items-center justify-between gap-3">
-          <span>🟡 {staleMaps} CricHeroes mapping(s) flagged for manual review.</span>
-          <Link to="/admin/mapping" className="underline font-semibold shrink-0">Review →</Link>
+        <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 text-sm text-orange-800 flex items-center justify-between gap-3">
+          <span>{staleMaps} CricHeroes mapping(s) flagged for manual review.</span>
+          <Link to="/admin/mapping" className="underline font-medium shrink-0">Review →</Link>
         </div>
       )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[
-          { label: 'Active Players', value: players.length,   icon: '👥', bg: 'from-blue-500 to-blue-600',     to: '/admin/players'      },
-          { label: 'Weeks Played',   value: completed.length, icon: '🏟', bg: 'from-green-500 to-emerald-600', to: '/admin/weeks'        },
-          { label: 'At Risk',        value: atRisk.length,    icon: '⚠️', bg: atRisk.length > 0 ? 'from-red-500 to-rose-600' : 'from-gray-400 to-gray-500', to: '/admin/players' },
-          { label: 'Corpus Pool',    value: `₹${Math.round(totalPool).toLocaleString('en-IN')}`, icon: '💰', bg: 'from-amber-500 to-orange-500', to: '/admin/transactions' },
-        ].map(({ label, value, icon, bg, to }) => (
+        {statCards.map(({ label, value, Icon, to, warn }) => (
           <Link
             key={label}
             to={to}
-            className="group relative overflow-hidden rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+            className="card hover:border-[rgba(0,0,0,0.18)] transition-colors"
           >
-            <div className={`absolute inset-0 bg-gradient-to-br ${bg} opacity-90`} />
-            <div className="relative p-4 text-white">
-              <div className="text-2xl mb-2">{icon}</div>
-              <div className="text-2xl font-bold leading-tight">{value}</div>
-              <div className="text-xs font-medium text-white/75 mt-0.5">{label}</div>
-            </div>
+            <Icon size={18} className={`mb-2 ${warn ? 'text-red-500' : 'text-[#1D9E75]'}`} />
+            <div className="text-[24px] font-medium text-gray-900 tabular-nums leading-tight">{value}</div>
+            <div className="text-xs text-gray-400 mt-0.5">{label}</div>
           </Link>
         ))}
       </div>
 
-      {/* Collect Cash — visible to host + admin */}
+      {/* Collect Cash */}
       {canWrite && (
         <div className="card space-y-3">
-          <h2 className="font-semibold text-gray-800">💰 Collect Cash Payment</h2>
+          <h2 className="font-medium text-gray-800 flex items-center gap-2">
+            <IconCurrencyRupee size={16} className="text-[#1D9E75]" />
+            Collect cash payment
+          </h2>
 
           <select
             className="input"
@@ -201,14 +202,13 @@ export default function AdminDashboard() {
             disabled={!collectPlayer || !collectAmt || collectBusy}
             className="btn-primary w-full"
           >
-            {collectBusy ? 'Recording…' : 'Record Collection'}
+            {collectBusy ? 'Recording…' : 'Record collection'}
           </button>
 
-          {/* Pending host collections */}
           {hostCollections.length > 0 && (
-            <div className="pt-3 border-t border-gray-100 space-y-2">
-              <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">
-                ⏳ Pending Admin Confirmation
+            <div className="pt-3 border-t border-[rgba(0,0,0,0.06)] space-y-2">
+              <p className="text-[11px] font-medium text-amber-700 uppercase tracking-[0.05em]">
+                Pending admin confirmation
               </p>
               {hostCollections.map(req => {
                 const p = players.find(pl => pl.id === req.player_id)
@@ -220,7 +220,7 @@ export default function AdminDashboard() {
                         <span className="ml-2 text-xs text-gray-400">{req.notes.replace('[HOST] ', '')}</span>
                       )}
                     </div>
-                    <span className="font-mono font-semibold text-green-700">
+                    <span className="font-mono font-medium text-[#1D9E75]">
                       ₹{(req.amount ?? 0).toLocaleString('en-IN')}
                     </span>
                   </div>
@@ -237,8 +237,8 @@ export default function AdminDashboard() {
       {/* Corpus health + season budget */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="card">
-          <h2 className="font-semibold text-gray-800 mb-2">Corpus Health</h2>
-          <p className="text-2xl font-bold text-gray-900">
+          <h2 className="font-medium text-gray-800 mb-2">Corpus health</h2>
+          <p className="text-[24px] font-medium text-gray-900 tabular-nums">
             {matchesCovered.toFixed(1)}
             <span className="text-sm font-normal text-gray-500 ml-1">matches covered</span>
           </p>
@@ -247,23 +247,23 @@ export default function AdminDashboard() {
           </p>
           <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all ${matchesCovered >= 3 ? 'bg-green-500' : matchesCovered >= 1 ? 'bg-yellow-400' : 'bg-red-500'}`}
+              className={`h-full rounded-full transition-all ${matchesCovered >= 3 ? 'bg-[#1D9E75]' : matchesCovered >= 1 ? 'bg-amber-400' : 'bg-red-500'}`}
               style={{ width: `${Math.min(100, (matchesCovered / 5) * 100)}%` }}
             />
           </div>
         </div>
 
         <div className="card">
-          <h2 className="font-semibold text-gray-800 mb-2">Season Budget</h2>
+          <h2 className="font-medium text-gray-800 mb-2">Season budget</h2>
           {budget > 0 ? (
             <>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-[24px] font-medium text-gray-900 tabular-nums">
                 ₹{totalSpent.toLocaleString('en-IN')}
                 <span className="text-sm font-normal text-gray-500 ml-1">of ₹{budget.toLocaleString('en-IN')}</span>
               </p>
               <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all ${budgetPct < 70 ? 'bg-green-500' : budgetPct < 90 ? 'bg-yellow-400' : 'bg-red-500'}`}
+                  className={`h-full rounded-full transition-all ${budgetPct < 70 ? 'bg-[#1D9E75]' : budgetPct < 90 ? 'bg-amber-400' : 'bg-red-500'}`}
                   style={{ width: `${budgetPct}%` }}
                 />
               </div>
@@ -283,10 +283,10 @@ export default function AdminDashboard() {
       {atRisk.length > 0 && (
         <div className="card">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-gray-800">Needs Attention</h2>
-            <Link to="/admin/players" className="text-sm text-green-600 hover:underline">All players →</Link>
+            <h2 className="font-medium text-gray-800">Needs attention</h2>
+            <Link to="/admin/players" className="text-sm text-[#1D9E75] hover:underline">All players →</Link>
           </div>
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-[rgba(0,0,0,0.04)]">
             {atRisk.map(p => (
               <div key={p.id} className="py-2.5 flex items-center justify-between text-sm">
                 <span className="font-medium text-gray-800">{p.display_name}</span>
@@ -302,16 +302,16 @@ export default function AdminDashboard() {
 
       {/* Quick actions */}
       <div className="card">
-        <h2 className="font-semibold text-gray-800 mb-3">Quick Actions</h2>
+        <h2 className="font-medium text-gray-800 mb-3">Quick actions</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { to: '/admin/transactions?new=1', label: '+ Record Payment', icon: '💳' },
-            { to: '/admin/expenses?new=1',     label: '+ Add Expense',    icon: '🧾' },
-            { to: '/admin/players?new=1',      label: '+ Add Player',     icon: '👥' },
-            { to: '/admin/guests?new=1',       label: '+ Guest Visit',    icon: '👤' },
-          ].map(({ to, label, icon }) => (
+            { to: '/admin/transactions?new=1', label: '+ Record payment', Icon: IconCreditCard },
+            { to: '/admin/expenses?new=1',     label: '+ Add expense',    Icon: IconReceipt   },
+            { to: '/admin/players?new=1',      label: '+ Add player',     Icon: IconUsers     },
+            { to: '/admin/guests?new=1',       label: '+ Guest visit',    Icon: IconUser      },
+          ].map(({ to, label, Icon }) => (
             <Link key={to} to={to} className="btn-secondary text-sm flex items-center gap-2 justify-center">
-              <span>{icon}</span> {label}
+              <Icon size={14} /> {label}
             </Link>
           ))}
         </div>
@@ -320,13 +320,13 @@ export default function AdminDashboard() {
       {/* Recent matches */}
       <div className="card">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-gray-800">Recent Matches</h2>
-          <Link to="/admin/weeks" className="text-sm text-green-600 hover:underline">Manage →</Link>
+          <h2 className="font-medium text-gray-800">Recent matches</h2>
+          <Link to="/admin/weeks" className="text-sm text-[#1D9E75] hover:underline">Manage →</Link>
         </div>
         {recentWeeks.length === 0 ? (
           <p className="text-sm text-gray-400 py-4 text-center">No matches yet.</p>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-[rgba(0,0,0,0.04)]">
             {recentWeeks.map(w => {
               const played = records.filter(r => r.week_id === w.week_id && r.status === 'played').length
               return (
@@ -337,12 +337,14 @@ export default function AdminDashboard() {
                       <span className="ml-2 text-xs text-gray-400">{w.team_a} vs {w.team_b}</span>
                     )}
                     {w.cricheroes_match_id && (
-                      <span className="ml-2 text-xs bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">🔗 CricHeroes</span>
+                      <span className="ml-1 inline-flex items-center gap-0.5 text-xs bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">
+                        <IconLink size={10} /> CricHeroes
+                      </span>
                     )}
                   </div>
                   <div className="flex items-center gap-3 text-gray-500">
-                    {w.result && <span className="text-xs font-medium text-green-700">{w.result}</span>}
-                    <span>👥 {played} played</span>
+                    {w.result && <span className="text-xs font-medium text-[#1D9E75]">{w.result}</span>}
+                    <span className="flex items-center gap-1"><IconUsers size={13} />{played}</span>
                   </div>
                 </div>
               )

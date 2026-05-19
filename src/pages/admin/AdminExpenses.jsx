@@ -227,7 +227,7 @@ export default function AdminExpenses() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Expenses</h1>
+          <h1 className="text-[22px] font-medium text-gray-900">Expenses</h1>
           <p className="text-sm text-gray-500 mt-0.5">Total: ₹{total.toLocaleString('en-IN')}</p>
         </div>
         {canWrite && <button onClick={() => setShowForm(true)} className="btn-primary text-sm">+ Add Expense</button>}
@@ -235,8 +235,8 @@ export default function AdminExpenses() {
 
       {completedWeeks.length > 0 && (
         <div className="card">
-          <h2 className="font-semibold text-gray-800 mb-3">Match Fee Collections</h2>
-          <div className="divide-y divide-gray-100 -mx-4 -mb-4">
+          <h2 className="font-medium text-gray-800 mb-3">Match Fee Collections</h2>
+          <div className="divide-y divide-[rgba(0,0,0,0.04)] -mx-4 -mb-4">
             {completedWeeks.map(w => {
               const d = deductByWeek[w.week_id]
               return (
@@ -249,7 +249,7 @@ export default function AdminExpenses() {
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-gray-500">{d.count} players</span>
                       <span className="font-mono text-gray-700">₹{Math.round(d.total).toLocaleString('en-IN')}</span>
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">Applied ✓</span>
+                      <span className="text-xs px-2 py-0.5 rounded bg-[#E1F5EE] text-[#1D9E75] font-medium">Applied</span>
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
@@ -266,21 +266,21 @@ export default function AdminExpenses() {
 
       <div className="card p-0 overflow-hidden overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-[#F8F8F6] border-b border-[rgba(0,0,0,0.06)]">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Date</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Category</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Description</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Split</th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Amount</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Actions</th>
+              <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Date</th>
+              <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Category</th>
+              <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Description</th>
+              <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Split</th>
+              <th className="px-4 py-3 text-right text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Amount</th>
+              <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-[rgba(0,0,0,0.04)]">
             {expenses.length === 0 ? (
               <tr><td colSpan={6} className="text-center py-10 text-gray-400">No expenses recorded yet.</td></tr>
             ) : expenses.map(e => (
-                <tr key={e.id} className="hover:bg-gray-50">
+                <tr key={e.id} className="hover:bg-[#F8F8F6]">
                   <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{format(parseISO(e.date), 'MMM d, yyyy')}</td>
                   <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{CATEGORIES.find(c => c.value === e.category)?.label ?? e.category}</td>
                   <td className="px-4 py-3 text-gray-600">
@@ -323,10 +323,10 @@ export default function AdminExpenses() {
             ))}
           </tbody>
           {expenses.length > 0 && (
-            <tfoot className="bg-gray-50 border-t border-gray-200">
+            <tfoot className="bg-[#F8F8F6] border-t border-[rgba(0,0,0,0.06)]">
               <tr>
-                <td colSpan={4} className="px-4 py-2 text-right text-sm font-semibold text-gray-700">Total</td>
-                <td className="px-4 py-2 text-right font-mono font-bold text-gray-900">₹{total.toLocaleString('en-IN')}</td>
+                <td colSpan={4} className="px-4 py-2 text-right text-sm font-medium text-gray-700">Total</td>
+                <td className="px-4 py-2 text-right font-mono font-medium text-gray-900">₹{total.toLocaleString('en-IN')}</td>
                 <td />
               </tr>
             </tfoot>
@@ -338,9 +338,9 @@ export default function AdminExpenses() {
 
       {editExpense && editForm && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-md">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
-              <h2 className="font-semibold">Edit Expense</h2>
+              <h2 className="font-medium">Edit Expense</h2>
               <button onClick={() => { setEditExpense(null); setEditForm(null) }} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <div className="px-6 py-4 space-y-3">
@@ -393,9 +393,9 @@ export default function AdminExpenses() {
 
       {showForm && canWrite && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-md">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
-              <h2 className="font-semibold">Add Expense</h2>
+              <h2 className="font-medium">Add Expense</h2>
               <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <div className="px-6 py-4 space-y-3">
@@ -426,7 +426,7 @@ export default function AdminExpenses() {
                   {SPLIT_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
                 {preview && (
-                  <p className="text-xs text-blue-600 mt-1">≈ {preview}</p>
+                  <p className="text-xs text-[#1D9E75] mt-1">≈ {preview}</p>
                 )}
               </div>
               <div>
@@ -445,7 +445,7 @@ export default function AdminExpenses() {
                 const payer = players.find(p => p.id === form.paid_by_player_id)
                 if (!payer) return null
                 if (payer.type !== 'corpus' && payer.type !== 'new') {
-                  return <p className="text-xs text-gray-400">ℹ️ {payer.display_name} is PPM — no corpus balance to credit.</p>
+                  return <p className="text-xs text-gray-400">{payer.display_name} is PPM — no corpus balance to credit.</p>
                 }
                 return (
                   <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
@@ -453,7 +453,7 @@ export default function AdminExpenses() {
                       type="checkbox"
                       checked={form.reimburse_corpus}
                       onChange={e => setForm(f => ({ ...f, reimburse_corpus: e.target.checked }))}
-                      className="w-4 h-4 accent-green-600"
+                      className="w-4 h-4 accent-[#1D9E75]"
                     />
                     Add ₹{parseFloat(form.amount).toLocaleString('en-IN')} to their corpus balance
                   </label>

@@ -8,10 +8,6 @@ function overs(balls) {
   return `${Math.floor(balls / 6)}.${balls % 6}`
 }
 
-function pct(a, b) {
-  return b > 0 ? ((a / b) * 100).toFixed(1) : '—'
-}
-
 export default function Compare() {
   const [params, setParams] = useSearchParams()
   const [playerA, setPlayerA] = useState(params.get('a') ?? '')
@@ -70,9 +66,9 @@ export default function Compare() {
   const rows = sA && sB ? [
     { label: 'Matches',      a: sA.matches,     b: sB.matches,     higher: true,  fmt: v => v },
     { label: 'Runs',         a: sA.runs,        b: sB.runs,        higher: true,  fmt: v => v },
-    { label: 'Batting Avg',  a: sA.matches > 0 ? (sA.runs / sA.matches) : 0, b: sB.matches > 0 ? (sB.runs / sB.matches) : 0, higher: true, fmt: v => v.toFixed(1) },
-    { label: 'Strike Rate',  a: sA.balls_faced > 0 ? (sA.runs / sA.balls_faced * 100) : 0, b: sB.balls_faced > 0 ? (sB.runs / sB.balls_faced * 100) : 0, higher: true, fmt: v => v.toFixed(1) },
-    { label: 'High Score',   a: sA.high_score,  b: sB.high_score,  higher: true,  fmt: v => v },
+    { label: 'Batting avg',  a: sA.matches > 0 ? (sA.runs / sA.matches) : 0, b: sB.matches > 0 ? (sB.runs / sB.matches) : 0, higher: true, fmt: v => v.toFixed(1) },
+    { label: 'Strike rate',  a: sA.balls_faced > 0 ? (sA.runs / sA.balls_faced * 100) : 0, b: sB.balls_faced > 0 ? (sB.runs / sB.balls_faced * 100) : 0, higher: true, fmt: v => v.toFixed(1) },
+    { label: 'High score',   a: sA.high_score,  b: sB.high_score,  higher: true,  fmt: v => v },
     { label: '4s',           a: sA.fours,       b: sB.fours,       higher: true,  fmt: v => v },
     { label: '6s',           a: sA.sixes,       b: sB.sixes,       higher: true,  fmt: v => v },
     { label: 'Wickets',      a: sA.wickets,     b: sB.wickets,     higher: true,  fmt: v => v },
@@ -81,9 +77,9 @@ export default function Compare() {
     { label: 'Maidens',      a: sA.maidens,     b: sB.maidens,     higher: true,  fmt: v => v },
     { label: 'Catches',      a: sA.catches + sA.run_outs + sA.stumpings, b: sB.catches + sB.run_outs + sB.stumpings, higher: true, fmt: v => v },
     { label: 'POTM',         a: sA.potm_count,  b: sB.potm_count,  higher: true,  fmt: v => v },
-    { label: 'Best Bat',     a: sA.bba_count,   b: sB.bba_count,   higher: true,  fmt: v => v },
-    { label: 'Best Bowl',    a: sA.bbo_count,   b: sB.bbo_count,   higher: true,  fmt: v => v },
-    { label: 'Attendance %', a: sA.attend_pct,  b: sB.attend_pct,  higher: true,  fmt: v => `${v}%` },
+    { label: 'Best bat',     a: sA.bba_count,   b: sB.bba_count,   higher: true,  fmt: v => v },
+    { label: 'Best bowl',    a: sA.bbo_count,   b: sB.bbo_count,   higher: true,  fmt: v => v },
+    { label: 'Attendance',   a: sA.attend_pct,  b: sB.attend_pct,  higher: true,  fmt: v => `${v}%` },
   ] : []
 
   return (
@@ -91,16 +87,16 @@ export default function Compare() {
       <div className="flex items-center gap-3 mb-6">
         <Link to="/leaderboard" className="text-gray-400 hover:text-gray-600 text-sm">← Leaderboard</Link>
         <span className="text-gray-300">|</span>
-        <h1 className="text-xl font-bold text-gray-900">⚖️ Compare Players</h1>
+        <h1 className="text-[22px] font-medium text-gray-900">Compare players</h1>
       </div>
 
       {/* Player selectors */}
       <div className="grid grid-cols-2 gap-3 mb-6">
         {[{ val: playerA, set: selectA, label: 'Player A' }, { val: playerB, set: selectB, label: 'Player B' }].map(({ val, set, label }) => (
           <div key={label}>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1.5">{label}</p>
+            <p className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] mb-1.5">{label}</p>
             <select
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-green-400"
+              className="input text-sm"
               value={val}
               onChange={e => set(e.target.value)}
             >
@@ -116,28 +112,27 @@ export default function Compare() {
       {/* Comparison table */}
       {sA && sB && pA && pB ? (
         <div className="card overflow-hidden p-0">
-          {/* Player headers */}
-          <div className="grid grid-cols-3 border-b border-gray-100 bg-gray-50">
-            <div className="col-span-1 px-4 py-3 text-xs font-bold text-gray-400 uppercase tracking-widest">Stat</div>
+          <div className="grid grid-cols-3 border-b border-[rgba(0,0,0,0.06)] bg-[#F8F8F6]">
+            <div className="col-span-1 px-4 py-3 text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Stat</div>
             <div className="px-4 py-3 text-center">
-              <Link to={`/player/${pA.id}`} className="font-bold text-sm text-gray-900 hover:text-green-700">{pA.display_name}</Link>
+              <Link to={`/player/${pA.id}`} className="font-medium text-sm text-gray-900 hover:text-[#1D9E75]">{pA.display_name}</Link>
             </div>
             <div className="px-4 py-3 text-center">
-              <Link to={`/player/${pB.id}`} className="font-bold text-sm text-gray-900 hover:text-green-700">{pB.display_name}</Link>
+              <Link to={`/player/${pB.id}`} className="font-medium text-sm text-gray-900 hover:text-[#1D9E75]">{pB.display_name}</Link>
             </div>
           </div>
 
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-[rgba(0,0,0,0.04)]">
             {rows.map(({ label, a, b, higher, fmt }) => {
               const aWins = higher ? a > b : (a > 0 && (b === 0 || a < b))
               const bWins = higher ? b > a : (b > 0 && (a === 0 || b < a))
               return (
                 <div key={label} className="grid grid-cols-3 items-center">
                   <div className="px-4 py-2.5 text-xs text-gray-500 font-medium">{label}</div>
-                  <div className={`px-4 py-2.5 text-center text-sm font-bold tabular-nums ${aWins ? 'text-green-700 bg-green-50' : 'text-gray-600'}`}>
+                  <div className={`px-4 py-2.5 text-center text-sm font-medium tabular-nums ${aWins ? 'text-[#1D9E75] bg-[#E1F5EE]' : 'text-gray-600'}`}>
                     {fmt(a)}
                   </div>
-                  <div className={`px-4 py-2.5 text-center text-sm font-bold tabular-nums ${bWins ? 'text-green-700 bg-green-50' : 'text-gray-600'}`}>
+                  <div className={`px-4 py-2.5 text-center text-sm font-medium tabular-nums ${bWins ? 'text-[#1D9E75] bg-[#E1F5EE]' : 'text-gray-600'}`}>
                     {fmt(b)}
                   </div>
                 </div>
@@ -147,8 +142,7 @@ export default function Compare() {
         </div>
       ) : (
         <div className="card text-center py-12">
-          <p className="text-4xl mb-3">⚖️</p>
-          <p className="font-semibold text-gray-700">Select two players to compare</p>
+          <p className="font-medium text-gray-700">Select two players to compare</p>
           <p className="text-sm text-gray-400 mt-1">Choose from the dropdowns above</p>
         </div>
       )}

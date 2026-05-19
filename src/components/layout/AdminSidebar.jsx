@@ -3,6 +3,11 @@ import { useQuery } from '@tanstack/react-query'
 import { useMapping } from '../../hooks/useData'
 import { useIsAdmin } from '../../hooks/useIsAdmin'
 import { supabase } from '../../lib/supabase'
+import {
+  IconLayoutDashboard, IconUsers, IconCalendar, IconCreditCard,
+  IconReceipt, IconUser, IconBell, IconClipboard, IconLink,
+  IconPencil, IconCurrencyRupee, IconSettings,
+} from '@tabler/icons-react'
 
 function usePendingCounts() {
   const isAdmin = useIsAdmin()
@@ -21,6 +26,21 @@ function usePendingCounts() {
   })
 }
 
+const ICON_MAP = {
+  overview:      IconLayoutDashboard,
+  players:       IconUsers,
+  matches:       IconCalendar,
+  payments:      IconCreditCard,
+  expenses:      IconReceipt,
+  guests:        IconUser,
+  announcements: IconBell,
+  audit:         IconClipboard,
+  cricheroes:    IconLink,
+  signups:       IconPencil,
+  payrequests:   IconCurrencyRupee,
+  settings:      IconSettings,
+}
+
 function useAdminLinks() {
   const { data: mapData } = useMapping()
   const { data: counts }  = usePendingCounts()
@@ -30,18 +50,18 @@ function useAdminLinks() {
   const cricHeroesBadge   = unmatchedCount + staleCount
 
   const links = [
-    { to: '/admin',                label: 'Overview',       icon: '🏠', end: true },
-    { to: '/admin/players',        label: 'Players',        icon: '👥', adminOnly: true },
-    { to: '/admin/weeks',          label: 'Matches',        icon: '📅' },
-    { to: '/admin/transactions',   label: 'Payments',       icon: '💳', adminOnly: true },
-    { to: '/admin/expenses',       label: 'Expenses',       icon: '🧾' },
-    { to: '/admin/guests',         label: 'Guests',         icon: '👤', adminOnly: true },
-    { to: '/admin/announcements',  label: 'Announcements',  icon: '📢', adminOnly: true },
-    { to: '/admin/audit',          label: 'Audit Log',      icon: '📋', adminOnly: true },
-    { to: '/admin/mapping',        label: 'CricHeroes',     icon: '🔗', badge: cricHeroesBadge, adminOnly: true },
-    { to: '/admin/signups',        label: 'Signups',        icon: '✍️',  badge: counts?.signups, adminOnly: true },
-    { to: '/admin/payments',       label: 'Pay Requests',   icon: '💰', badge: counts?.payments, adminOnly: true },
-    { to: '/admin/settings',       label: 'Settings',       icon: '⚙️', adminOnly: true },
+    { to: '/admin',               label: 'Overview',      key: 'overview',      end: true },
+    { to: '/admin/players',       label: 'Players',       key: 'players',       adminOnly: true },
+    { to: '/admin/weeks',         label: 'Matches',       key: 'matches' },
+    { to: '/admin/transactions',  label: 'Payments',      key: 'payments',      adminOnly: true },
+    { to: '/admin/expenses',      label: 'Expenses',      key: 'expenses' },
+    { to: '/admin/guests',        label: 'Guests',        key: 'guests',        adminOnly: true },
+    { to: '/admin/announcements', label: 'Announcements', key: 'announcements', adminOnly: true },
+    { to: '/admin/audit',         label: 'Audit log',     key: 'audit',         adminOnly: true },
+    { to: '/admin/mapping',       label: 'CricHeroes',    key: 'cricheroes',    badge: cricHeroesBadge, adminOnly: true },
+    { to: '/admin/signups',       label: 'Signups',       key: 'signups',       badge: counts?.signups, adminOnly: true },
+    { to: '/admin/payments',      label: 'Pay requests',  key: 'payrequests',   badge: counts?.payments, adminOnly: true },
+    { to: '/admin/settings',      label: 'Settings',      key: 'settings',      adminOnly: true },
   ]
   return isAdmin ? links : links.filter(l => !l.adminOnly)
 }
@@ -50,28 +70,31 @@ export function AdminMobileNav() {
   const links = useAdminLinks()
   return (
     <nav className="md:hidden grid grid-cols-4 gap-1.5 mb-2">
-      {links.map(({ to, label, icon, end, badge }) => (
-        <NavLink
-          key={to}
-          to={to}
-          end={end}
-          className={({ isActive }) =>
-            `relative flex flex-col items-center gap-0.5 px-1 py-2 rounded-xl text-center transition-colors ${
-              isActive
-                ? 'bg-green-600 text-white'
-                : 'bg-gray-100 text-gray-600 active:bg-gray-200'
-            }`
-          }
-        >
-          <span className="text-lg leading-none">{icon}</span>
-          <span className="text-[10px] font-medium leading-tight line-clamp-1">{label}</span>
-          {badge > 0 && (
-            <span className="absolute top-1 right-1 bg-red-500 text-white text-[9px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center leading-none">
-              {badge > 9 ? '!' : badge}
-            </span>
-          )}
-        </NavLink>
-      ))}
+      {links.map(({ to, label, key, end, badge }) => {
+        const Icon = ICON_MAP[key] ?? IconLayoutDashboard
+        return (
+          <NavLink
+            key={to}
+            to={to}
+            end={end}
+            className={({ isActive }) =>
+              `relative flex flex-col items-center gap-0.5 px-1 py-2 rounded-lg text-center transition-colors ${
+                isActive
+                  ? 'bg-[#1D9E75] text-white'
+                  : 'bg-gray-100 text-gray-600 active:bg-gray-200'
+              }`
+            }
+          >
+            <Icon size={18} className="leading-none" />
+            <span className="text-[10px] font-medium leading-tight line-clamp-1">{label}</span>
+            {badge > 0 && (
+              <span className="absolute top-1 right-1 bg-red-500 text-white text-[9px] font-medium rounded-full w-3.5 h-3.5 flex items-center justify-center leading-none">
+                {badge > 9 ? '!' : badge}
+              </span>
+            )}
+          </NavLink>
+        )
+      })}
     </nav>
   )
 }
@@ -82,30 +105,33 @@ export default function AdminSidebar() {
   return (
     <aside className="w-48 shrink-0 hidden md:block">
       <div className="card p-3 sticky top-20">
-        <p className="text-xs font-semibold text-gray-400 uppercase px-2 mb-2">Admin Panel</p>
+        <p className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] px-2 mb-2">Admin panel</p>
         <nav className="flex flex-col gap-0.5">
-          {links.map(({ to, label, icon, end, badge }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={({ isActive }) =>
-                `flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
-                  isActive
-                    ? 'bg-green-50 text-green-700 font-medium'
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`
-              }
-            >
-              <span>{icon}</span>
-              <span className="flex-1">{label}</span>
-              {badge > 0 && (
-                <span className="bg-red-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none">
-                  {badge > 9 ? '!' : badge}
-                </span>
-              )}
-            </NavLink>
-          ))}
+          {links.map(({ to, label, key, end, badge }) => {
+            const Icon = ICON_MAP[key] ?? IconLayoutDashboard
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                    isActive
+                      ? 'bg-[#E1F5EE] text-[#1D9E75] font-medium'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`
+                }
+              >
+                <Icon size={15} />
+                <span className="flex-1">{label}</span>
+                {badge > 0 && (
+                  <span className="bg-red-500 text-white text-[10px] font-medium rounded-full w-4 h-4 flex items-center justify-center leading-none">
+                    {badge > 9 ? '!' : badge}
+                  </span>
+                )}
+              </NavLink>
+            )
+          })}
         </nav>
       </div>
     </aside>

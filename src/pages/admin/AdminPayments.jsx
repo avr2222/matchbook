@@ -24,7 +24,7 @@ function usePaymentRequestsFull() {
 
 const STATUS_BADGE = {
   pending:   'bg-amber-100 text-amber-800',
-  confirmed: 'bg-green-100 text-green-700',
+  confirmed: 'bg-[#E1F5EE] text-[#1D9E75]',
   rejected:  'bg-red-100 text-red-600',
 }
 
@@ -91,7 +91,7 @@ export default function AdminPayments() {
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Payment Requests</h1>
+          <h1 className="text-[22px] font-medium text-gray-900">Payment Requests</h1>
           {pending > 0 && (
             <p className="text-sm text-amber-600 font-medium">{pending} pending confirmation</p>
           )}
@@ -101,9 +101,9 @@ export default function AdminPayments() {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                 filter === f
-                  ? 'bg-green-600 text-white'
+                  ? 'bg-[#1D9E75] text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -117,23 +117,23 @@ export default function AdminPayments() {
         <div className="card text-center py-8 text-gray-400">Loading…</div>
       ) : visible.length === 0 ? (
         <div className="card text-center py-12 text-gray-400">
-          <div className="text-3xl mb-2">💳</div>
+          <div className="text-3xl mb-2 text-gray-300">—</div>
           No {filter === 'all' ? '' : filter} payment requests.
         </div>
       ) : (
         <div className="overflow-x-auto -mx-4 sm:mx-0">
           <table className="min-w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-100">
+            <thead className="bg-[#F8F8F6] border-b border-[rgba(0,0,0,0.06)]">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Player</th>
-                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wide">Amount</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide hidden sm:table-cell">UPI Ref</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide hidden sm:table-cell">Date</th>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wide">Status</th>
-                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wide">Actions</th>
+                <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Player</th>
+                <th className="px-4 py-3 text-right text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Amount</th>
+                <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] hidden sm:table-cell">UPI Ref</th>
+                <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] hidden sm:table-cell">Date</th>
+                <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Status</th>
+                <th className="px-4 py-3 text-right text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50 bg-white">
+            <tbody className="divide-y divide-[rgba(0,0,0,0.04)] bg-white">
               {visible.map(req => {
                 const player = playerMap[req.player_id]
                 const isBusy = busy === req.id
@@ -145,7 +145,7 @@ export default function AdminPayments() {
                         <div className="text-xs text-gray-400 font-normal">{req.notes}</div>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right font-mono font-semibold text-green-700">
+                    <td className="px-4 py-3 text-right font-mono font-medium text-[#1D9E75]">
                       ₹{(req.amount ?? 0).toLocaleString('en-IN')}
                     </td>
                     <td className="px-4 py-3 text-gray-500 font-mono text-xs hidden sm:table-cell">
@@ -155,7 +155,7 @@ export default function AdminPayments() {
                       {req.created_at ? format(parseISO(req.created_at), 'MMM d, h:mm a') : '—'}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_BADGE[req.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded ${STATUS_BADGE[req.status] ?? 'bg-gray-100 text-gray-600'}`}>
                         {req.status}
                       </span>
                     </td>
@@ -179,7 +179,7 @@ export default function AdminPayments() {
                         </div>
                       )}
                       {req.status === 'confirmed' && (
-                        <span className="text-xs text-green-500 font-medium">
+                        <span className="text-xs text-[#1D9E75] font-medium">
                           {req.paid_at ? format(parseISO(req.paid_at), 'MMM d') : '✓'}
                         </span>
                       )}

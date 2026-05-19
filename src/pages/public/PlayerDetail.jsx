@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom'
 import { usePlayers, useWeeks, useTransactions, useMatchPerformances } from '../../hooks/useData'
 import { format, parseISO } from 'date-fns'
 import { PageSpinner } from '../../components/ui/Spinner'
+import { IconArrowLeft, IconCreditCard } from '@tabler/icons-react'
 
 const STATUS_COLOR = {
   good:         'bg-emerald-100 text-emerald-700',
@@ -19,7 +20,6 @@ export default function PlayerDetail() {
   const { data: pData, isLoading } = usePlayers()
   const { data: wData }   = useWeeks()
   const { data: txnData } = useTransactions()
-
   const { data: perfData } = useMatchPerformances(id)
 
   if (isLoading) return <PageSpinner />
@@ -29,7 +29,7 @@ export default function PlayerDetail() {
   if (!player) return (
     <div className="max-w-lg mx-auto px-4 py-12 text-center">
       <p className="text-gray-400 mb-4">Player not found.</p>
-      <Link to="/" className="text-green-600 font-medium">← Back to Dashboard</Link>
+      <Link to="/" className="text-[#1D9E75] font-medium">← Back to dashboard</Link>
     </div>
   )
 
@@ -64,19 +64,21 @@ export default function PlayerDetail() {
 
       {/* Back nav */}
       <div className="flex items-center gap-3 py-4">
-        <button onClick={() => navigate(-1)} className="text-gray-400 hover:text-gray-700 text-xl font-bold leading-none">←</button>
-        <h1 className="font-bold text-gray-900">Player Details</h1>
+        <button onClick={() => navigate(-1)} className="text-gray-400 hover:text-gray-700 transition-colors">
+          <IconArrowLeft size={20} />
+        </button>
+        <h1 className="font-medium text-gray-900">Player details</h1>
       </div>
 
       {/* Player card */}
       <div className="card mb-4">
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-xl font-bold text-gray-900">{player.display_name}</h2>
+            <h2 className="text-[20px] font-medium text-gray-900">{player.display_name}</h2>
             <p className="text-sm text-gray-400 mt-0.5 capitalize">{player.type} · {player.status}</p>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold text-gray-900">
+            <div className="text-[24px] font-medium text-gray-900 tabular-nums">
               ₹{Math.round(player.corpus_balance ?? 0).toLocaleString('en-IN')}
             </div>
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${sc}`}>
@@ -86,29 +88,30 @@ export default function PlayerDetail() {
         </div>
 
         {player.type !== 'ppm' && player.type !== 'guest' && (
-          <div className="mt-4 pt-4 border-t border-gray-100">
+          <div className="mt-4 pt-4 border-t border-[rgba(0,0,0,0.06)]">
             <Link
               to={`/pay/${player.id}`}
               className="w-full btn-primary text-sm flex items-center justify-center gap-2"
             >
-              💳 Top Up Balance
+              <IconCreditCard size={15} />
+              Top up balance
             </Link>
           </div>
         )}
 
         {txns.length > 0 && (
-          <div className="flex gap-4 mt-4 pt-4 border-t border-gray-100 text-sm">
+          <div className="flex gap-4 mt-4 pt-4 border-t border-[rgba(0,0,0,0.06)] text-sm">
             <div>
-              <div className="text-xs text-gray-400">Total paid in</div>
-              <div className="font-semibold text-green-600">+₹{Math.round(totalCredits).toLocaleString('en-IN')}</div>
+              <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Total paid in</div>
+              <div className="font-medium text-[#1D9E75]">+₹{Math.round(totalCredits).toLocaleString('en-IN')}</div>
             </div>
             <div>
-              <div className="text-xs text-gray-400">Total deducted</div>
-              <div className="font-semibold text-red-500">−₹{Math.round(totalDebits).toLocaleString('en-IN')}</div>
+              <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Total deducted</div>
+              <div className="font-medium text-red-500">−₹{Math.round(totalDebits).toLocaleString('en-IN')}</div>
             </div>
             <div>
-              <div className="text-xs text-gray-400">Transactions</div>
-              <div className="font-semibold text-gray-700">{txns.length}</div>
+              <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Transactions</div>
+              <div className="font-medium text-gray-700">{txns.length}</div>
             </div>
           </div>
         )}
@@ -117,63 +120,63 @@ export default function PlayerDetail() {
       {/* Cricket Stats */}
       {perfs.length > 0 && (
         <div className="card mb-4">
-          <h3 className="font-semibold text-gray-900 mb-3">Cricket Stats</h3>
+          <h3 className="font-medium text-gray-900 mb-3">Cricket stats</h3>
 
           <div className="grid grid-cols-3 gap-3 mb-4">
-            <div className="bg-green-50 rounded-xl p-3 text-center">
-              <div className="text-2xl font-extrabold text-green-700">{careerRuns}</div>
-              <div className="text-xs text-gray-500 mt-0.5">Runs</div>
+            <div className="bg-[#F4F3F0] rounded-xl p-3 text-center">
+              <div className="text-[24px] font-medium text-gray-900 tabular-nums">{careerRuns}</div>
+              <div className="text-[11px] text-gray-500 uppercase tracking-[0.05em] mt-0.5">Runs</div>
             </div>
-            <div className="bg-purple-50 rounded-xl p-3 text-center">
-              <div className="text-2xl font-extrabold text-purple-700">{careerWkts}</div>
-              <div className="text-xs text-gray-500 mt-0.5">Wickets</div>
+            <div className="bg-[#F4F3F0] rounded-xl p-3 text-center">
+              <div className="text-[24px] font-medium text-gray-900 tabular-nums">{careerWkts}</div>
+              <div className="text-[11px] text-gray-500 uppercase tracking-[0.05em] mt-0.5">Wickets</div>
             </div>
-            <div className="bg-blue-50 rounded-xl p-3 text-center">
-              <div className="text-2xl font-extrabold text-blue-700">{perfs.length}</div>
-              <div className="text-xs text-gray-500 mt-0.5">Weeks</div>
+            <div className="bg-[#F4F3F0] rounded-xl p-3 text-center">
+              <div className="text-[24px] font-medium text-gray-900 tabular-nums">{perfs.length}</div>
+              <div className="text-[11px] text-gray-500 uppercase tracking-[0.05em] mt-0.5">Weeks</div>
               {totalGames > perfs.length && (
-                <div className="text-[10px] text-blue-400 mt-0.5">{totalGames} matches</div>
+                <div className="text-[10px] text-gray-400 mt-0.5">{totalGames} matches</div>
               )}
             </div>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4 text-center">
             <div>
-              <div className="font-bold text-gray-800 text-sm">
+              <div className="font-medium text-gray-800 text-sm tabular-nums">
                 {careerBalls > 0 ? ((careerRuns / careerBalls) * 100).toFixed(1) : '—'}
               </div>
-              <div className="text-xs text-gray-400">Bat SR</div>
+              <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Bat SR</div>
             </div>
             <div>
-              <div className="font-bold text-gray-800 text-sm">{careerHighScore}</div>
-              <div className="text-xs text-gray-400">High Score</div>
+              <div className="font-medium text-gray-800 text-sm tabular-nums">{careerHighScore}</div>
+              <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">High score</div>
             </div>
             <div>
-              <div className="font-bold text-gray-800 text-sm">
+              <div className="font-medium text-gray-800 text-sm tabular-nums">
                 {careerBallsBowled > 0 ? ((careerRunsGiven / careerBallsBowled) * 6).toFixed(2) : '—'}
               </div>
-              <div className="text-xs text-gray-400">Economy</div>
+              <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Economy</div>
             </div>
             <div>
-              <div className="font-bold text-gray-800 text-sm">{careerBestWkts}</div>
-              <div className="text-xs text-gray-400">Best Wkts</div>
+              <div className="font-medium text-gray-800 text-sm tabular-nums">{careerBestWkts}</div>
+              <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Best wkts</div>
             </div>
           </div>
 
           {last5.length > 0 && (
             <>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Last {last5.length} Matches</p>
+              <p className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] mb-2">Last {last5.length} matches</p>
               <div className="space-y-1.5">
                 {last5.map(perf => {
                   const week = weeks.find(w => w.week_id === perf.week_id)
                   return (
-                    <div key={perf.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2">
+                    <div key={perf.id} className="flex items-center justify-between bg-[#F4F3F0] rounded-lg px-3 py-2">
                       <div className="text-xs text-gray-500 w-14 shrink-0">
                         {week ? format(parseISO(week.match_date), 'MMM d') : perf.week_id}
                       </div>
                       <div className="flex gap-3 items-center text-sm">
                         <span>
-                          <span className="font-bold text-green-700">{perf.runs}</span>
+                          <span className="font-medium text-[#1D9E75] tabular-nums">{perf.runs}</span>
                           <span className="text-xs text-gray-400"> r</span>
                           {perf.balls_faced > 0 && (
                             <span className="text-xs text-gray-400"> ({perf.balls_faced}b)</span>
@@ -181,7 +184,7 @@ export default function PlayerDetail() {
                         </span>
                         {perf.wickets > 0 && (
                           <span>
-                            <span className="font-bold text-purple-700">{perf.wickets}</span>
+                            <span className="font-medium text-purple-700 tabular-nums">{perf.wickets}</span>
                             <span className="text-xs text-gray-400"> w</span>
                           </span>
                         )}
@@ -204,11 +207,11 @@ export default function PlayerDetail() {
 
       {/* Transaction list */}
       <div className="card">
-        <h3 className="font-semibold text-gray-900 mb-1">Transaction History</h3>
+        <h3 className="font-medium text-gray-900 mb-1">Transaction history</h3>
         {txns.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-8">No transactions yet.</p>
         ) : (
-          <div className="divide-y divide-gray-50 -mx-4 -mb-4 mt-2">
+          <div className="divide-y divide-[rgba(0,0,0,0.04)] -mx-4 -mb-4 mt-2">
             {txns.map(t => {
               const week = weeks.find(w => w.week_id === t.week_id)
               return (
@@ -221,7 +224,7 @@ export default function PlayerDetail() {
                     <div className="text-sm text-gray-700 mt-0.5">{t.description}</div>
                     <div className="text-xs text-gray-400 mt-0.5 capitalize">{(t.type ?? '').replace(/_/g, ' ')}</div>
                   </div>
-                  <div className={`font-mono font-semibold text-sm shrink-0 ${t.direction === 'credit' ? 'text-green-600' : 'text-red-500'}`}>
+                  <div className={`font-mono font-medium text-sm shrink-0 ${t.direction === 'credit' ? 'text-[#1D9E75]' : 'text-red-500'}`}>
                     {t.direction === 'credit' ? '+' : '−'}₹{t.amount.toLocaleString('en-IN')}
                   </div>
                 </div>

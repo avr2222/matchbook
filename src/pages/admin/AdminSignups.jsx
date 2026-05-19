@@ -24,7 +24,7 @@ function useSignups() {
 
 const STATUS_BADGE = {
   pending:  'bg-amber-100 text-amber-800',
-  approved: 'bg-green-100 text-green-700',
+  approved: 'bg-[#E1F5EE] text-[#1D9E75]',
   rejected: 'bg-red-100 text-red-600',
 }
 
@@ -97,7 +97,7 @@ export default function AdminSignups() {
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Signup Requests</h1>
+          <h1 className="text-[22px] font-medium text-gray-900">Signup Requests</h1>
           {pending > 0 && (
             <p className="text-sm text-amber-600 font-medium">{pending} pending approval</p>
           )}
@@ -107,9 +107,9 @@ export default function AdminSignups() {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                 filter === f
-                  ? 'bg-green-600 text-white'
+                  ? 'bg-[#1D9E75] text-white'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -123,7 +123,7 @@ export default function AdminSignups() {
         <div className="card text-center py-8 text-gray-400">Loading…</div>
       ) : visible.length === 0 ? (
         <div className="card text-center py-12 text-gray-400">
-          <div className="text-3xl mb-2">✅</div>
+          <div className="text-3xl mb-2 text-gray-300">—</div>
           No {filter === 'all' ? '' : filter} signups.
         </div>
       ) : (
@@ -141,20 +141,20 @@ export default function AdminSignups() {
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-bold text-gray-900">{s.display_name}</span>
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_BADGE[s.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                      <span className="font-medium text-gray-900">{s.display_name}</span>
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded ${STATUS_BADGE[s.status] ?? 'bg-gray-100 text-gray-600'}`}>
                         {s.status}
                       </span>
                       {s.requested_role === 'host' && (
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                        <span className="text-xs font-medium px-2 py-0.5 rounded bg-purple-100 text-purple-700">
                           Host request
                         </span>
                       )}
                     </div>
                     <div className="text-sm text-gray-500 mt-0.5 flex items-center gap-3 flex-wrap">
-                      <span>📱 {s.phone}</span>
+                      <span>{s.phone}</span>
                       <span className="flex items-center gap-1.5">
-                        🎯
+                        Player:
                         {editingId === s.id ? (
                           <span className="flex items-center gap-1.5">
                             <select
@@ -170,7 +170,7 @@ export default function AdminSignups() {
                             <button
                               onClick={() => savePlayerLink(s)}
                               disabled={editBusy}
-                              className="text-xs text-green-600 font-semibold hover:underline"
+                              className="text-xs text-[#1D9E75] font-medium hover:underline"
                             >
                               {editBusy ? '…' : 'Save'}
                             </button>
@@ -213,7 +213,7 @@ export default function AdminSignups() {
                       <button
                         onClick={() => handleApprove(s, 'host')}
                         disabled={isBusy}
-                        className="text-xs py-1.5 px-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 transition-colors"
+                        className="text-xs py-1.5 px-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 disabled:opacity-50 transition-colors"
                       >
                         {isBusy ? '…' : '★ Host'}
                       </button>
@@ -237,7 +237,7 @@ export default function AdminSignups() {
                 {/* Security questions (collapsed by default) */}
                 <details className="text-xs text-gray-400">
                   <summary className="cursor-pointer hover:text-gray-600 select-none">Security questions</summary>
-                  <div className="mt-2 space-y-1 bg-gray-50 rounded-lg p-2">
+                  <div className="mt-2 space-y-1 bg-[#F4F3F0] rounded-lg p-2">
                     <div><span className="font-medium text-gray-600">Q1:</span> {s.security_question_1}</div>
                     <div><span className="font-medium text-gray-600">A1:</span> {s.security_answer_1 ? '••••••' : '—'}</div>
                     <div><span className="font-medium text-gray-600">Q2:</span> {s.security_question_2}</div>

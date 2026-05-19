@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { usePlayers } from '../../hooks/useData'
 import BalanceBadge from '../../components/ui/BalanceBadge'
 import { PageSpinner } from '../../components/ui/Spinner'
-import { typeEmoji, typeLabel } from '../../utils/balanceCalculator'
+import { typeLabel } from '../../utils/balanceCalculator'
 
 const TYPES = ['all', 'corpus', 'ppm', 'new']
 
@@ -25,7 +25,6 @@ export default function Players() {
 
   if (isLoading) return <PageSpinner />
 
-  // Guests are transient/auto-created — exclude from the public roster
   const players = (data?.players ?? []).filter(p => p.status === 'active' && p.type !== 'guest')
   const visible = players.filter(p => {
     const matchType   = filter === 'all' || p.type === filter
@@ -37,29 +36,27 @@ export default function Players() {
     <div className="max-w-5xl mx-auto px-4 pb-12">
 
       {/* Hero */}
-      <div className="relative overflow-hidden rounded-3xl mt-6 mb-6 bg-gradient-to-br from-slate-700 via-slate-600 to-slate-500 px-6 py-8 text-white shadow-xl">
-        <div className="absolute inset-0 opacity-10 pointer-events-none select-none text-[140px] leading-none flex items-center justify-end pr-4">👥</div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Player Roster</h1>
-        <p className="text-slate-300 text-sm mt-1">
+      <div className="rounded-xl mt-6 mb-6 bg-[#1D9E75] px-6 py-7 text-white">
+        <h1 className="text-[22px] font-medium tracking-tight">Player roster</h1>
+        <p className="text-white/70 text-sm mt-1">
           {players.filter(p => p.type === 'corpus' || p.type === 'new').length} corpus · {players.filter(p => p.type === 'ppm').length} PPM
         </p>
       </div>
 
       {/* Controls row */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4 items-start sm:items-center justify-between">
-        {/* Type filter pills */}
         <div className="flex gap-2 flex-wrap">
           {TYPES.map(t => (
             <button
               key={t}
               onClick={() => setFilter(t)}
-              className={`px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all duration-150 ${
+              className={`px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors ${
                 filter === t
-                  ? 'bg-green-600 text-white shadow-sm'
-                  : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50 shadow-sm'
+                  ? 'bg-[#1D9E75] text-white'
+                  : 'bg-white border border-[rgba(0,0,0,0.12)] text-gray-600 hover:border-gray-300 hover:bg-gray-50'
               }`}
             >
-              {t === 'all' ? 'All' : `${typeEmoji(t)} ${typeLabel(t)}`}
+              {t === 'all' ? 'All' : typeLabel(t)}
             </button>
           ))}
         </div>
@@ -74,26 +71,25 @@ export default function Players() {
       {/* Table card */}
       <div className="card p-0 overflow-hidden overflow-x-auto">
         <table className="w-full text-sm min-w-[360px]">
-          <thead className="bg-gray-50 border-b border-gray-100">
+          <thead className="bg-[#F8F8F6] border-b border-[rgba(0,0,0,0.06)]">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide w-8">#</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Player</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide hidden sm:table-cell">Type</th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-400 uppercase tracking-wide">Balance</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wide">Status</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wide hidden sm:table-cell">Pay</th>
+              <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] w-8">#</th>
+              <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Player</th>
+              <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] hidden sm:table-cell">Type</th>
+              <th className="px-4 py-3 text-right text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Balance</th>
+              <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Status</th>
+              <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] hidden sm:table-cell">Pay</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-y divide-[rgba(0,0,0,0.04)]">
             {visible.length === 0 ? (
               <tr>
                 <td colSpan={6} className="text-center py-12 text-gray-400">
-                  <div className="text-3xl mb-2">🔍</div>
                   No players found.
                 </td>
               </tr>
             ) : visible.map((p, i) => (
-              <tr key={p.id} className="hover:bg-gray-50 transition-colors group">
+              <tr key={p.id} className="hover:bg-[#F8F8F6] transition-colors group">
                 <td className="px-4 py-3.5 text-gray-300 text-xs font-medium">{i + 1}</td>
                 <td className="px-4 py-3.5">
                   <div className="flex items-center gap-2.5">
@@ -101,23 +97,22 @@ export default function Players() {
                     <div>
                       <Link
                         to={`/pay/${p.id}`}
-                        className="font-semibold text-gray-900 group-hover:text-green-700 transition-colors"
+                        className="font-medium text-gray-900 group-hover:text-[#1D9E75] transition-colors"
                       >
                         {p.display_name}
                       </Link>
                       <div className="sm:hidden text-xs text-gray-400 mt-0.5">
-                        {typeEmoji(p.type)} {typeLabel(p.type)}
+                        {typeLabel(p.type)}
                       </div>
                     </div>
                   </div>
                 </td>
                 <td className="px-4 py-3.5 hidden sm:table-cell">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-500 bg-gray-100 rounded-full px-2.5 py-1">
-                    <span>{typeEmoji(p.type)}</span>
-                    <span>{typeLabel(p.type)}</span>
+                  <span className="text-xs font-medium text-gray-500 bg-[#F4F3F0] rounded-full px-2.5 py-1">
+                    {typeLabel(p.type)}
                   </span>
                 </td>
-                <td className="px-4 py-3.5 text-right font-mono font-semibold text-gray-800">
+                <td className="px-4 py-3.5 text-right font-mono font-medium text-gray-800">
                   {p.type === 'ppm'
                     ? <span className="text-xs text-gray-400 font-sans">PPM</span>
                     : `₹${(p.corpus_balance ?? 0).toLocaleString('en-IN')}`
@@ -132,9 +127,9 @@ export default function Players() {
                   {p.type !== 'ppm' && (
                     <Link
                       to={`/pay/${p.id}`}
-                      className="text-xs px-2.5 py-1 bg-green-50 text-green-700 border border-green-200 rounded-full hover:bg-green-100 transition-colors font-medium"
+                      className="text-xs px-2.5 py-1 bg-[#E1F5EE] text-[#1D9E75] border border-[#1D9E75]/20 rounded-full hover:bg-[#1D9E75] hover:text-white transition-colors font-medium"
                     >
-                      Top Up
+                      Top up
                     </Link>
                   )}
                 </td>
@@ -142,10 +137,10 @@ export default function Players() {
             ))}
           </tbody>
         </table>
-        <div className="px-4 py-2.5 text-xs text-gray-400 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+        <div className="px-4 py-2.5 text-xs text-gray-400 bg-[#F8F8F6] border-t border-[rgba(0,0,0,0.06)] flex items-center justify-between">
           <span>Showing {visible.length} of {players.length} players</span>
           {visible.length < players.length && (
-            <button onClick={() => { setFilter('all'); setSearch('') }} className="text-green-600 hover:underline font-medium">
+            <button onClick={() => { setFilter('all'); setSearch('') }} className="text-[#1D9E75] hover:underline font-medium">
               Clear filters
             </button>
           )}

@@ -7,8 +7,8 @@ import { PageSpinner } from '../../components/ui/Spinner'
 import { useIsAdmin } from '../../hooks/useIsAdmin'
 import ConfirmModal from '../../components/ui/ConfirmModal'
 
-const CONFIDENCE_CLASS = c => c >= 0.85 ? 'text-green-600' : c >= 0.5 ? 'text-yellow-600' : 'text-red-500'
-const CONFIDENCE_LABEL = c => c >= 0.85 ? '✅ Auto' : c >= 0.5 ? '🟡 Review' : '🔴 Manual'
+const CONFIDENCE_CLASS = c => c >= 0.85 ? 'text-[#1D9E75]' : c >= 0.5 ? 'text-yellow-600' : 'text-red-500'
+const CONFIDENCE_LABEL = c => c >= 0.85 ? 'Auto' : c >= 0.5 ? 'Review' : 'Manual'
 
 export default function AdminMapping() {
   const qc = useQueryClient()
@@ -22,7 +22,7 @@ export default function AdminMapping() {
   if (isLoading) return <PageSpinner />
   if (isError || (!isLoading && !mapData)) return (
     <div className="card text-center py-12 text-gray-500">
-      <p className="text-lg mb-1">⚠️ Failed to load mapping data</p>
+      <p className="text-lg mb-1">Failed to load mapping data</p>
       <p className="text-sm text-gray-400">Check your GitHub connection or run a CricHeroes sync first.</p>
     </div>
   )
@@ -119,11 +119,11 @@ export default function AdminMapping() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <h1 className="text-xl font-bold text-gray-900">CricHeroes Player Mapping</h1>
+        <h1 className="text-[22px] font-medium text-gray-900">CricHeroes Player Mapping</h1>
         <div className="flex gap-2">
           {isAdmin && (
             <button onClick={syncAllNames} className="btn-secondary text-sm">
-              🔄 Sync All Names
+              Sync All Names
             </button>
           )}
           {localMap && isAdmin && (
@@ -136,8 +136,8 @@ export default function AdminMapping() {
 
       {unmatched.length > 0 && (
         <div className="card border-l-4 border-yellow-400">
-          <h2 className="font-semibold text-gray-800 mb-3">⚠️ Unmatched Players ({unmatched.length})</h2>
-          <div className="divide-y divide-gray-100">
+          <h2 className="font-medium text-gray-800 mb-3">Unmatched Players ({unmatched.length})</h2>
+          <div className="divide-y divide-[rgba(0,0,0,0.04)]">
             {unmatched.map(u => (
               <div key={u.cricheroes_player_id} className="py-3 flex items-center justify-between gap-4 text-sm">
                 <div>
@@ -161,20 +161,20 @@ export default function AdminMapping() {
 
       <div className="card p-0 overflow-hidden overflow-x-auto">
         <table className="w-full text-sm min-w-[480px]">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-[#F8F8F6] border-b border-[rgba(0,0,0,0.06)]">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">CricHeroes Name</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Mapped To</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Confidence</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Remap</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Name</th>
+              <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">CricHeroes Name</th>
+              <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Mapped To</th>
+              <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Confidence</th>
+              <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Remap</th>
+              <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Name</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-[rgba(0,0,0,0.04)]">
             {mappings.map(m => {
               const player = players.find(p => p.id === m.player_id)
               return (
-                <tr key={m.cricheroes_player_id} className={`hover:bg-gray-50 ${!m.confirmed ? 'bg-yellow-50' : ''}`}>
+                <tr key={m.cricheroes_player_id} className={`hover:bg-[#F8F8F6] ${!m.confirmed ? 'bg-yellow-50' : ''}`}>
                   <td className="px-4 py-3">
                     <div className="font-medium text-gray-800">{m.cricheroes_name}</div>
                     <div className="text-xs text-gray-400">ID: {m.cricheroes_player_id}</div>

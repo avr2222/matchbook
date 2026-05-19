@@ -4,13 +4,18 @@ import { usePlayers, useWeeks, useAttendance, useTournaments, useConfig, useAnno
 import { PageSpinner } from '../../components/ui/Spinner'
 import MatchPlayersModal from '../../components/ui/MatchPlayersModal'
 import { format, parseISO } from 'date-fns'
+import {
+  IconUsers, IconCalendar, IconCurrencyRupee, IconTrophy,
+  IconStar, IconMedal, IconCricket, IconTarget, IconBallBowling,
+  IconFlame, IconAlertTriangle, IconReceipt, IconTrendingUp,
+} from '@tabler/icons-react'
 
 export default function Dashboard() {
   const [detail, setDetail]         = useState(null)
   const [payPlayer, setPayPlayer]   = useState('')
   const [payAmt, setPayAmt]         = useState('')
   const [copied, setCopied]         = useState(false)
-  const [activeStatus, setActiveStatus] = useState(null) // 'good'|'collect_soon'|'urgent'|'overdue'
+  const [activeStatus, setActiveStatus] = useState(null)
   const stripRef = useRef(null)
   const { data: cfg }     = useConfig()
   const { data: tData }   = useTournaments()
@@ -36,7 +41,6 @@ export default function Dashboard() {
   const records      = aData?.records ?? []
   const seasonName   = tData?.tournaments?.find(t => t.id === activeTournamentId)?.short_name ?? cfg?.team_name ?? 'Season'
 
-  // Series score — prefer winning_team column; fall back to parsing result string
   const _parseWinner = result => {
     const m = (result ?? '').match(/^(.+?)\s+(\d+)-(\d+)$/)
     if (!m) return ''
@@ -96,7 +100,7 @@ export default function Dashboard() {
 
   const statusBar = [
     { key: 'good',         label: 'Good',         color: 'bg-emerald-500' },
-    { key: 'collect_soon', label: 'Collect Soon',  color: 'bg-amber-400'   },
+    { key: 'collect_soon', label: 'Collect soon',  color: 'bg-amber-400'   },
     { key: 'urgent',       label: 'Urgent',        color: 'bg-orange-500'  },
     { key: 'overdue',      label: 'Overdue',       color: 'bg-red-500'     },
   ]
@@ -108,7 +112,6 @@ export default function Dashboard() {
   const allExpenses   = eData?.expenses ?? []
   const totalExpenses = allExpenses.reduce((s, e) => s + (e.amount ?? 0), 0)
 
-  // Group match_deduction transactions by week → one summary entry per match
   const allWeeks = wData?.weeks ?? []
   const deductionByWeek = {}
   ;(txnData?.transactions ?? [])
@@ -212,16 +215,16 @@ export default function Dashboard() {
     .slice(0, 3)
 
   const EXPENSE_LABELS = {
-    match_cost: 'Match Cost', ground_booking: 'Ground Booking', cricket_ball: 'Cricket Ball',
-    cricket_bat: 'Cricket Bat', equipment: 'Equipment', refreshments: 'Refreshments',
-    kit: 'Kit / Uniform', other: 'Other',
+    match_cost: 'Match cost', ground_booking: 'Ground booking', cricket_ball: 'Cricket ball',
+    cricket_bat: 'Cricket bat', equipment: 'Equipment', refreshments: 'Refreshments',
+    kit: 'Kit / uniform', other: 'Other',
   }
 
-  const stats = [
-    { label: 'Active Players',   value: allActive.length,                                       icon: '👥', to: '/players',            bg: 'from-blue-500 to-blue-600'    },
-    { label: 'Weeks Played',     value: completed.length,                                       icon: '🏏', to: '/admin/weeks',         bg: 'from-green-500 to-emerald-600' },
-    { label: 'Corpus Balance',   value: `₹${Math.round(remainingPool).toLocaleString('en-IN')}`, icon: '💰', to: '/admin/transactions',  bg: 'from-amber-500 to-orange-500'  },
-    { label: 'Season',           value: seasonName,                                             icon: '🏆', to: '/admin',               bg: 'from-purple-500 to-violet-600' },
+  const statCards = [
+    { label: 'Active players',  value: allActive.length,                                         Icon: IconUsers,         to: '/players'           },
+    { label: 'Weeks played',    value: completed.length,                                         Icon: IconCalendar,      to: '/admin/weeks'       },
+    { label: 'Corpus balance',  value: `₹${Math.round(remainingPool).toLocaleString('en-IN')}`, Icon: IconCurrencyRupee, to: '/admin/transactions'},
+    { label: 'Season',          value: seasonName,                                               Icon: IconTrophy,        to: '/admin'             },
   ]
 
   const selectedP    = payPlayer ? corpusPlayers.find(p => p.id === payPlayer) : null
@@ -238,11 +241,11 @@ export default function Dashboard() {
 
       {/* Pay Corpus card */}
       {upiId && (
-        <div className="rounded-3xl mt-6 mb-4 bg-gradient-to-br from-emerald-600 to-green-500 px-5 py-5 text-white shadow-lg">
-          <p className="text-sm font-bold text-white/80 uppercase tracking-widest mb-3">Top Up Your Corpus</p>
+        <div className="rounded-xl mt-6 mb-4 bg-[#1D9E75] px-5 py-5 text-white">
+          <p className="text-[11px] font-medium text-white/70 uppercase tracking-[0.05em] mb-3">Top up your corpus</p>
 
           <select
-            className="w-full bg-white/20 backdrop-blur-sm text-white rounded-xl px-3 py-2.5 text-sm font-medium outline-none border border-white/20 focus:border-white/60 transition-colors mb-2"
+            className="w-full bg-white/20 text-white rounded-lg px-3 py-2.5 text-sm font-medium outline-none border border-white/20 focus:border-white/60 transition-colors mb-2"
             value={payPlayer}
             onChange={e => { setPayPlayer(e.target.value); setCopied(false); setPayAmt('') }}
           >
@@ -261,21 +264,21 @@ export default function Dashboard() {
                   inputMode="numeric"
                   pattern="[0-9]*"
                   placeholder={`Suggested: ₹${paySuggested.toLocaleString('en-IN')}`}
-                  className="w-full bg-white/20 backdrop-blur-sm text-white placeholder-white/50 rounded-xl pl-7 pr-3 py-2.5 text-sm outline-none border border-white/20 focus:border-white/60 transition-colors"
+                  className="w-full bg-white/20 text-white placeholder-white/50 rounded-lg pl-7 pr-3 py-2.5 text-sm outline-none border border-white/20 focus:border-white/60 transition-colors"
                   value={payAmt}
                   onChange={e => setPayAmt(e.target.value.replace(/[^0-9]/g, ''))}
                 />
               </div>
               {isMobile ? (
-                <a href={upiHref} className="shrink-0 bg-white text-emerald-700 font-bold text-sm px-4 py-2.5 rounded-xl shadow hover:bg-green-50 transition-colors">
+                <a href={upiHref} className="shrink-0 bg-white text-[#1D9E75] font-medium text-sm px-4 py-2.5 rounded-lg hover:bg-[#E1F5EE] transition-colors">
                   Pay ₹{payFinal.toLocaleString('en-IN')} →
                 </a>
               ) : (
                 <button
                   onClick={() => { navigator.clipboard.writeText(upiId); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
-                  className="shrink-0 bg-white text-emerald-700 font-bold text-sm px-4 py-2.5 rounded-xl shadow hover:bg-green-50 transition-colors"
+                  className="shrink-0 bg-white text-[#1D9E75] font-medium text-sm px-4 py-2.5 rounded-lg hover:bg-[#E1F5EE] transition-colors"
                 >
-                  {copied ? '✓ Copied!' : 'Copy UPI'}
+                  {copied ? 'Copied!' : 'Copy UPI'}
                 </button>
               )}
             </div>
@@ -291,57 +294,56 @@ export default function Dashboard() {
       )}
 
       {/* Hero */}
-      <div className={`relative overflow-hidden rounded-3xl ${upiId ? '' : 'mt-6 '}mb-6 bg-gradient-to-br from-green-700 via-green-600 to-emerald-500 px-6 py-8 text-white shadow-xl`}>
-        <div className="absolute inset-0 opacity-10 pointer-events-none select-none text-[160px] leading-none flex items-center justify-end pr-6">🏏</div>
-        <p className="text-green-200 text-sm font-semibold uppercase tracking-widest mb-1">{seasonName}</p>
-        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-1">{cfg?.team_name ?? 'MatchBook'}</h1>
-        <p className="text-green-100 text-sm mt-1">
+      <div className={`rounded-xl ${upiId ? '' : 'mt-6 '}mb-6 bg-[#1D9E75] px-6 py-7 text-white`}>
+        <p className="text-[11px] font-medium text-white/70 uppercase tracking-[0.05em] mb-1">{seasonName}</p>
+        <h1 className="text-[22px] font-medium tracking-tight mb-1">{cfg?.team_name ?? 'MatchBook'}</h1>
+        <p className="text-white/70 text-sm">
           {completed.length} week{completed.length !== 1 ? 's' : ''} played · {allActive.length} active players
         </p>
 
         {/* Series scoreboard */}
         {seriesLeader && (
-          <div className="mt-4 rounded-2xl overflow-hidden border border-white/20" style={{background:'rgba(0,0,0,0.38)'}}>
+          <div className="mt-4 rounded-xl overflow-hidden border border-white/20" style={{background:'rgba(0,0,0,0.28)'}}>
             <div className="px-4 pt-4 pb-3">
-              <p className="text-white/60 text-[10px] font-bold uppercase tracking-[0.15em] mb-4">⚔️ Series Standing</p>
+              <p className="text-white/55 text-[10px] font-medium uppercase tracking-[0.12em] mb-4">Series standing</p>
               <div className="flex gap-3">
                 {seriesTeams.map(([name, wins], i) => {
                   const isMatchLeader = matchLeaderName === name
                   const mWins = matchWinMap[name] || 0
                   return (
                     <div key={name} className={`flex-1 rounded-xl px-3 py-2.5 ${
-                      i === 0 ? 'bg-white/15 border border-white/25 shadow-lg' : 'bg-white/5 border border-white/10'
+                      i === 0 ? 'bg-white/15 border border-white/25' : 'bg-white/5 border border-white/10'
                     }`}>
-                      <div className={`text-[10px] font-bold truncate leading-snug ${i === 0 ? 'text-white/65' : 'text-white/25'}`} title={name}>
+                      <div className={`text-[10px] font-medium truncate leading-snug ${i === 0 ? 'text-white/65' : 'text-white/25'}`} title={name}>
                         {name}
                       </div>
                       {mWins > 0 && (
                         <>
-                          <div className={`tabular-nums font-black leading-none mt-1.5 ${
+                          <div className={`tabular-nums font-medium leading-none mt-1.5 ${
                             isMatchLeader
                               ? (i === 0 ? 'text-4xl sm:text-5xl text-amber-300' : 'text-4xl sm:text-5xl text-cyan-300')
                               : (i === 0 ? 'text-3xl sm:text-4xl text-white/55' : 'text-2xl sm:text-3xl text-white/30')
                           }`}>{mWins}</div>
-                          <div className={`text-[10px] font-bold uppercase tracking-widest ${
+                          <div className={`text-[10px] font-medium uppercase tracking-widest ${
                             isMatchLeader ? (i === 0 ? 'text-amber-300/55' : 'text-cyan-400/55') : 'text-white/20'
                           }`}>matches</div>
                         </>
                       )}
                       <div className="mt-2 flex items-baseline gap-1">
-                        <span className={`text-xl font-black tabular-nums leading-none ${i === 0 ? 'text-white/55' : 'text-white/25'}`}>{wins}</span>
-                        <span className={`text-[9px] font-bold uppercase tracking-wide ${i === 0 ? 'text-white/30' : 'text-white/15'}`}>wks</span>
+                        <span className={`text-xl font-medium tabular-nums leading-none ${i === 0 ? 'text-white/55' : 'text-white/25'}`}>{wins}</span>
+                        <span className={`text-[9px] font-medium uppercase tracking-wide ${i === 0 ? 'text-white/30' : 'text-white/15'}`}>wks</span>
                       </div>
                     </div>
                   )
                 })}
                 {seriesTeams.length === 1 && (
                   <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2.5">
-                    <div className="text-[10px] font-bold text-white/25">Opponent</div>
-                    <div className="text-2xl sm:text-3xl font-black text-white/20 leading-none mt-1.5">0</div>
-                    <div className="text-[10px] font-bold uppercase tracking-widest text-white/15">matches</div>
+                    <div className="text-[10px] font-medium text-white/25">Opponent</div>
+                    <div className="text-2xl sm:text-3xl font-medium text-white/20 leading-none mt-1.5">0</div>
+                    <div className="text-[10px] font-medium uppercase tracking-widest text-white/15">matches</div>
                     <div className="mt-2 flex items-baseline gap-1">
-                      <span className="text-xl font-black tabular-nums text-white/15">0</span>
-                      <span className="text-[9px] font-bold uppercase tracking-wide text-white/10">wks</span>
+                      <span className="text-xl font-medium tabular-nums text-white/15">0</span>
+                      <span className="text-[9px] font-medium uppercase tracking-wide text-white/10">wks</span>
                     </div>
                   </div>
                 )}
@@ -358,7 +360,7 @@ export default function Dashboard() {
                   return (
                     <div key={w.week_id}
                       title={winner || 'Draw'}
-                      className={`h-7 px-1.5 min-w-[26px] rounded-md flex items-center justify-center text-[9px] font-black shrink-0 ${dotCls}`}>
+                      className={`h-7 px-1.5 min-w-[26px] rounded-md flex items-center justify-center text-[9px] font-medium shrink-0 ${dotCls}`}>
                       {winner ? _abbr(winner) : '='}
                     </div>
                   )
@@ -375,7 +377,7 @@ export default function Dashboard() {
                 return <span className={mLeader !== seriesLeader[0] ? 'text-cyan-400' : ''}> · {_abbr(mLeader)} leads matches by {gap}</span>
               })()}
               {seriesDraws > 0 && ` · ${seriesDraws} draw${seriesDraws > 1 ? 's' : ''}`}
-              {winStreak >= 2 && ` · 🔥 ${winStreak} in a row`}
+              {winStreak >= 2 && ` · ${winStreak} in a row`}
             </p>
           </div>
         )}
@@ -383,15 +385,15 @@ export default function Dashboard() {
 
       {/* Announcements */}
       {activeAnnouncements.map(a => (
-        <div key={a.id} className="card bg-blue-50 border border-blue-100 mb-4">
+        <div key={a.id} className="card border-[#1D9E75]/30 bg-[#E1F5EE] mb-4">
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0 text-base">
-              {a.pinned ? '📌' : '📢'}
+            <div className="w-7 h-7 rounded-lg bg-[#1D9E75]/15 flex items-center justify-center shrink-0">
+              <IconCricket size={14} className="text-[#1D9E75]" />
             </div>
             <div>
-              <p className="font-semibold text-blue-900 text-sm">{a.title}</p>
-              <p className="text-blue-700 text-sm mt-0.5">{a.body}</p>
-              <p className="text-xs text-blue-400 mt-1">{format(parseISO(a.posted_on), 'MMM d, yyyy')}</p>
+              <p className="font-medium text-gray-900 text-sm">{a.title}</p>
+              <p className="text-gray-700 text-sm mt-0.5">{a.body}</p>
+              <p className="text-xs text-gray-400 mt-1">{format(parseISO(a.posted_on), 'MMM d, yyyy')}</p>
             </div>
           </div>
         </div>
@@ -399,18 +401,11 @@ export default function Dashboard() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        {stats.map(({ label, value, icon, to, bg }) => (
-          <Link
-            key={label}
-            to={to}
-            className="group relative overflow-hidden rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
-          >
-            <div className={`absolute inset-0 bg-gradient-to-br ${bg} opacity-90`} />
-            <div className="relative p-4 text-white">
-              <div className="text-2xl mb-2">{icon}</div>
-              <div className="text-2xl font-bold leading-tight">{value}</div>
-              <div className="text-xs font-medium text-white/75 mt-0.5">{label}</div>
-            </div>
+        {statCards.map(({ label, value, Icon, to }) => (
+          <Link key={label} to={to} className="bg-[#F4F3F0] rounded-xl p-4 hover:bg-gray-200/60 transition-colors">
+            <Icon size={18} className="text-gray-500 mb-2" />
+            <div className="text-[22px] font-medium text-gray-900 leading-tight tabular-nums">{value}</div>
+            <div className="text-[11px] text-gray-500 uppercase tracking-[0.05em] mt-0.5">{label}</div>
           </Link>
         ))}
       </div>
@@ -418,30 +413,30 @@ export default function Dashboard() {
       {/* Season Leaders */}
       {(topBatter.length || topBowler.length || topMvp.length || topPotm.length || topBba.length || topBbo.length) ? (
         <div className="card mb-6 overflow-hidden p-0">
-          <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
-            <h2 className="font-bold text-gray-900">Season Leaders</h2>
-            <Link to="/leaderboard" className="text-sm font-semibold text-green-600 hover:text-green-700 transition-colors">
-              Full Stats →
+          <div className="flex items-center justify-between px-5 py-3 border-b border-[rgba(0,0,0,0.06)]">
+            <h2 className="font-medium text-gray-900">Season leaders</h2>
+            <Link to="/leaderboard" className="text-sm font-medium text-[#1D9E75] hover:text-[#0F6E56] transition-colors">
+              Full stats →
             </Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3">
             {[
-              { ss: topMvp,    emoji: '🌟', label: 'Season MVP',    val: topMvp[0]?.score,        unit: 'pts',    color: 'text-amber-500',   hover: 'hover:bg-amber-50'   },
-              { ss: topPotm,   emoji: '🏅', label: 'Most POTM',     val: topPotm[0]?.potm_count,  unit: 'times',  color: 'text-yellow-600',  hover: 'hover:bg-yellow-50'  },
-              { ss: topBatter, emoji: '🏏', label: 'Top Scorer',    val: topBatter[0]?.runs,      unit: 'runs',   color: 'text-green-600',   hover: 'hover:bg-green-50'   },
-              { ss: topBowler, emoji: '🎯', label: 'Wicket Wizard', val: topBowler[0]?.wickets,   unit: 'wkts',   color: 'text-purple-600',  hover: 'hover:bg-purple-50'  },
-              { ss: topBba,    emoji: '🦇', label: 'Best Batsman',  val: topBba[0]?.bba_count,    unit: 'awards', color: 'text-blue-600',    hover: 'hover:bg-blue-50'    },
-              { ss: topBbo,    emoji: '🎳', label: 'Best Bowler',   val: topBbo[0]?.bbo_count,    unit: 'awards', color: 'text-rose-600',    hover: 'hover:bg-rose-50'    },
-            ].map(({ ss, emoji, label, val, unit, color, hover }, i) => {
+              { ss: topMvp,    Icon: IconStar,       label: 'Season MVP',    val: topMvp[0]?.score,        unit: 'pts',    color: 'text-amber-500'  },
+              { ss: topPotm,   Icon: IconMedal,      label: 'Most POTM',     val: topPotm[0]?.potm_count,  unit: 'times',  color: 'text-yellow-600' },
+              { ss: topBatter, Icon: IconCricket, label: 'Top scorer',   val: topBatter[0]?.runs,      unit: 'runs',   color: 'text-[#1D9E75]'  },
+              { ss: topBowler, Icon: IconTarget,      label: 'Wicket wizard', val: topBowler[0]?.wickets,  unit: 'wkts',   color: 'text-purple-600' },
+              { ss: topBba,    Icon: IconStar,        label: 'Best batsman',  val: topBba[0]?.bba_count,   unit: 'awards', color: 'text-blue-600'   },
+              { ss: topBbo,    Icon: IconBallBowling, label: 'Best bowler',   val: topBbo[0]?.bbo_count,   unit: 'awards', color: 'text-rose-600'   },
+            ].map(({ ss, Icon, label, val, unit, color }, i) => {
               if (!ss.length) return null
-              const cellClass = `p-4 ${hover} transition-colors ${i % 3 !== 2 ? 'sm:border-r' : ''} ${i % 2 !== 1 ? 'border-r sm:border-r-0' : ''} ${i < 3 ? 'border-b' : ''} border-gray-100`
+              const cellClass = `p-4 hover:bg-[#F8F8F6] transition-colors ${i % 3 !== 2 ? 'sm:border-r' : ''} ${i % 2 !== 1 ? 'border-r sm:border-r-0' : ''} ${i < 3 ? 'border-b' : ''} border-[rgba(0,0,0,0.06)]`
               const names = ss.map(s => perfPlayerMap[s.player_id]?.display_name ?? '—').join(', ')
               const inner = (
                 <>
-                  <div className="text-xl mb-1.5">{emoji}</div>
-                  <div className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">{label}</div>
-                  <div className="font-bold text-gray-900 text-sm leading-snug" title={names}>{names}</div>
-                  <div className={`text-2xl font-black tabular-nums leading-none mt-1 ${color}`}>
+                  <Icon size={16} className={`${color} mb-1.5`} />
+                  <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em] mb-1">{label}</div>
+                  <div className="font-medium text-gray-900 text-sm leading-snug" title={names}>{names}</div>
+                  <div className={`text-[24px] font-medium tabular-nums leading-none mt-1 ${color}`}>
                     {typeof val === 'number' ? (Number.isInteger(val) ? val : val.toFixed(1)) : '—'}
                   </div>
                   <div className="text-xs text-gray-400 mt-0.5">{unit}</div>
@@ -458,45 +453,43 @@ export default function Dashboard() {
       {/* Balance health */}
       <div className="card mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-bold text-gray-900">Corpus Balance Health</h2>
+          <h2 className="font-medium text-gray-900">Corpus balance health</h2>
           <span className="text-xs text-gray-400">{corpusPlayers.length} players</span>
         </div>
-        <div className="flex h-2.5 rounded-full overflow-hidden bg-gray-100 gap-px mb-4">
+        <div className="flex h-2 rounded-full overflow-hidden bg-gray-100 gap-px mb-4">
           {statusBar.map(({ key, color }) =>
             statusCounts[key] > 0 && (
               <div key={key} className={`${color} transition-all duration-500`} style={{ width: `${(statusCounts[key] / corpusTotal) * 100}%` }} />
             )
           )}
         </div>
-        {/* Clickable status chips — tap to see that group of players */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {statusBar.map(({ key, label, color }) => (
             <button
               key={key}
               onClick={() => setActiveStatus(activeStatus === key ? null : key)}
-              className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-left transition-all ${
+              className={`flex items-center gap-2 rounded-lg px-3 py-2.5 text-left transition-colors ${
                 activeStatus === key
-                  ? 'bg-gray-200 ring-2 ring-gray-400'
-                  : 'bg-gray-50 hover:bg-gray-100'
+                  ? 'bg-gray-200 border border-gray-300'
+                  : 'bg-[#F4F3F0] hover:bg-gray-200/60'
               }`}
             >
-              <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${color}`} />
+              <span className={`w-2 h-2 rounded-full shrink-0 ${color}`} />
               <div>
-                <div className="text-xs text-gray-500">{label}</div>
-                <div className="font-bold text-gray-900 text-sm">{statusCounts[key]}</div>
+                <div className="text-[11px] text-gray-500">{label}</div>
+                <div className="font-medium text-gray-900 text-sm">{statusCounts[key]}</div>
               </div>
             </button>
           ))}
         </div>
 
-        {/* Status-filtered player list */}
         {activeStatus && (() => {
           const filtered = sortedCorpus.filter(p => p.balance_status === activeStatus)
           if (!filtered.length) return null
           const chip = statusBar.find(s => s.key === activeStatus)
           return (
-            <div className="mt-3 border-t border-gray-100 pt-3">
-              <p className="text-xs font-semibold text-gray-500 mb-2">{chip?.label} · {filtered.length} player{filtered.length !== 1 ? 's' : ''}</p>
+            <div className="mt-3 border-t border-[rgba(0,0,0,0.06)] pt-3">
+              <p className="text-[11px] font-medium text-gray-500 uppercase tracking-[0.05em] mb-2">{chip?.label} · {filtered.length} player{filtered.length !== 1 ? 's' : ''}</p>
               <div className="flex flex-wrap gap-1.5">
                 {filtered.map(p => (
                   <Link
@@ -517,10 +510,12 @@ export default function Dashboard() {
           )
         })()}
 
-        {/* At-risk quick list (always shown when no filter active) */}
         {!activeStatus && atRiskCount > 0 && (
-          <div className="mt-3 bg-orange-50 border border-orange-100 rounded-xl px-3 py-2.5">
-            <p className="text-xs font-semibold text-orange-700 mb-1.5">⚠️ {atRiskCount} player{atRiskCount > 1 ? 's' : ''} need to top up</p>
+          <div className="mt-3 bg-orange-50 border border-orange-100 rounded-lg px-3 py-2.5">
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <IconAlertTriangle size={13} className="text-orange-600" />
+              <p className="text-xs font-medium text-orange-700">{atRiskCount} player{atRiskCount > 1 ? 's' : ''} need to top up</p>
+            </div>
             <div className="divide-y divide-orange-100">
               {sortedCorpus
                 .filter(p => p.balance_status === 'urgent' || p.balance_status === 'overdue')
@@ -533,7 +528,7 @@ export default function Dashboard() {
                     <span className={`text-xs font-medium ${p.balance_status === 'overdue' ? 'text-red-700' : 'text-orange-700'}`}>
                       {p.display_name}
                     </span>
-                    <span className={`text-xs font-mono font-semibold ${p.balance_status === 'overdue' ? 'text-red-600' : 'text-orange-600'}`}>
+                    <span className={`text-xs font-mono font-medium ${p.balance_status === 'overdue' ? 'text-red-600' : 'text-orange-600'}`}>
                       ₹{Math.round(p.corpus_balance ?? 0).toLocaleString('en-IN')}
                     </span>
                   </Link>
@@ -547,35 +542,38 @@ export default function Dashboard() {
       {/* Recent matches */}
       <div className="card">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-bold text-gray-900">Recent Matches</h2>
-          <Link to="/timeline" className="text-sm font-semibold text-green-600 hover:text-green-700 transition-colors">
-            See All →
+          <h2 className="font-medium text-gray-900">Recent matches</h2>
+          <Link to="/timeline" className="text-sm font-medium text-[#1D9E75] hover:text-[#0F6E56] transition-colors">
+            See all →
           </Link>
         </div>
         {recentWeeks.length === 0 ? (
           <p className="text-sm text-gray-400 py-6 text-center">No matches recorded yet.</p>
         ) : (
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {recentWeeks.map(w => {
               const played = records.filter(r => r.week_id === w.week_id && r.status === 'played').length
               return (
                 <div
                   key={w.week_id}
-                  className="flex items-center justify-between text-sm px-3 py-3 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors"
+                  className="flex items-center justify-between text-sm px-3 py-3 rounded-lg cursor-pointer hover:bg-[#F4F3F0] transition-colors"
                   onClick={() => setDetail(w.week_id)}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center text-green-700 font-bold text-xs shrink-0">
+                    <div className="w-7 h-7 rounded-lg bg-[#E1F5EE] flex items-center justify-center text-[#1D9E75] font-medium text-xs shrink-0">
                       {format(parseISO(w.match_date), 'd')}
                     </div>
                     <div>
-                      <span className="font-semibold text-gray-800">{format(parseISO(w.match_date), 'MMM d, yyyy')}</span>
+                      <span className="font-medium text-gray-800">{format(parseISO(w.match_date), 'MMM d, yyyy')}</span>
                       {w.venue && <span className="text-gray-400 ml-2 text-xs">{w.venue.split(',')[0]}</span>}
-                      {w.result && <span className="ml-2 text-xs font-semibold text-green-600 bg-green-50 px-1.5 py-0.5 rounded-md">{w.result}</span>}
+                      {w.result && <span className="ml-2 text-xs font-medium text-[#1D9E75] bg-[#E1F5EE] px-1.5 py-0.5 rounded">{w.result}</span>}
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-xs font-semibold text-gray-500 bg-gray-100 rounded-full px-2.5 py-1">👥 {played}</span>
+                    <span className="text-xs font-medium text-gray-500 bg-[#F4F3F0] rounded-full px-2.5 py-1 flex items-center gap-1">
+                      <IconUsers size={11} />
+                      {played}
+                    </span>
                     <span className="text-gray-300 text-xs">›</span>
                   </div>
                 </div>
@@ -585,48 +583,60 @@ export default function Dashboard() {
         )}
       </div>
 
+      {/* Who's Hot */}
       {hotPlayers.length > 0 && (
         <div className="card mt-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-bold text-gray-900">Who's Hot 🔥</h2>
+            <div className="flex items-center gap-2">
+              <IconFlame size={16} className="text-orange-500" />
+              <h2 className="font-medium text-gray-900">Who's hot</h2>
+            </div>
             <span className="text-xs text-gray-400">Last 3 sessions</span>
           </div>
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {hotPlayers.map(({ pid, recentRuns, recentWkts, matches }) => (
               <Link key={pid} to={`/player/${pid}`}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors">
-                <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center shrink-0 text-sm">🔥</div>
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#F4F3F0] transition-colors">
+                <div className="w-7 h-7 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
+                  <IconFlame size={14} className="text-orange-500" />
+                </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 text-sm truncate">{perfPlayerMap[pid]?.display_name ?? pid}</p>
+                  <p className="font-medium text-gray-900 text-sm truncate">{perfPlayerMap[pid]?.display_name ?? pid}</p>
                   <p className="text-xs text-gray-400">
                     {recentRuns}r{recentWkts > 0 ? ` · ${recentWkts}w` : ''} in last {matches} match{matches !== 1 ? 'es' : ''}
                   </p>
                 </div>
-                <span className="text-xs font-semibold text-green-600 shrink-0">In form ↑</span>
+                <div className="flex items-center gap-1 text-xs font-medium text-[#1D9E75] shrink-0">
+                  <IconTrendingUp size={13} />
+                  In form
+                </div>
               </Link>
             ))}
           </div>
         </div>
       )}
 
-      {/* Recent Financial Activity */}
+      {/* Recent financial activity */}
       {recentActivity.length > 0 && (
         <div className="card mt-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-bold text-gray-900">Recent Expenses</h2>
+            <h2 className="font-medium text-gray-900">Recent expenses</h2>
             <span className="text-xs text-gray-400">Season total: ₹{Math.round(totalExpenses).toLocaleString('en-IN')}</span>
           </div>
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {recentActivity.map(e => {
               const isDeduction = e._type === 'deduction'
               return (
-                <div key={e.id} className="flex items-center justify-between text-sm px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors">
+                <div key={e.id} className="flex items-center justify-between text-sm px-3 py-2.5 rounded-lg hover:bg-[#F4F3F0] transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-base shrink-0 ${isDeduction ? 'bg-blue-50' : 'bg-red-50'}`}>
-                      {isDeduction ? '🏏' : '🧾'}
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${isDeduction ? 'bg-[#E1F5EE]' : 'bg-red-50'}`}>
+                      {isDeduction
+                        ? <IconCricket size={14} className="text-[#1D9E75]" />
+                        : <IconReceipt size={14} className="text-red-500" />
+                      }
                     </div>
                     <div>
-                      <span className="font-semibold text-gray-800">{e.description}</span>
+                      <span className="font-medium text-gray-800">{e.description}</span>
                       <div className="text-xs text-gray-400 mt-0.5">
                         {format(parseISO(e.date), 'MMM d, yyyy')}
                         {isDeduction
@@ -639,7 +649,7 @@ export default function Dashboard() {
                       </div>
                     </div>
                   </div>
-                  <span className={`font-mono font-semibold shrink-0 ml-2 ${isDeduction ? 'text-blue-600' : 'text-red-600'}`}>
+                  <span className={`font-mono font-medium shrink-0 ml-2 ${isDeduction ? 'text-[#1D9E75]' : 'text-red-600'}`}>
                     ₹{Math.round(e.amount).toLocaleString('en-IN')}
                   </span>
                 </div>

@@ -108,12 +108,12 @@ export default function AdminSettings() {
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <h1 className="text-xl font-bold text-gray-900">Settings</h1>
+      <h1 className="text-[22px] font-medium text-gray-900">Settings</h1>
 
       {/* Team Settings */}
       {form && (
         <div className="card">
-          <h2 className="font-semibold text-gray-800 mb-4">Team Settings</h2>
+          <h2 className="font-medium text-gray-800 mb-4">Team Settings</h2>
           <div className="space-y-3">
             <div>
               <label className="label">Team Name</label>
@@ -147,7 +147,7 @@ export default function AdminSettings() {
                 <input className="input" type="number" min="0" {...numField('corpus_overdue_threshold')} />
               </div>
             </div>
-            <div className="pt-1 space-y-1 text-xs text-gray-400 bg-gray-50 rounded-lg p-2">
+            <div className="pt-1 space-y-1 text-xs text-gray-400 bg-[#F4F3F0] rounded-lg p-2">
               <div>active_tournament_id: <span className="font-mono text-gray-600">{cfg?.active_tournament_id ?? '—'}</span></div>
               <div>default_ppm_rate: <span className="font-mono text-gray-600">₹{cfg?.default_ppm_rate ?? '—'}</span></div>
             </div>
@@ -164,7 +164,7 @@ export default function AdminSettings() {
 
       {/* Current tournament */}
       <div className="card">
-        <h2 className="font-semibold text-gray-800 mb-3">Current Tournament</h2>
+        <h2 className="font-medium text-gray-800 mb-3">Current Tournament</h2>
         <div className="space-y-2 text-sm text-gray-700">
           <div><span className="text-gray-500">Name:</span> {activeTournament?.name}</div>
           <div><span className="text-gray-500">CricHeroes ID:</span> {activeTournament?.cricheroes_tournament_id ?? '—'}</div>
@@ -180,13 +180,13 @@ export default function AdminSettings() {
 
       {/* All tournaments */}
       <div className="card">
-        <h2 className="font-semibold text-gray-800 mb-3">Tournament History</h2>
-        <div className="divide-y divide-gray-100">
+        <h2 className="font-medium text-gray-800 mb-3">Tournament History</h2>
+        <div className="divide-y divide-[rgba(0,0,0,0.04)]">
           {(tData?.tournaments ?? []).map(t => (
             <div key={t.id} className="py-2.5 flex items-center justify-between text-sm">
               <div>
                 <span className="font-medium text-gray-800">{t.name}</span>
-                {t.id === activeTId && <span className="ml-2 text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded">Active</span>}
+                {t.id === activeTId && <span className="ml-2 text-xs bg-[#E1F5EE] text-[#1D9E75] px-1.5 py-0.5 rounded">Active</span>}
               </div>
               <span className="text-xs text-gray-400">{t.start_date ?? '?'} → {t.end_date ?? 'ongoing'}</span>
             </div>
@@ -196,9 +196,9 @@ export default function AdminSettings() {
 
       {showMigrate && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm">
+          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-sm">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
-              <h2 className="font-semibold text-red-700">Close Tournament</h2>
+              <h2 className="font-medium text-red-700">Close Tournament</h2>
               <button onClick={() => { setShowMigrate(false); setNewTournamentName(''); setNewTournamentUrl('') }} className="text-gray-400">✕</button>
             </div>
             <div className="px-6 py-4 space-y-3">

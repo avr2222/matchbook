@@ -370,10 +370,10 @@ export default function AdminTransactions() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">
+        <h1 className="text-[22px] font-medium text-gray-900">
           Payments & Transactions
           {pendingReqs.length > 0 && (
-            <span className="ml-2 bg-red-500 text-white text-xs font-bold rounded-full px-2 py-0.5">{pendingReqs.length}</span>
+            <span className="ml-2 bg-red-500 text-white text-xs font-medium rounded-full px-2 py-0.5">{pendingReqs.length}</span>
           )}
         </h1>
         <div className="flex gap-2 flex-wrap">
@@ -391,8 +391,8 @@ export default function AdminTransactions() {
       {/* Pending payment requests */}
       {isAdmin && pendingReqs.length > 0 && (
         <div className="card border-l-4 border-amber-400 space-y-2">
-          <h2 className="font-semibold text-gray-800 text-sm">⏳ Pending Payment References ({pendingReqs.length})</h2>
-          <div className="divide-y divide-gray-100">
+          <h2 className="font-medium text-gray-800 text-sm">Pending Payment References ({pendingReqs.length})</h2>
+          <div className="divide-y divide-[rgba(0,0,0,0.04)]">
             {pendingReqs.map(req => {
               const payer = players.find(p => p.id === req.player_id)
               return (
@@ -400,7 +400,7 @@ export default function AdminTransactions() {
                   <div>
                     <span className="font-medium text-gray-800">{payer?.display_name ?? req.player_id}</span>
                     <span className="mx-2 text-gray-300">·</span>
-                    <span className="font-mono text-green-700">₹{req.amount.toLocaleString('en-IN')}</span>
+                    <span className="font-mono text-[#1D9E75]">₹{req.amount.toLocaleString('en-IN')}</span>
                     <span className="mx-2 text-gray-300">·</span>
                     <span className="text-gray-500 text-xs">Ref: {req.upi_ref}</span>
                     <div className="text-xs text-gray-400 mt-0.5">{req.submitted_on}</div>
@@ -409,7 +409,7 @@ export default function AdminTransactions() {
                     <button
                       onClick={() => approveRequest(req)}
                       disabled={approvingId === req.id}
-                      className="text-xs text-green-700 font-medium border border-green-300 rounded px-2 py-1 hover:bg-green-50 disabled:opacity-50"
+                      className="text-xs text-[#1D9E75] font-medium border border-[#1D9E75]/20 rounded px-2 py-1 hover:bg-[#E1F5EE] disabled:opacity-50"
                     >
                       {approvingId === req.id ? '…' : '✓ Approve'}
                     </button>
@@ -452,7 +452,7 @@ export default function AdminTransactions() {
 
       <div className="card p-0 overflow-hidden overflow-x-auto">
         <table className="w-full text-sm min-w-[640px]">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-[#F8F8F6] border-b border-[rgba(0,0,0,0.06)]">
             <tr>
               {isAdmin && (
                 <th className="pl-4 pr-2 py-3 w-8">
@@ -465,21 +465,21 @@ export default function AdminTransactions() {
                   />
                 </th>
               )}
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Date</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Player</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Type</th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Amount</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Note</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Actions</th>
+              <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Date</th>
+              <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Player</th>
+              <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Type</th>
+              <th className="px-4 py-3 text-right text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Amount</th>
+              <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Note</th>
+              <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-[rgba(0,0,0,0.04)]">
             {transactions.length === 0 ? (
               <tr><td colSpan={isAdmin ? 7 : 6} className="text-center py-10 text-gray-400">No transactions found.</td></tr>
             ) : transactions.map(t => {
               const player = players.find(p => p.id === t.player_id)
               return (
-                <tr key={t.id} className={`hover:bg-gray-50 ${selectedIds.has(t.id) ? 'bg-red-50' : ''}`}>
+                <tr key={t.id} className={`hover:bg-[#F8F8F6] ${selectedIds.has(t.id) ? 'bg-red-50' : ''}`}>
                   {isAdmin && (
                     <td className="pl-4 pr-2 py-3 w-8">
                       <input
@@ -493,7 +493,7 @@ export default function AdminTransactions() {
                   <td className="px-4 py-3 text-gray-500">{format(parseISO(t.date), 'MMM d, yyyy')}</td>
                   <td className="px-4 py-3 font-medium text-gray-800">{player?.display_name ?? t.player_id}</td>
                   <td className="px-4 py-3 text-gray-500">{TYPES.find(x => x.value === t.type)?.label ?? t.type}</td>
-                  <td className={`px-4 py-3 text-right font-mono font-medium ${t.direction === 'credit' ? 'text-green-600' : 'text-red-500'}`}>
+                  <td className={`px-4 py-3 text-right font-mono font-medium ${t.direction === 'credit' ? 'text-[#1D9E75]' : 'text-red-500'}`}>
                     {t.direction === 'credit' ? '+' : '-'}₹{t.amount.toLocaleString('en-IN')}
                   </td>
                   <td className="px-4 py-3 text-gray-400 text-xs">{t.description}</td>
@@ -522,9 +522,9 @@ export default function AdminTransactions() {
       {/* Single payment form — admin only */}
       {showForm && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-md">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
-              <h2 className="font-semibold">Record Payment</h2>
+              <h2 className="font-medium">Record Payment</h2>
               <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <div className="px-6 py-4 space-y-3">
@@ -558,9 +558,9 @@ export default function AdminTransactions() {
                 <input className="input" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
               </div>
               {newBalance !== null && (
-                <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-700">
+                <div className="bg-[#F4F3F0] rounded-lg p-3 text-sm text-gray-700">
                   Preview: <strong>{selectedPlayer?.display_name}</strong>{' '}
-                  <span className={typeInfo?.dir === 'credit' ? 'text-green-600' : 'text-red-500'}>
+                  <span className={typeInfo?.dir === 'credit' ? 'text-[#1D9E75]' : 'text-red-500'}>
                     {typeInfo?.dir === 'credit' ? '+' : '-'}₹{parseFloat(form.amount || 0).toLocaleString('en-IN')}
                   </span>{' → '}
                   New balance: <strong>₹{Math.round(newBalance * 100) / 100}</strong>
@@ -579,9 +579,9 @@ export default function AdminTransactions() {
 
       {editTxn && editTxnForm && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-md">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
-              <h2 className="font-semibold">Edit Transaction</h2>
+              <h2 className="font-medium">Edit Transaction</h2>
               <button onClick={() => setEditTxn(null)} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <div className="px-6 py-4 space-y-3">
@@ -638,9 +638,9 @@ export default function AdminTransactions() {
       {/* Bulk payment form — admin only */}
       {showBulk && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
-              <h2 className="font-semibold">Bulk Record Payments</h2>
+              <h2 className="font-medium">Bulk Record Payments</h2>
               <button onClick={() => setShowBulk(false)} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <div className="px-6 py-4 space-y-3">
@@ -656,7 +656,7 @@ export default function AdminTransactions() {
                   <input className="input" type="date" value={bulkDate} onChange={e => setBulkDate(e.target.value)} />
                 </div>
               </div>
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-[rgba(0,0,0,0.04)]">
                 {bulkRows.map((row, i) => (
                   <div key={i} className="py-2 flex gap-2 items-center">
                     <select
@@ -677,7 +677,7 @@ export default function AdminTransactions() {
                   </div>
                 ))}
               </div>
-              <button onClick={() => setBulkRows(rows => [...rows, { player_id: '', amount: '' }])} className="text-sm text-green-600 hover:underline">
+              <button onClick={() => setBulkRows(rows => [...rows, { player_id: '', amount: '' }])} className="text-sm text-[#1D9E75] hover:underline">
                 + Add row
               </button>
             </div>

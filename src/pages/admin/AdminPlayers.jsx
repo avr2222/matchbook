@@ -59,34 +59,34 @@ function PlayerHistoryModal({ player, allTxns, attendance, weeks, expenses, onCl
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
-        <div className="px-6 py-4 border-b border-gray-200 flex items-start justify-between shrink-0">
+      <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-lg max-h-[90vh] flex flex-col">
+        <div className="px-6 py-4 border-b border-[rgba(0,0,0,0.06)] flex items-start justify-between shrink-0">
           <div>
-            <h2 className="font-semibold text-gray-900 text-lg">{player.display_name}</h2>
+            <h2 className="font-medium text-gray-900 text-lg">{player.display_name}</h2>
             <div className="flex items-center gap-2 mt-1">
               <BalanceBadge status={player.balance_status} />
-              <span className="text-xs text-gray-500">{typeEmoji(player.type)} {typeLabel(player.type)}</span>
+              <span className="text-xs text-gray-500">{typeLabel(player.type)}</span>
             </div>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
         </div>
 
-        <div className="px-6 py-3 bg-gray-50 grid grid-cols-3 gap-3 border-b border-gray-200 shrink-0">
+        <div className="px-6 py-3 bg-[#F4F3F0] grid grid-cols-3 gap-3 border-b border-[rgba(0,0,0,0.06)] shrink-0">
           <div className="text-center">
             <div className="text-xs text-gray-500 mb-0.5">Balance</div>
-            <div className={`font-bold text-sm ${(player.corpus_balance ?? 0) < 0 ? 'text-red-600' : 'text-gray-900'}`}>₹{fmt(player.corpus_balance)}</div>
+            <div className={`font-medium text-sm ${(player.corpus_balance ?? 0) < 0 ? 'text-red-600' : 'text-gray-900'}`}>₹{fmt(player.corpus_balance)}</div>
           </div>
           <div className="text-center">
-            <div className="text-xs text-gray-500 mb-0.5">Total Paid In</div>
-            <div className="font-bold text-sm text-green-700">₹{fmt(player.total_paid)}</div>
+            <div className="text-xs text-gray-500 mb-0.5">Total paid in</div>
+            <div className="font-medium text-sm text-[#1D9E75]">₹{fmt(player.total_paid)}</div>
           </div>
           <div className="text-center">
-            <div className="text-xs text-gray-500 mb-0.5">Matches Played</div>
-            <div className="font-bold text-sm text-blue-700">{matchesPlayed}</div>
+            <div className="text-xs text-gray-500 mb-0.5">Matches played</div>
+            <div className="font-medium text-sm text-gray-700">{matchesPlayed}</div>
           </div>
         </div>
 
-        <div className="overflow-y-auto flex-1 divide-y divide-gray-100">
+        <div className="overflow-y-auto flex-1 divide-y divide-[rgba(0,0,0,0.04)]">
           {timeline.length === 0 ? (
             <p className="text-sm text-gray-400 py-8 text-center">No transaction history found.</p>
           ) : timeline.map((entry, i) => (
@@ -95,7 +95,7 @@ function PlayerHistoryModal({ player, allTxns, attendance, weeks, expenses, onCl
                 <div className="text-gray-800">{entry.label}</div>
                 <div className="text-xs text-gray-400 mt-0.5">{format(parseISO(entry.date), 'MMM d, yyyy')}</div>
               </div>
-              <div className={`font-mono font-semibold shrink-0 ml-4 ${entry.kind === 'credit' ? 'text-green-600' : 'text-red-500'}`}>
+              <div className={`font-mono font-medium shrink-0 ml-4 ${entry.kind === 'credit' ? 'text-[#1D9E75]' : 'text-red-500'}`}>
                 {entry.kind === 'credit' ? '+' : '−'}₹{entry.amount.toLocaleString('en-IN')}
               </div>
             </div>
@@ -321,7 +321,7 @@ export default function AdminPlayers() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">Players</h1>
+        <h1 className="text-[22px] font-medium text-gray-900">Players</h1>
         {isAdmin && <button onClick={openNew} className="btn-primary text-sm">+ Add Player</button>}
       </div>
 
@@ -333,8 +333,8 @@ export default function AdminPlayers() {
             onClick={() => setTypeTab(tab)}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
               typeTab === tab
-                ? 'bg-green-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-[#1D9E75] text-white'
+                : 'bg-[#F4F3F0] text-gray-600 hover:bg-gray-200'
             }`}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -361,7 +361,7 @@ export default function AdminPlayers() {
 
       <div className="card p-0 overflow-hidden overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-[#F8F8F6] border-b border-[rgba(0,0,0,0.06)]">
             <tr>
               {isAdmin && (
                 <th className="pl-4 py-3 w-8">
@@ -376,24 +376,24 @@ export default function AdminPlayers() {
                   />
                 </th>
               )}
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Player</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Type</th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Balance</th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Paid</th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Deducted</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Status</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">GitHub</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Actions</th>
+              <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Player</th>
+              <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Type</th>
+              <th className="px-4 py-3 text-right text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Balance</th>
+              <th className="px-4 py-3 text-right text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] hidden sm:table-cell">Paid</th>
+              <th className="px-4 py-3 text-right text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] hidden sm:table-cell">Deducted</th>
+              <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Status</th>
+              <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] hidden sm:table-cell">GitHub</th>
+              <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-[rgba(0,0,0,0.04)]">
             {visible.length === 0 && (
               <tr>
                 <td colSpan={isAdmin ? 9 : 8} className="px-4 py-8 text-center text-gray-400 text-sm">No players found.</td>
               </tr>
             )}
             {visible.map(p => (
-              <tr key={p.id} className={`hover:bg-gray-50 ${p.status === 'inactive' ? 'opacity-40' : ''} ${selected.has(p.id) ? 'bg-red-50' : ''}`}>
+              <tr key={p.id} className={`hover:bg-[#F8F8F6] ${p.status === 'inactive' ? 'opacity-40' : ''} ${selected.has(p.id) ? 'bg-red-50' : ''}`}>
                 {isAdmin && (
                   <td className="pl-4 py-3 w-8">
                     {p.status === 'active' && (
@@ -413,7 +413,7 @@ export default function AdminPlayers() {
                 <td className="px-4 py-3 font-medium text-gray-900">
                   <button
                     onClick={() => setDetail(p)}
-                    className="font-medium text-gray-900 hover:text-green-700 hover:underline text-left"
+                    className="font-medium text-gray-900 hover:text-[#1D9E75] hover:underline text-left"
                   >
                     {p.display_name}
                   </button>
@@ -423,15 +423,15 @@ export default function AdminPlayers() {
                     </div>
                   )}
                 </td>
-                <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{typeEmoji(p.type)} {typeLabel(p.type)}</td>
+                <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{typeLabel(p.type)}</td>
                 <td className="px-4 py-3 text-right font-mono whitespace-nowrap">
                   {p.type === 'ppm'
                     ? (p.corpus_balance < 0
-                        ? <span className="text-red-600 font-semibold">₹{fmt(Math.abs(p.corpus_balance))} owed</span>
+                        ? <span className="text-red-600 font-medium">₹{fmt(Math.abs(p.corpus_balance))} owed</span>
                         : <span className="text-gray-400">PPM</span>)
                     : `₹${fmt(p.corpus_balance)}`}
                 </td>
-                <td className="px-4 py-3 text-right font-mono text-green-700 whitespace-nowrap hidden sm:table-cell">
+                <td className="px-4 py-3 text-right font-mono text-[#1D9E75] whitespace-nowrap hidden sm:table-cell">
                   ₹{fmt(p.total_paid)}
                 </td>
                 <td className="px-4 py-3 text-right font-mono text-red-500 whitespace-nowrap hidden sm:table-cell">
@@ -440,8 +440,8 @@ export default function AdminPlayers() {
                 <td className="px-4 py-3 text-center">
                   {p.type === 'ppm'
                     ? (p.corpus_balance < 0
-                        ? <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-700">₹{fmt(Math.abs(p.corpus_balance))} pending</span>
-                        : <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">✓ Paid</span>)
+                        ? <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700">₹{fmt(Math.abs(p.corpus_balance))} pending</span>
+                        : <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[#E1F5EE] text-[#1D9E75]">✓ Paid</span>)
                     : <BalanceBadge status={p.balance_status} />}
                 </td>
                 <td className="px-4 py-3 text-center text-gray-400 text-xs hidden sm:table-cell">{p.github_username || '—'}</td>
@@ -449,10 +449,10 @@ export default function AdminPlayers() {
                   {(p.type === 'corpus' || p.type === 'new') && (
                     <button
                       onClick={() => sharePayLink(p.id)}
-                      className="text-green-600 hover:underline text-xs mr-3"
+                      className="text-[#1D9E75] hover:underline text-xs mr-3"
                       title="Copy pay link"
                     >
-                      {copiedId === p.id ? '✓ Copied' : '📤 Pay Link'}
+                      {copiedId === p.id ? '✓ Copied' : 'Pay link'}
                     </button>
                   )}
                   {isAdmin ? (
@@ -460,13 +460,13 @@ export default function AdminPlayers() {
                       {(p.type === 'ppm' || p.type === 'guest') && p.status === 'active' && (
                         <button
                           onClick={() => { setCashModal({ player: p }); setCashAmount(String(cfg?.default_match_fee ?? '')); setCashDesc('') }}
-                          className="text-xs text-green-700 border border-green-200 rounded-lg px-2 py-1 hover:bg-green-50 transition-colors mr-3"
+                          className="text-xs text-[#1D9E75] border border-[#1D9E75]/20 rounded-lg px-2 py-1 hover:bg-[#E1F5EE] transition-colors mr-3"
                           title="Record cash payment"
                         >
-                          💰 Cash
+                          Cash
                         </button>
                       )}
-                      <button onClick={() => openEdit(p)} className="text-blue-600 hover:underline text-xs mr-3">Edit</button>
+                      <button onClick={() => openEdit(p)} className="text-gray-500 hover:text-[#1D9E75] hover:underline text-xs mr-3">Edit</button>
                       {p.status === 'active' && (
                         <button onClick={() => remove(p)} className="text-red-500 hover:underline text-xs">Remove</button>
                       )}
@@ -486,8 +486,8 @@ export default function AdminPlayers() {
       {/* Cash payment modal for PPM/Guest players */}
       {cashModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
-            <h3 className="font-bold text-gray-900 mb-4">Record Cash Payment — {cashModal.player.display_name}</h3>
+          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] max-w-sm w-full p-6">
+            <h3 className="font-medium text-gray-900 mb-4">Record cash payment — {cashModal.player.display_name}</h3>
             <div className="space-y-3">
               <div>
                 <label className="label">Amount (₹)</label>
@@ -528,10 +528,10 @@ export default function AdminPlayers() {
       {/* Edit / Add modal — admin only */}
       {editing && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-              <h2 className="font-semibold text-gray-900">
-                {players.find(p => p.id === editing.id) ? 'Edit Player' : 'Add Player'}
+          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="px-6 py-4 border-b border-[rgba(0,0,0,0.06)] flex justify-between items-center">
+              <h2 className="font-medium text-gray-900">
+                {players.find(p => p.id === editing.id) ? 'Edit player' : 'Add player'}
               </h2>
               <button onClick={() => setEditing(null)} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
@@ -576,10 +576,10 @@ export default function AdminPlayers() {
               <div>
                 <label className="label">Player Type</label>
                 <select className="input" value={editing.type} onChange={e => setEditing(p => ({ ...p, type: e.target.value }))}>
-                  <option value="corpus">💰 Corpus</option>
-                  <option value="ppm">💵 PPM</option>
-                  <option value="new">🆕 New</option>
-                  <option value="guest">👤 Guest</option>
+                  <option value="corpus">Corpus</option>
+                  <option value="ppm">PPM</option>
+                  <option value="new">New</option>
+                  <option value="guest">Guest</option>
                 </select>
               </div>
 

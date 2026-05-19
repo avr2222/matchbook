@@ -17,7 +17,7 @@ function AnnRow({ ann, todayStr, onEdit, onDelete, deletingId, isAdmin }) {
     <div className={`py-3 flex items-start justify-between gap-4 ${isExpired ? 'opacity-50' : ''}`}>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          {ann.pinned && <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-medium">📌 Pinned</span>}
+          {ann.pinned && <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-medium">Pinned</span>}
           <span className="font-medium text-gray-900 text-sm">{ann.title}</span>
         </div>
         <p className="text-sm text-gray-600 mt-0.5 truncate">{ann.body}</p>
@@ -117,16 +117,16 @@ export default function AdminAnnouncements() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">Announcements</h1>
+        <h1 className="text-[22px] font-medium text-gray-900">Announcements</h1>
         {isAdmin && <button onClick={openNew} className="btn-primary text-sm">+ New Announcement</button>}
       </div>
 
       <div className="card">
-        <h2 className="font-semibold text-gray-800 mb-2 text-sm">Active ({active.length})</h2>
+        <h2 className="font-medium text-gray-800 mb-2 text-sm">Active ({active.length})</h2>
         {active.length === 0 ? (
           <p className="text-sm text-gray-400 py-4 text-center">No active announcements.</p>
         ) : (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-[rgba(0,0,0,0.04)]">
             {active.map(a => (
               <AnnRow key={a.id} ann={a} todayStr={todayStr} onEdit={openEdit} onDelete={deleteAnn} deletingId={deletingId} isAdmin={isAdmin} />
             ))}
@@ -136,8 +136,8 @@ export default function AdminAnnouncements() {
 
       {expired.length > 0 && (
         <div className="card">
-          <h2 className="font-semibold text-gray-400 mb-2 text-sm">Expired ({expired.length})</h2>
-          <div className="divide-y divide-gray-100">
+          <h2 className="font-medium text-gray-400 mb-2 text-sm">Expired ({expired.length})</h2>
+          <div className="divide-y divide-[rgba(0,0,0,0.04)]">
             {expired.map(a => (
               <AnnRow key={a.id} ann={a} todayStr={todayStr} onEdit={openEdit} onDelete={deleteAnn} deletingId={deletingId} isAdmin={isAdmin} />
             ))}
@@ -149,9 +149,9 @@ export default function AdminAnnouncements() {
 
       {editing && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-md">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
-              <h2 className="font-semibold">
+              <h2 className="font-medium">
                 {announcements.find(a => a.id === editing.id) ? 'Edit Announcement' : 'New Announcement'}
               </h2>
               <button onClick={() => setEditing(null)} className="text-gray-400 hover:text-gray-600">✕</button>
@@ -176,7 +176,7 @@ export default function AdminAnnouncements() {
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
-                  className="w-4 h-4 accent-green-600"
+                  className="w-4 h-4 accent-[#1D9E75]"
                   checked={editing.pinned ?? false}
                   onChange={e => setEditing(p => ({ ...p, pinned: e.target.checked }))}
                 />

@@ -126,24 +126,24 @@ export default function AdminGuests() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">Guest Visits</h1>
+        <h1 className="text-[22px] font-medium text-gray-900">Guest Visits</h1>
         {isAdmin && <button onClick={() => setShowForm(true)} className="btn-primary text-sm">+ Add Guest Visit</button>}
       </div>
 
       <div className="card p-0 overflow-hidden overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-[#F8F8F6] border-b border-[rgba(0,0,0,0.06)]">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Match</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Guest</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Invited By</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Fee Mode</th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Fee</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Paid?</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Actions</th>
+              <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Match</th>
+              <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Guest</th>
+              <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] hidden sm:table-cell">Invited By</th>
+              <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] hidden sm:table-cell">Fee Mode</th>
+              <th className="px-4 py-3 text-right text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Fee</th>
+              <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Paid?</th>
+              <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-[rgba(0,0,0,0.04)]">
             {visits.length === 0 ? (
               <tr><td colSpan={7} className="text-center py-10 text-gray-400">No guest visits recorded yet.</td></tr>
             ) : visits.map(v => {
@@ -152,17 +152,17 @@ export default function AdminGuests() {
               const frequent = isFrequent(v.guest_name)
               const alreadyConverted = !!v.converted_to_player_id
               return (
-                <tr key={v.id} className="hover:bg-gray-50">
+                <tr key={v.id} className="hover:bg-[#F8F8F6]">
                   <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
                     {week ? format(parseISO(week.match_date), 'MMM d') : v.week_id}
                   </td>
                   <td className="px-4 py-3 font-medium text-gray-900">
-                    <div>👤 {v.guest_name}</div>
+                    <div>{v.guest_name}</div>
                     {frequent && (
-                      <div className="text-xs text-purple-600 mt-0.5">⭐ Frequent Guest</div>
+                      <div className="text-xs text-purple-600 mt-0.5">Frequent Guest</div>
                     )}
                     {alreadyConverted && (
-                      <div className="text-xs text-green-600 mt-0.5">✅ Converted to player</div>
+                      <div className="text-xs text-[#1D9E75] mt-0.5">Converted to player</div>
                     )}
                   </td>
                   <td className="px-4 py-3 text-gray-500 hidden sm:table-cell">{invite?.display_name ?? '—'}</td>
@@ -174,13 +174,13 @@ export default function AdminGuests() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right font-mono text-gray-700">₹{(v.guest_fee ?? 0).toLocaleString('en-IN')}</td>
-                  <td className="px-4 py-3 text-center">{v.fee_paid ? '✅' : '❌'}</td>
+                  <td className="px-4 py-3 text-center text-xs font-medium">{v.fee_paid ? <span className="text-[#1D9E75]">Paid</span> : <span className="text-red-500">Unpaid</span>}</td>
                   <td className="px-4 py-3 text-center">
                     {isAdmin && !alreadyConverted && (
                       <button
                         onClick={() => convertToPlayer(v)}
                         disabled={converting === v.id}
-                        className="text-xs text-green-600 hover:underline disabled:opacity-50 whitespace-nowrap"
+                        className="text-xs text-[#1D9E75] hover:underline disabled:opacity-50 whitespace-nowrap"
                       >
                         {converting === v.id ? 'Converting…' : '→ Make Player'}
                       </button>
@@ -197,9 +197,9 @@ export default function AdminGuests() {
 
       {showForm && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md">
+          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-md">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
-              <h2 className="font-semibold">Add Guest Visit</h2>
+              <h2 className="font-medium">Add Guest Visit</h2>
               <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <div className="px-6 py-4 space-y-3">

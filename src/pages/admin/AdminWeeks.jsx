@@ -307,23 +307,23 @@ export default function AdminWeeks() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-gray-900">Matches</h1>
+        <h1 className="text-[22px] font-medium text-gray-900">Matches</h1>
         {isAdmin && <button onClick={() => setShowNew(true)} className="btn-primary text-sm">+ Add Match</button>}
       </div>
 
       <div className="card p-0 overflow-hidden overflow-x-auto">
         <table className="w-full text-sm min-w-[640px]">
-          <thead className="bg-gray-50 border-b border-gray-100">
+          <thead className="bg-[#F8F8F6] border-b border-[rgba(0,0,0,0.06)]">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Date</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Venue / Teams</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wide">Played</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wide">Status</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wide">Source</th>
-              <th className="px-4 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wide">Actions</th>
+              <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Date</th>
+              <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Venue / Teams</th>
+              <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Played</th>
+              <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Status</th>
+              <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Source</th>
+              <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-y divide-[rgba(0,0,0,0.04)]">
             {weeks.map(w => {
               const played         = records.filter(r => r.week_id === w.week_id && r.status === 'played').length
               const weekExps       = expenses.filter(e => e.week_id === w.week_id)
@@ -334,12 +334,12 @@ export default function AdminWeeks() {
               return (
                 <tr
                   key={w.week_id}
-                  className={`hover:bg-gray-50 transition-colors ${w.status === 'completed' ? 'cursor-pointer' : 'cursor-default'}`}
+                  className={`hover:bg-[#F8F8F6] transition-colors ${w.status === 'completed' ? 'cursor-pointer' : 'cursor-default'}`}
                   onClick={() => w.status === 'completed' && setDetail(w.week_id)}
                 >
-                  <td className="px-4 py-3 font-semibold text-gray-800">
+                  <td className="px-4 py-3 font-medium text-gray-800">
                     {format(parseISO(w.match_date), 'MMM d, yyyy')}
-                    {w.result && <div className="text-xs text-green-600 font-medium mt-0.5">{w.result}</div>}
+                    {w.result && <div className="text-xs text-[#1D9E75] font-medium mt-0.5">{w.result}</div>}
                   </td>
                   <td className="px-4 py-3 text-gray-500 text-xs">
                     <div>{w.venue?.split(',')[0] || '—'}</div>
@@ -350,7 +350,7 @@ export default function AdminWeeks() {
                   <td className="px-4 py-3 text-center">
                     {w.status === 'completed' ? (
                       <div>
-                        <span className="text-green-700 font-semibold">{played}</span>
+                        <span className="text-[#1D9E75] font-medium">{played}</span>
                         {weekExps.length > 0 ? (
                           <div className="text-xs text-red-400 mt-0.5">₹{totalCost.toLocaleString('en-IN')}</div>
                         ) : deductionTotal > 0 ? (
@@ -360,14 +360,14 @@ export default function AdminWeeks() {
                     ) : '—'}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${
+                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
                       w.status === 'completed'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-yellow-100 text-yellow-700'
+                        ? 'bg-[#E1F5EE] text-[#1D9E75]'
+                        : 'bg-amber-100 text-amber-700'
                     }`}>{w.status}</span>
                   </td>
                   <td className="px-4 py-3 text-center text-xs text-gray-400">
-                    {w.cricheroes_match_id ? '🔗 CricHeroes' : '✍️ Manual'}
+                    {w.cricheroes_match_id ? 'CricHeroes' : 'Manual'}
                   </td>
                   <td className="px-4 py-3 text-center" onClick={e => e.stopPropagation()}>
                     <div className="flex items-center justify-center gap-2 flex-wrap">
@@ -402,9 +402,9 @@ export default function AdminWeeks() {
       {/* Result editor */}
       {editResult && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
+          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-sm">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between">
-              <h2 className="font-semibold">Match Result</h2>
+              <h2 className="font-medium">Match Result</h2>
               <button onClick={() => setEditResult(null)} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <div className="px-6 py-4 space-y-3">
@@ -432,10 +432,10 @@ export default function AdminWeeks() {
       {/* Attendance editor */}
       {selected && selectedWeek && canWrite && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between">
               <div>
-                <h2 className="font-semibold">Attendance — {format(parseISO(selectedWeek.match_date), 'MMM d, yyyy')}</h2>
+                <h2 className="font-medium">Attendance — {format(parseISO(selectedWeek.match_date), 'MMM d, yyyy')}</h2>
                 <p className="text-xs text-gray-400 mt-0.5">{selectedWeek.label}</p>
               </div>
               <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600">✕</button>
@@ -521,9 +521,9 @@ export default function AdminWeeks() {
       {/* Add match modal */}
       {showNew && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
+          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-sm">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between">
-              <h2 className="font-semibold">Add Match Week</h2>
+              <h2 className="font-medium">Add Match Week</h2>
               <button onClick={() => setShowNew(false)} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
             <div className="px-6 py-4 space-y-3">
@@ -535,8 +535,8 @@ export default function AdminWeeks() {
                 <label className="label">Venue</label>
                 <input className="input" value={newWeek.venue} onChange={e => setNewWeek(f => ({ ...f, venue: e.target.value }))} />
               </div>
-              <div className="bg-gray-50 rounded-xl p-3 space-y-2">
-                <p className="text-xs font-semibold text-gray-500 uppercase">Fee Calculator (optional)</p>
+              <div className="bg-[#F4F3F0] rounded-xl p-3 space-y-2">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-[0.05em]">Fee calculator (optional)</p>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="label text-xs">Total Cost (₹)</label>

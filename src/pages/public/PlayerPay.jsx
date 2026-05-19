@@ -5,9 +5,8 @@ import { supabase } from '../../lib/supabase'
 import BalanceBadge from '../../components/ui/BalanceBadge'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { format, parseISO } from 'date-fns'
+import { IconCircleCheck, IconMapPin, IconFlame, IconCricket, IconMedal, IconStar, IconTarget, IconBallBowling } from '@tabler/icons-react'
 
-// Creates a pending payment_requests row and opens the UPI app.
-// On return, shows a form to capture the UPI transaction ID.
 function UpiPaySection({ player, config }) {
   const [amount, setAmount]             = useState(null)
   const [customAmt, setCustomAmt]       = useState('')
@@ -46,11 +45,9 @@ function UpiPaySection({ player, config }) {
         notes: `UPI Topup initiated — ${player.display_name}`,
       })
       setPendingReqId(reqId)
-      // Open UPI app
       window.location.href = upiHref
     } catch (e) {
       console.error('Failed to record payment intent', e)
-      // Still open UPI even if DB write failed
       window.location.href = upiHref
     } finally {
       setSaving(false)
@@ -80,28 +77,25 @@ function UpiPaySection({ player, config }) {
   return (
     <div className="space-y-4">
       <div className="text-center">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1">Top-up Amount</p>
-        <div className="text-4xl font-extrabold text-gray-900">
+        <p className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] mb-1">Top-up amount</p>
+        <div className="text-[36px] font-medium text-gray-900 tabular-nums">
           ₹{chosen.toLocaleString('en-IN')}
         </div>
         <p className="text-xs text-gray-400 mt-1">
-          {balance < threshold
-            ? `to reach `
-            : `optional top-up — `}
-          <span className="text-emerald-600 font-semibold">Good</span> standing
+          {balance < threshold ? 'to reach ' : 'optional top-up — '}
+          <span className="text-emerald-600 font-medium">Good</span> standing
         </p>
       </div>
 
-      {/* Amount selector */}
       <div className="flex gap-2 justify-center flex-wrap">
         {[suggested, suggested + 500, suggested + 1000].map(a => (
           <button
             key={a}
             onClick={() => { setAmount(a); setCustomAmt('') }}
-            className={`px-3 py-1.5 rounded-full text-sm font-semibold border transition-all ${
+            className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
               chosen === a && !customAmt
-                ? 'bg-green-600 text-white border-green-600'
-                : 'border-gray-200 text-gray-600 hover:border-green-300'
+                ? 'bg-[#1D9E75] text-white border-[#1D9E75]'
+                : 'border-gray-200 text-gray-600 hover:border-[#1D9E75]/40'
             }`}
           >
             ₹{a.toLocaleString('en-IN')}
@@ -109,7 +103,6 @@ function UpiPaySection({ player, config }) {
         ))}
       </div>
 
-      {/* Custom amount */}
       <div className="relative">
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium pointer-events-none">₹</span>
         <input
@@ -128,26 +121,25 @@ function UpiPaySection({ player, config }) {
         />
       </div>
 
-      {/* Pay button */}
       {isMobile ? (
         <button
           onClick={handlePayNow}
           disabled={saving}
-          className="btn-primary w-full text-base py-3.5 rounded-2xl"
+          className="btn-primary w-full text-base py-3"
         >
-          {saving ? 'Opening…' : `💳 Pay ₹${chosen.toLocaleString('en-IN')} via UPI`}
+          {saving ? 'Opening…' : `Pay ₹${chosen.toLocaleString('en-IN')} via UPI`}
         </button>
       ) : (
-        <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 space-y-2">
-          <p className="text-xs font-bold text-emerald-700 uppercase tracking-widest">Pay to UPI ID</p>
+        <div className="bg-[#E1F5EE] border border-[#1D9E75]/20 rounded-xl p-4 space-y-2">
+          <p className="text-[11px] font-medium text-[#1D9E75] uppercase tracking-[0.05em]">Pay to UPI ID</p>
           <div className="flex items-center gap-2">
-            <span className="font-mono text-base font-semibold text-gray-900 flex-1 break-all">{upiId}</span>
+            <span className="font-mono text-base font-medium text-gray-900 flex-1 break-all">{upiId}</span>
             <button
               onClick={copy}
-              className={`shrink-0 text-sm font-semibold px-3 py-1.5 rounded-xl border transition-all ${
+              className={`shrink-0 text-sm font-medium px-3 py-1.5 rounded-lg border transition-colors ${
                 copied
-                  ? 'bg-emerald-600 text-white border-emerald-600'
-                  : 'text-emerald-700 border-emerald-300 hover:bg-emerald-100'
+                  ? 'bg-[#1D9E75] text-white border-[#1D9E75]'
+                  : 'text-[#1D9E75] border-[#1D9E75]/30 hover:bg-[#1D9E75]/10'
               }`}
             >
               {copied ? '✓ Copied' : 'Copy'}
@@ -161,7 +153,7 @@ function UpiPaySection({ player, config }) {
             <button
               onClick={handlePayNow}
               disabled={saving}
-              className="text-xs text-green-600 font-semibold hover:underline"
+              className="text-xs text-[#1D9E75] font-medium hover:underline"
             >
               {saving ? 'Recording…' : 'Record payment intent →'}
             </button>
@@ -169,10 +161,9 @@ function UpiPaySection({ player, config }) {
         </div>
       )}
 
-      {/* UPI Ref capture — shown after opening UPI app */}
       {pendingReqId && !refSaved && (
-        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 space-y-2">
-          <p className="text-xs font-bold text-blue-700 uppercase tracking-widest">After Paying</p>
+        <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 space-y-2">
+          <p className="text-[11px] font-medium text-blue-700 uppercase tracking-[0.05em]">After paying</p>
           <p className="text-sm text-blue-800">Enter your UPI Transaction ID so admin can verify:</p>
           <div className="flex gap-2">
             <input
@@ -194,15 +185,15 @@ function UpiPaySection({ player, config }) {
       )}
 
       {refSaved && (
-        <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-3 text-center">
-          <p className="text-sm font-semibold text-emerald-700">✓ Payment reference saved!</p>
-          <p className="text-xs text-emerald-600 mt-1">Admin will confirm and credit your account shortly.</p>
+        <div className="bg-[#E1F5EE] border border-[#1D9E75]/20 rounded-xl p-3 text-center">
+          <p className="text-sm font-medium text-[#1D9E75]">Payment reference saved!</p>
+          <p className="text-xs text-[#1D9E75]/70 mt-1">Admin will confirm and credit your account shortly.</p>
         </div>
       )}
 
       {pendingReqId && !refSaved && (
         <p className="text-xs text-center text-gray-400">
-          ⏳ Payment pending admin confirmation. Your balance updates once confirmed.
+          Payment pending admin confirmation. Your balance updates once confirmed.
         </p>
       )}
     </div>
@@ -224,10 +215,10 @@ export default function PlayerPay() {
   if (!player) {
     return (
       <div className="max-w-sm mx-auto px-4 py-16 text-center space-y-3">
-        <div className="text-5xl">🏏</div>
-        <p className="text-gray-700 font-semibold text-lg">Player not found.</p>
+        <IconCricket size={40} className="text-gray-300 mx-auto" />
+        <p className="text-gray-700 font-medium text-lg">Player not found.</p>
         <p className="text-sm text-gray-400">Check the link or contact your admin.</p>
-        <Link to="/" className="inline-block mt-2 text-green-600 hover:underline text-sm font-medium">← Back to home</Link>
+        <Link to="/" className="inline-block mt-2 text-[#1D9E75] hover:underline text-sm font-medium">← Back to home</Link>
       </div>
     )
   }
@@ -243,7 +234,6 @@ export default function PlayerPay() {
 
   const perfs = perfData?.performances ?? []
 
-  // Attendance streak + rate
   const completedWeeks = weeks
     .filter(w => w.tournament_id === activeTId && w.status === 'completed')
     .sort((a, b) => b.match_date.localeCompare(a.match_date))
@@ -257,14 +247,12 @@ export default function PlayerPay() {
     ? Math.round((perfs.length / completedWeeks.length) * 100)
     : 0
 
-  // Corpus forecast — avg fee from sessions this player actually attended
   const _attendedWithFee = completedWeeks.filter(w => perfWeekIds.has(w.week_id) && (w.match_fee || 0) > 0)
   const matchFee = _attendedWithFee.length > 0
     ? Math.round(_attendedWithFee.reduce((s, w) => s + w.match_fee, 0) / _attendedWithFee.length)
     : (cfg?.default_match_fee ?? 500)
   const matchesLeft = balance > 0 && matchFee > 0 ? Math.floor(balance / matchFee) : 0
 
-  // Career stats
   const careerRuns        = perfs.reduce((s, p) => s + (p.runs        || 0), 0)
   const careerWkts        = perfs.reduce((s, p) => s + (p.wickets     || 0), 0)
   const careerBalls       = perfs.reduce((s, p) => s + (p.balls_faced || 0), 0)
@@ -280,49 +268,40 @@ export default function PlayerPay() {
   const last5      = sortedPerfs.slice(0, 5)
   const totalGames = perfs.reduce((s, p) => s + (p.match_count || 1), 0)
 
-  // Achievement badges
   const totalPotm = perfs.reduce((s, p) => s + (p.potm_count || 0), 0)
   const totalBba  = perfs.reduce((s, p) => s + (p.bba_count  || 0), 0)
   const totalBbo  = perfs.reduce((s, p) => s + (p.bbo_count  || 0), 0)
   const badges = [
-    careerHighScore >= 100                         && { emoji: '💯', label: 'Century Club' },
-    careerHighScore >= 50 && careerHighScore < 100 && { emoji: '🏏', label: 'Half-Century' },
-    careerBestWkts >= 3                            && { emoji: '🎯', label: 'Hat-trick Hero' },
-    totalPotm > 0                                  && { emoji: '🏅', label: `POTM ×${totalPotm}` },
-    totalBba > 0                                   && { emoji: '🦇', label: `Best Bat ×${totalBba}` },
-    totalBbo > 0                                   && { emoji: '🎳', label: `Best Bowl ×${totalBbo}` },
-    attendStreak >= 5                              && { emoji: '🔥', label: 'Iron Man' },
-    perfs.length >= 5                              && { emoji: '🎽', label: 'Regular' },
+    careerHighScore >= 100                         && { Icon: IconStar,        label: 'Century Club' },
+    careerHighScore >= 50 && careerHighScore < 100 && { Icon: IconCricket,     label: 'Half-century' },
+    careerBestWkts >= 3                            && { Icon: IconTarget,      label: 'Hat-trick hero' },
+    totalPotm > 0                                  && { Icon: IconMedal,       label: `POTM ×${totalPotm}` },
+    totalBba > 0                                   && { Icon: IconStar,        label: `Best bat ×${totalBba}` },
+    totalBbo > 0                                   && { Icon: IconBallBowling, label: `Best bowl ×${totalBbo}` },
+    attendStreak >= 5                              && { Icon: IconFlame,       label: 'Iron Man' },
+    perfs.length >= 5                              && { Icon: IconCricket,     label: 'Regular' },
   ].filter(Boolean)
 
-  const statusColor = {
-    good:         'from-emerald-600 via-green-500 to-teal-500',
-    collect_soon: 'from-amber-500 via-amber-400 to-yellow-400',
-    urgent:       'from-orange-600 via-orange-500 to-amber-500',
-    overdue:      'from-red-600 via-red-500 to-rose-500',
-  }[player.balance_status] ?? 'from-gray-600 to-gray-500'
-
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center pb-12 px-4">
+    <div className="min-h-screen bg-[#F8F8F6] flex flex-col items-center pb-12 px-4">
       <div className="w-full max-w-sm">
 
-        {/* Hero gradient header */}
-        <div className={`relative overflow-hidden bg-gradient-to-br ${statusColor} rounded-b-3xl px-6 pt-10 pb-10 text-white text-center shadow-xl mb-6`}>
-          <div className="absolute inset-0 opacity-10 pointer-events-none select-none text-[120px] leading-none flex items-center justify-center">🏏</div>
-          <p className="text-white/70 text-xs font-bold uppercase tracking-widest mb-2">{cfg?.team_name ?? 'Cricket Team'}</p>
-          <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-3xl font-extrabold mx-auto mb-3 ring-2 ring-white/30">
+        {/* Hero */}
+        <div className="bg-[#1D9E75] rounded-b-xl px-6 pt-10 pb-10 text-white text-center mb-6">
+          <p className="text-white/70 text-xs font-medium uppercase tracking-[0.05em] mb-2">{cfg?.team_name ?? 'Cricket Team'}</p>
+          <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center text-2xl font-medium mx-auto mb-3">
             {player.display_name.charAt(0).toUpperCase()}
           </div>
-          <h1 className="text-xl font-bold">Hi, {player.display_name} 👋</h1>
-          <p className="text-white/60 text-xs mt-0.5">Corpus Account</p>
+          <h1 className="text-xl font-medium">Hi, {player.display_name}</h1>
+          <p className="text-white/60 text-xs mt-0.5">Corpus account</p>
         </div>
 
         {/* Balance card */}
-        <div className="card text-center mb-4 shadow-md">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Corpus Balance</p>
-          <div className={`text-5xl font-extrabold tracking-tight mb-3 ${balance < 0 ? 'text-red-600' : 'text-gray-900'}`}>
+        <div className="card text-center mb-4">
+          <p className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] mb-2">Corpus balance</p>
+          <div className={`text-[40px] font-medium tracking-tight tabular-nums mb-3 ${balance < 0 ? 'text-red-600' : 'text-gray-900'}`}>
             {player.type === 'ppm'
-              ? <span className="text-3xl text-gray-500">PPM</span>
+              ? <span className="text-[28px] text-gray-500">PPM</span>
               : `₹${balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
             }
           </div>
@@ -334,24 +313,26 @@ export default function PlayerPay() {
         {/* Attendance + Forecast */}
         {completedWeeks.length > 0 && (
           <div className="grid grid-cols-3 gap-3 mb-4">
-            <div className="card shadow-sm text-center py-3 px-2">
-              <div className="text-2xl font-extrabold text-blue-700">{attendRate}%</div>
-              <div className="text-xs text-gray-400 mt-0.5">Attendance</div>
-              <div className="text-xs text-gray-300 mt-0.5">{perfs.length}/{completedWeeks.length} sessions</div>
+            <div className="card text-center py-3 px-2">
+              <div className="text-[24px] font-medium text-[#1D9E75] tabular-nums">{attendRate}%</div>
+              <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em] mt-0.5">Attendance</div>
+              <div className="text-xs text-gray-300 mt-0.5">{perfs.length}/{completedWeeks.length}</div>
             </div>
-            <div className="card shadow-sm text-center py-3 px-2">
-              <div className="text-2xl font-extrabold text-orange-500">
-                {attendStreak > 0 ? `🔥${attendStreak}` : '—'}
+            <div className="card text-center py-3 px-2">
+              <div className="flex items-center justify-center gap-1 text-[24px] font-medium text-amber-500 tabular-nums">
+                {attendStreak > 0 ? (
+                  <><IconFlame size={20} className="shrink-0" />{attendStreak}</>
+                ) : '—'}
               </div>
-              <div className="text-xs text-gray-400 mt-0.5">Streak</div>
+              <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em] mt-0.5">Streak</div>
               <div className="text-xs text-gray-300 mt-0.5">consecutive</div>
             </div>
             {player.type !== 'ppm' && (
-              <div className="card shadow-sm text-center py-3 px-2">
-                <div className={`text-2xl font-extrabold ${matchesLeft <= 2 ? 'text-red-500' : matchesLeft <= 5 ? 'text-amber-500' : 'text-emerald-600'}`}>
+              <div className="card text-center py-3 px-2">
+                <div className={`text-[24px] font-medium tabular-nums ${matchesLeft <= 2 ? 'text-red-500' : matchesLeft <= 5 ? 'text-amber-500' : 'text-[#1D9E75]'}`}>
                   ~{matchesLeft}
                 </div>
-                <div className="text-xs text-gray-400 mt-0.5">Matches left</div>
+                <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em] mt-0.5">Matches left</div>
                 <div className="text-xs text-gray-300 mt-0.5">at ₹{matchFee}/match</div>
               </div>
             )}
@@ -360,24 +341,24 @@ export default function PlayerPay() {
 
         {/* Pay section */}
         {needsTopUp ? (
-          <div className="card shadow-md mb-4">
+          <div className="card mb-4">
             <UpiPaySection player={player} config={cfg} />
           </div>
         ) : (
-          <div className="card shadow-md mb-4">
+          <div className="card mb-4">
             {showTopUp ? (
               <div>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3 text-center">Top Up</p>
+                <p className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] mb-3 text-center">Top up</p>
                 <UpiPaySection player={player} config={cfg} />
               </div>
             ) : (
               <div className="py-4 space-y-3 text-center">
-                <div className="text-4xl">✅</div>
-                <p className="font-bold text-emerald-700 text-lg">You're all good!</p>
+                <IconCircleCheck size={36} className="text-[#1D9E75] mx-auto" />
+                <p className="font-medium text-[#1D9E75] text-base">You're all good!</p>
                 <p className="text-sm text-gray-400">Your corpus balance is healthy. No action needed.</p>
                 <button
                   onClick={() => setShowTopUp(true)}
-                  className="mt-1 text-sm text-green-600 font-semibold hover:text-green-700 transition-colors"
+                  className="mt-1 text-sm text-[#1D9E75] font-medium hover:underline transition-colors"
                 >
                   Top up anyway →
                 </button>
@@ -388,29 +369,29 @@ export default function PlayerPay() {
 
         {/* Next match */}
         {nextMatch && (
-          <div className="card bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100 shadow-sm mb-4">
-            <p className="text-xs font-bold text-green-600 uppercase tracking-widest mb-1.5">Next Match</p>
-            <p className="font-bold text-green-900 text-base">{format(parseISO(nextMatch.match_date), 'EEEE, MMM d')}</p>
+          <div className="card bg-[#E1F5EE] border-[#1D9E75]/20 mb-4">
+            <p className="text-[11px] font-medium text-[#1D9E75] uppercase tracking-[0.05em] mb-1.5">Next match</p>
+            <p className="font-medium text-gray-900 text-base">{format(parseISO(nextMatch.match_date), 'EEEE, MMM d')}</p>
             {nextMatch.venue && (
-              <p className="text-sm text-green-700 mt-0.5 flex items-center gap-1">
-                <span>📍</span>{nextMatch.venue.split(',')[0]}
+              <p className="text-sm text-gray-600 mt-0.5 flex items-center gap-1">
+                <IconMapPin size={13} className="shrink-0 text-gray-400" />{nextMatch.venue.split(',')[0]}
               </p>
             )}
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-green-100">
-              <span className="text-xs text-green-500 font-medium">Match fee</span>
-              <span className="font-extrabold text-green-800 text-xl">₹{(nextMatch.match_fee ?? 0).toLocaleString('en-IN')}</span>
+            <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#1D9E75]/20">
+              <span className="text-xs text-gray-500 font-medium">Match fee</span>
+              <span className="font-medium text-[#1D9E75] text-xl tabular-nums">₹{(nextMatch.match_fee ?? 0).toLocaleString('en-IN')}</span>
             </div>
           </div>
         )}
 
         {/* Achievements */}
         {badges.length > 0 && (
-          <div className="card shadow-sm mb-4">
-            <h3 className="font-bold text-gray-900 mb-2 text-sm uppercase tracking-wide">Achievements</h3>
+          <div className="card mb-4">
+            <h3 className="font-medium text-gray-900 mb-2 text-[11px] uppercase tracking-[0.05em]">Achievements</h3>
             <div className="flex flex-wrap gap-2">
-              {badges.map(({ emoji, label }) => (
-                <span key={label} className="flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-100 text-xs font-semibold px-2.5 py-1 rounded-full">
-                  {emoji} {label}
+              {badges.map(({ Icon, label }) => (
+                <span key={label} className="flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-medium px-2.5 py-1 rounded-full">
+                  <Icon size={11} className="shrink-0" /> {label}
                 </span>
               ))}
             </div>
@@ -419,45 +400,45 @@ export default function PlayerPay() {
 
         {/* Cricket Stats */}
         {perfs.length > 0 && (
-          <div className="card shadow-sm mb-4">
-            <h3 className="font-bold text-gray-900 mb-3 text-sm uppercase tracking-wide">Cricket Stats</h3>
+          <div className="card mb-4">
+            <h3 className="font-medium text-gray-900 mb-3 text-[11px] uppercase tracking-[0.05em]">Cricket stats</h3>
             <div className="grid grid-cols-3 gap-3 mb-4">
-              <div className="bg-green-50 rounded-xl p-3 text-center">
-                <div className="text-2xl font-extrabold text-green-700">{careerRuns}</div>
-                <div className="text-xs text-gray-500 mt-0.5">Runs</div>
+              <div className="bg-[#F4F3F0] rounded-xl p-3 text-center">
+                <div className="text-[24px] font-medium text-gray-900 tabular-nums">{careerRuns}</div>
+                <div className="text-[11px] text-gray-500 uppercase tracking-[0.05em] mt-0.5">Runs</div>
               </div>
-              <div className="bg-purple-50 rounded-xl p-3 text-center">
-                <div className="text-2xl font-extrabold text-purple-700">{careerWkts}</div>
-                <div className="text-xs text-gray-500 mt-0.5">Wickets</div>
+              <div className="bg-[#F4F3F0] rounded-xl p-3 text-center">
+                <div className="text-[24px] font-medium text-gray-900 tabular-nums">{careerWkts}</div>
+                <div className="text-[11px] text-gray-500 uppercase tracking-[0.05em] mt-0.5">Wickets</div>
               </div>
-              <div className="bg-blue-50 rounded-xl p-3 text-center">
-                <div className="text-2xl font-extrabold text-blue-700">{perfs.length}</div>
-                <div className="text-xs text-gray-500 mt-0.5">Weeks</div>
+              <div className="bg-[#F4F3F0] rounded-xl p-3 text-center">
+                <div className="text-[24px] font-medium text-gray-900 tabular-nums">{perfs.length}</div>
+                <div className="text-[11px] text-gray-500 uppercase tracking-[0.05em] mt-0.5">Weeks</div>
                 {totalGames > perfs.length && (
-                  <div className="text-[10px] text-blue-400 mt-0.5">{totalGames} matches</div>
+                  <div className="text-[10px] text-gray-400 mt-0.5">{totalGames} matches</div>
                 )}
               </div>
             </div>
             <div className="grid grid-cols-4 gap-2 text-center mb-4">
               <div>
-                <div className="font-bold text-gray-800 text-sm">
+                <div className="font-medium text-gray-800 text-sm tabular-nums">
                   {careerBalls > 0 ? ((careerRuns / careerBalls) * 100).toFixed(1) : '—'}
                 </div>
-                <div className="text-xs text-gray-400">Bat SR</div>
+                <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Bat SR</div>
               </div>
               <div>
-                <div className="font-bold text-gray-800 text-sm">{careerHighScore}</div>
-                <div className="text-xs text-gray-400">High Score</div>
+                <div className="font-medium text-gray-800 text-sm tabular-nums">{careerHighScore}</div>
+                <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">High score</div>
               </div>
               <div>
-                <div className="font-bold text-gray-800 text-sm">
+                <div className="font-medium text-gray-800 text-sm tabular-nums">
                   {careerBallsBowled > 0 ? ((careerRunsGiven / careerBallsBowled) * 6).toFixed(2) : '—'}
                 </div>
-                <div className="text-xs text-gray-400">Economy</div>
+                <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Economy</div>
               </div>
               <div>
-                <div className="font-bold text-gray-800 text-sm">{careerBestWkts}</div>
-                <div className="text-xs text-gray-400">Best Wkts</div>
+                <div className="font-medium text-gray-800 text-sm tabular-nums">{careerBestWkts}</div>
+                <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Best wkts</div>
               </div>
             </div>
             {last5.length >= 2 && (() => {
@@ -465,7 +446,7 @@ export default function PlayerPay() {
               const avgWkts = careerWkts / perfs.length
               return (
                 <div className="mb-3">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-1.5">Form</p>
+                  <p className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] mb-1.5">Form</p>
                   <div className="flex gap-1.5">
                     {[...last5].reverse().map(p => {
                       const empty = p.runs === 0 && p.wickets === 0
@@ -474,8 +455,8 @@ export default function PlayerPay() {
                         <div
                           key={p.id}
                           title={`${p.runs}r ${p.wickets}w`}
-                          className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold
-                            ${empty ? 'bg-gray-100 text-gray-400' : good ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}
+                          className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium
+                            ${empty ? 'bg-gray-100 text-gray-400' : good ? 'bg-[#E1F5EE] text-[#1D9E75]' : 'bg-red-100 text-red-600'}`}
                         >
                           {empty ? '—' : good ? '↑' : '↓'}
                         </div>
@@ -487,25 +468,25 @@ export default function PlayerPay() {
             })()}
             {last5.length > 0 && (
               <>
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Last {last5.length} Matches</p>
+                <p className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] mb-2">Last {last5.length} matches</p>
                 <div className="space-y-1.5">
                   {last5.map(perf => {
                     const week = weeks.find(w => w.week_id === perf.week_id)
                     return (
-                      <div key={perf.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2">
+                      <div key={perf.id} className="flex items-center justify-between bg-[#F4F3F0] rounded-lg px-3 py-2">
                         <div className="flex items-center gap-2 min-w-0">
                           <div className="text-xs text-gray-500 w-14 shrink-0">
                             {week ? format(parseISO(week.match_date), 'MMM d') : perf.week_id}
                           </div>
                           {week?.result && (
-                            <span className="text-xs font-medium text-green-600 bg-green-50 px-1.5 py-0.5 rounded-md truncate max-w-[90px]">
+                            <span className="text-xs font-medium text-[#1D9E75] bg-[#E1F5EE] px-1.5 py-0.5 rounded-md truncate max-w-[90px]">
                               {week.result}
                             </span>
                           )}
                         </div>
                         <div className="flex gap-3 items-center text-sm shrink-0">
                           <span>
-                            <span className="font-bold text-green-700">{perf.runs}</span>
+                            <span className="font-medium text-[#1D9E75] tabular-nums">{perf.runs}</span>
                             <span className="text-xs text-gray-400"> r</span>
                             {perf.balls_faced > 0 && (
                               <span className="text-xs text-gray-400"> ({perf.balls_faced}b)</span>
@@ -513,7 +494,7 @@ export default function PlayerPay() {
                           </span>
                           {perf.wickets > 0 && (
                             <span>
-                              <span className="font-bold text-purple-700">{perf.wickets}</span>
+                              <span className="font-medium text-purple-700 tabular-nums">{perf.wickets}</span>
                               <span className="text-xs text-gray-400"> w</span>
                             </span>
                           )}
@@ -536,7 +517,7 @@ export default function PlayerPay() {
 
         {/* Footer */}
         <p className="text-center text-xs text-gray-400 mt-2">
-          <Link to="/login" className="text-green-600 hover:underline font-medium">Log in</Link>
+          <Link to="/login" className="text-[#1D9E75] hover:underline font-medium">Log in</Link>
           {' '}to view your full transaction history.
         </p>
 
