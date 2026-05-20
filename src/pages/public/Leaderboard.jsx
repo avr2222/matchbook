@@ -4,6 +4,10 @@ import { usePlayers, useConfig, useLeaderboard, useWeeks, useTournaments } from 
 import { PageSpinner } from '../../components/ui/Spinner'
 import { IconTrophy, IconMedal, IconStar, IconTarget, IconBolt, IconBallBowling, IconCricket } from '@tabler/icons-react'
 
+const NOT_OUT_KEYS = new Set(['not out','dnb','did not bat','absent','retired hurt','absent hurt','retired not out',''])
+const isInnings   = p => (p.balls_faced || 0) > 0
+const isDismissed = p => isInnings(p) && !NOT_OUT_KEYS.has((p.dismissal ?? '').toLowerCase().trim())
+
 function overs(balls) {
   if (!balls) return '0'
   return `${Math.floor(balls / 6)}.${balls % 6}`
@@ -46,7 +50,8 @@ export default function Leaderboard() {
       statsMap[perf.player_id] = {
         player_id: perf.player_id,
         weeks_attended: 0,
-        matches: 0, runs: 0, balls_faced: 0, fours: 0, sixes: 0, high_score: 0,
+        matches: 0, innings: 0, dismissals: 0,
+        runs: 0, balls_faced: 0, fours: 0, sixes: 0, high_score: 0,
         wickets: 0, runs_given: 0, balls_bowled: 0, maidens: 0, catches: 0,
         run_outs: 0, stumpings: 0, wides: 0, no_balls: 0, potm_count: 0, ducks: 0,
         bba_count: 0, bbo_count: 0,
@@ -59,6 +64,8 @@ export default function Leaderboard() {
       seenWeekPlayer.add(wpKey)
     }
     s.matches    += 1
+    if (isInnings(perf))   s.innings    += 1
+    if (isDismissed(perf)) s.dismissals += 1
     s.runs        += perf.runs        || 0
     s.balls_faced += perf.balls_faced || 0
     s.fours       += perf.fours       || 0
@@ -187,7 +194,7 @@ export default function Leaderboard() {
   const displayBatters = (() => {
     const enriched = batters.map(s => ({
       ...s,
-      avg: s.matches > 0 ? s.runs / s.matches : 0,
+      avg: s.dismissals > 0 ? s.runs / s.dismissals : null,
       sr:  s.balls_faced > 0 ? (s.runs / s.balls_faced) * 100 : 0,
     }))
     if (!sortCol) return enriched
@@ -273,6 +280,7 @@ export default function Leaderboard() {
                 <th className="text-left pb-2 w-6">#</th>
                 <th className="text-left pb-2 pr-2">Player</th>
                 <th className={`text-right pb-2 pr-2 ${thClass('matches')}`}    onClick={() => toggleSort('matches')}>M{sortArrow('matches')}</th>
+                <th className={`text-right pb-2 pr-2 ${thClass('innings')}`}    onClick={() => toggleSort('innings')}>Inns{sortArrow('innings')}</th>
                 <th className={`text-right pb-2 pr-2 ${thClass('runs')}`}       onClick={() => toggleSort('runs')}>Runs{sortArrow('runs')}</th>
                 <th className={`text-right pb-2 pr-2 ${thClass('avg')}`}        onClick={() => toggleSort('avg')}>Avg{sortArrow('avg')}</th>
                 <th className={`text-right pb-2 pr-2 ${thClass('sr')}`}         onClick={() => toggleSort('sr')}>SR{sortArrow('sr')}</th>
@@ -297,8 +305,9 @@ export default function Leaderboard() {
                     )}
                   </td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-500">{s.matches}</td>
+                  <td className="py-2 pr-2 text-right tabular-nums text-gray-500">{s.innings}</td>
                   <td className="py-2 pr-2 text-right tabular-nums font-medium text-[#1D9E75]">{s.runs}</td>
-                  <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{s.matches > 0 ? s.avg.toFixed(1) : '—'}</td>
+                  <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{s.avg != null ? s.avg.toFixed(1) : '—'}</td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{s.balls_faced > 0 ? s.sr.toFixed(1) : '—'}</td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{s.high_score}</td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-500">{s.fours}</td>

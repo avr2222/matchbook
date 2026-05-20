@@ -3,6 +3,10 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { usePlayers, useConfig, useLeaderboard, useWeeks, useAttendance } from '../../hooks/useData'
 import { PageSpinner } from '../../components/ui/Spinner'
 
+const NOT_OUT_KEYS = new Set(['not out','dnb','did not bat','absent','retired hurt','absent hurt','retired not out',''])
+const isInnings   = p => (p.balls_faced || 0) > 0
+const isDismissed = p => isInnings(p) && !NOT_OUT_KEYS.has((p.dismissal ?? '').toLowerCase().trim())
+
 function overs(balls) {
   if (!balls) return '0.0'
   return `${Math.floor(balls / 6)}.${balls % 6}`
@@ -30,10 +34,12 @@ export default function Compare() {
   function buildStats(pid) {
     if (!pid) return null
     const playerPerfs = perfs.filter(p => p.player_id === pid)
-    if (!playerPerfs.length) return { player_id: pid, matches: 0, runs: 0, balls_faced: 0, fours: 0, sixes: 0, high_score: 0, wickets: 0, runs_given: 0, balls_bowled: 0, maidens: 0, catches: 0, run_outs: 0, stumpings: 0, potm_count: 0, bba_count: 0, bbo_count: 0, attend_pct: 0 }
-    const s = { player_id: pid, matches: 0, runs: 0, balls_faced: 0, fours: 0, sixes: 0, high_score: 0, wickets: 0, runs_given: 0, balls_bowled: 0, maidens: 0, catches: 0, run_outs: 0, stumpings: 0, potm_count: 0, bba_count: 0, bbo_count: 0 }
+    if (!playerPerfs.length) return { player_id: pid, matches: 0, innings: 0, dismissals: 0, runs: 0, balls_faced: 0, fours: 0, sixes: 0, high_score: 0, wickets: 0, runs_given: 0, balls_bowled: 0, maidens: 0, catches: 0, run_outs: 0, stumpings: 0, potm_count: 0, bba_count: 0, bbo_count: 0, attend_pct: 0 }
+    const s = { player_id: pid, matches: 0, innings: 0, dismissals: 0, runs: 0, balls_faced: 0, fours: 0, sixes: 0, high_score: 0, wickets: 0, runs_given: 0, balls_bowled: 0, maidens: 0, catches: 0, run_outs: 0, stumpings: 0, potm_count: 0, bba_count: 0, bbo_count: 0 }
     for (const p of playerPerfs) {
       s.matches     += 1
+      if (isInnings(p))   s.innings    += 1
+      if (isDismissed(p)) s.dismissals += 1
       s.runs        += p.runs         || 0
       s.balls_faced += p.balls_faced  || 0
       s.fours       += p.fours        || 0
@@ -66,7 +72,7 @@ export default function Compare() {
   const rows = sA && sB ? [
     { label: 'Matches',      a: sA.matches,     b: sB.matches,     higher: true,  fmt: v => v },
     { label: 'Runs',         a: sA.runs,        b: sB.runs,        higher: true,  fmt: v => v },
-    { label: 'Batting avg',  a: sA.matches > 0 ? (sA.runs / sA.matches) : 0, b: sB.matches > 0 ? (sB.runs / sB.matches) : 0, higher: true, fmt: v => v.toFixed(1) },
+    { label: 'Batting avg',  a: sA.dismissals > 0 ? (sA.runs / sA.dismissals) : 0, b: sB.dismissals > 0 ? (sB.runs / sB.dismissals) : 0, higher: true, fmt: v => v > 0 ? v.toFixed(1) : '—' },
     { label: 'Strike rate',  a: sA.balls_faced > 0 ? (sA.runs / sA.balls_faced * 100) : 0, b: sB.balls_faced > 0 ? (sB.runs / sB.balls_faced * 100) : 0, higher: true, fmt: v => v.toFixed(1) },
     { label: 'High score',   a: sA.high_score,  b: sB.high_score,  higher: true,  fmt: v => v },
     { label: '4s',           a: sA.fours,       b: sB.fours,       higher: true,  fmt: v => v },

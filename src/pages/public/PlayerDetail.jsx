@@ -5,6 +5,59 @@ import { format, parseISO } from 'date-fns'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { IconArrowLeft, IconCreditCard } from '@tabler/icons-react'
 
+const NOT_OUT_KEYS = new Set(['not out','dnb','did not bat','absent','retired hurt','absent hurt','retired not out',''])
+const isInnings   = p => (p.balls_faced || 0) > 0
+const isDismissed = p => isInnings(p) && !NOT_OUT_KEYS.has((p.dismissal ?? '').toLowerCase().trim())
+
+function PerformanceChart({ perfs, weeks }) {
+  const data = [...perfs]
+    .sort((a, b) => {
+      const wa = weeks.find(w => w.week_id === a.week_id)
+      const wb = weeks.find(w => w.week_id === b.week_id)
+      return (wa?.match_date ?? '').localeCompare(wb?.match_date ?? '')
+    })
+    .map(p => ({ runs: p.runs || 0, wickets: p.wickets || 0 }))
+
+  const n = data.length
+  if (n < 3) return null
+
+  const W = 400, barAreaH = 72, H = barAreaH + 4
+  const maxRuns = Math.max(...data.map(d => d.runs), 1)
+  const gap = 2
+  const barW = Math.max(3, (W - gap) / n - gap)
+
+  return (
+    <div className="mb-4">
+      <p className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] mb-2">Season form</p>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" className="overflow-visible">
+        <line x1={0} y1={barAreaH} x2={W} y2={barAreaH} stroke="rgba(0,0,0,0.07)" strokeWidth={1} />
+        {data.map((d, i) => {
+          const x = i * (barW + gap) + gap / 2
+          const barH = Math.max((d.runs / maxRuns) * (barAreaH - 6), d.runs > 0 ? 2 : 0)
+          const y = barAreaH - barH
+          const fill = d.runs >= 30 ? '#1D9E75' : d.runs >= 15 ? '#6ECBAD' : '#B8E4D6'
+          return (
+            <g key={i}>
+              <rect x={x} y={y} width={barW} height={barH} rx={1.5} fill={fill} opacity={0.9} />
+              {d.wickets > 0 && (
+                <circle cx={x + barW / 2} cy={Math.max(y - 5, 4)} r={3} fill="#7C3AED" opacity={0.85} />
+              )}
+            </g>
+          )
+        })}
+      </svg>
+      <div className="flex gap-3 mt-1.5">
+        <span className="flex items-center gap-1 text-[10px] text-gray-400">
+          <span className="inline-block w-2.5 h-2.5 rounded-sm bg-[#1D9E75]" /> Runs
+        </span>
+        <span className="flex items-center gap-1 text-[10px] text-gray-400">
+          <span className="inline-block w-2 h-2 rounded-full bg-purple-600" /> Wicket
+        </span>
+      </div>
+    </div>
+  )
+}
+
 const STATUS_COLOR = {
   good:         'bg-emerald-100 text-emerald-700',
   collect_soon: 'bg-amber-100 text-amber-700',
@@ -52,12 +105,21 @@ export default function PlayerDetail() {
   const careerHighScore    = perfs.reduce((max, p) => Math.max(max, p.runs || 0), 0)
   const careerBestWkts     = perfs.reduce((max, p) => Math.max(max, p.wickets || 0), 0)
   const totalGames         = perfs.length
+  const careerInnings      = perfs.filter(isInnings).length
+  const careerDismissals   = perfs.filter(isDismissed).length
+  const careerNotOuts      = careerInnings - careerDismissals
+  const careerAvg          = careerDismissals > 0 ? (careerRuns / careerDismissals).toFixed(1) : '—'
   const sortedPerfs = [...perfs].sort((a, b) => {
     const wa = weeks.find(w => w.week_id === a.week_id)
     const wb = weeks.find(w => w.week_id === b.week_id)
     return (wb?.match_date ?? '').localeCompare(wa?.match_date ?? '')
   })
-  const last5 = sortedPerfs.slice(0, 5)
+  const sessionGroups = sortedPerfs.reduce((acc, perf) => {
+    const existing = acc.find(g => g.week_id === perf.week_id)
+    if (existing) existing.games.push(perf)
+    else acc.push({ week_id: perf.week_id, games: [perf] })
+    return acc
+  }, [])
 
   return (
     <div className="max-w-lg mx-auto px-4 pb-12">
@@ -163,38 +225,63 @@ export default function PlayerDetail() {
             </div>
           </div>
 
-          {last5.length > 0 && (
+          {careerInnings > 0 && (
+            <div className="grid grid-cols-3 gap-2 mb-4 text-center text-sm">
+              <div>
+                <div className="font-medium text-gray-800 tabular-nums">{careerInnings}</div>
+                <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Innings</div>
+              </div>
+              <div>
+                <div className="font-medium text-gray-800 tabular-nums">{careerAvg}</div>
+                <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Avg</div>
+              </div>
+              <div>
+                <div className="font-medium text-gray-800 tabular-nums">{careerNotOuts}</div>
+                <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Not outs</div>
+              </div>
+            </div>
+          )}
+
+          <PerformanceChart perfs={perfs} weeks={weeks} />
+
+          {sessionGroups.length > 0 && (
             <>
-              <p className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] mb-2">Last {last5.length} matches</p>
-              <div className="space-y-1.5">
-                {last5.map(perf => {
-                  const week = weeks.find(w => w.week_id === perf.week_id)
+              <p className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] mb-2">Match history</p>
+              <div className="space-y-3">
+                {sessionGroups.map(({ week_id, games }) => {
+                  const week = weeks.find(w => w.week_id === week_id)
                   return (
-                    <div key={perf.id} className="flex items-center justify-between bg-[#F4F3F0] rounded-lg px-3 py-2">
-                      <div className="text-xs text-gray-500 w-14 shrink-0">
-                        {week ? format(parseISO(week.match_date), 'MMM d') : perf.week_id}
-                      </div>
-                      <div className="flex gap-3 items-center text-sm">
-                        <span>
-                          <span className="font-medium text-[#1D9E75] tabular-nums">{perf.runs}</span>
-                          <span className="text-xs text-gray-400"> r</span>
-                          {perf.balls_faced > 0 && (
-                            <span className="text-xs text-gray-400"> ({perf.balls_faced}b)</span>
-                          )}
-                        </span>
-                        {perf.wickets > 0 && (
-                          <span>
-                            <span className="font-medium text-purple-700 tabular-nums">{perf.wickets}</span>
-                            <span className="text-xs text-gray-400"> w</span>
-                          </span>
-                        )}
-                        {(perf.fours > 0 || perf.sixes > 0) && (
-                          <span className="text-xs text-gray-400">
-                            {perf.fours > 0 ? `${perf.fours}×4` : ''}
-                            {perf.fours > 0 && perf.sixes > 0 ? ' ' : ''}
-                            {perf.sixes > 0 ? `${perf.sixes}×6` : ''}
-                          </span>
-                        )}
+                    <div key={week_id}>
+                      <p className="text-[10px] font-medium text-gray-400 uppercase tracking-[0.06em] mb-1 px-1">
+                        {week ? format(parseISO(week.match_date), 'MMM d, yyyy') : week_id}
+                      </p>
+                      <div className="space-y-1">
+                        {games.map(perf => (
+                          <div key={perf.id} className="flex items-center justify-between bg-[#F4F3F0] rounded-lg px-3 py-2">
+                            <div className="flex gap-3 items-center text-sm">
+                              <span>
+                                <span className="font-medium text-[#1D9E75] tabular-nums">{perf.runs}</span>
+                                <span className="text-xs text-gray-400"> r</span>
+                                {perf.balls_faced > 0 && (
+                                  <span className="text-xs text-gray-400"> ({perf.balls_faced}b)</span>
+                                )}
+                              </span>
+                              {perf.wickets > 0 && (
+                                <span>
+                                  <span className="font-medium text-purple-700 tabular-nums">{perf.wickets}</span>
+                                  <span className="text-xs text-gray-400"> w</span>
+                                </span>
+                              )}
+                              {(perf.fours > 0 || perf.sixes > 0) && (
+                                <span className="text-xs text-gray-400">
+                                  {perf.fours > 0 ? `${perf.fours}×4` : ''}
+                                  {perf.fours > 0 && perf.sixes > 0 ? ' ' : ''}
+                                  {perf.sixes > 0 ? `${perf.sixes}×6` : ''}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )
