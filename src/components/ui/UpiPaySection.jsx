@@ -30,7 +30,7 @@ export default function UpiPaySection({ player, config }) {
     setSaving(true)
     try {
       const reqId = `PREQ_${Date.now()}`
-      await supabase.from('payment_requests').insert({
+      const { error } = await supabase.from('payment_requests').insert({
         id: reqId,
         player_id: player.id,
         amount: chosen,
@@ -38,7 +38,8 @@ export default function UpiPaySection({ player, config }) {
         upi_ref: '',
         notes: `UPI Topup initiated — ${player.display_name}`,
       })
-      setPendingReqId(reqId)
+      if (!error) setPendingReqId(reqId)
+      else console.error('Payment request insert failed:', error.message)
       window.location.href = upiHref
     } catch (e) {
       console.error('Failed to record payment intent', e)
@@ -52,8 +53,12 @@ export default function UpiPaySection({ player, config }) {
     if (!upiRef.trim() || !pendingReqId) return
     setSaving(true)
     try {
-      await supabase.from('payment_requests').update({ upi_ref: upiRef.trim() }).eq('id', pendingReqId)
-      setRefSaved(true)
+      const { error } = await supabase
+        .from('payment_requests')
+        .update({ upi_ref: upiRef.trim() })
+        .eq('id', pendingReqId)
+      if (!error) setRefSaved(true)
+      else console.error('Failed to save UPI ref:', error.message)
     } catch (e) {
       console.error('Failed to save UPI ref', e)
     } finally {
