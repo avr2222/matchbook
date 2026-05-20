@@ -65,12 +65,21 @@ export async function fetchAttendance() {
 }
 
 export async function fetchTransactions() {
-  const { data, error } = await supabase
-    .from('transactions')
-    .select('*')
-    .order('date', { ascending: false })
-  if (error) throw new Error(`fetchTransactions: ${error.message}`)
-  return { schema_version: 1, transactions: data }
+  const PAGE = 1000
+  const all = []
+  let from = 0
+  while (true) {
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*')
+      .order('date', { ascending: false })
+      .range(from, from + PAGE - 1)
+    if (error) throw new Error(`fetchTransactions: ${error.message}`)
+    all.push(...(data ?? []))
+    if (!data || data.length < PAGE) break
+    from += PAGE
+  }
+  return { schema_version: 1, transactions: all }
 }
 
 export async function fetchExpenses() {

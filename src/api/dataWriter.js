@@ -236,18 +236,20 @@ export async function updateSignupPlayer(signupId, playerId) {
 // ── Payment request confirmation ────────────────────────────────────────────
 
 export async function confirmPayment(requestId) {
-  const { data: req, error: fetchErr } = await supabase
-    .from('payment_requests')
-    .select('*')
-    .eq('id', requestId)
-    .single()
-  if (fetchErr) throw new Error(`Fetch payment request: ${fetchErr.message}`)
+  const [reqRes, cfgRes] = await Promise.all([
+    supabase.from('payment_requests').select('*').eq('id', requestId).single(),
+    supabase.from('config').select('active_tournament_id').eq('id', 1).single(),
+  ])
+  if (reqRes.error) throw new Error(`Fetch payment request: ${reqRes.error.message}`)
+  const req = reqRes.data
+  const activeTournamentId = cfgRes.data?.active_tournament_id ?? null
 
-  // Insert corpus_payment transaction
+  // Insert corpus_payment transaction (tournament_id included for per-tournament reports)
   const txnId = `TXN_PAY_${req.player_id}_${Date.now()}`
   const { error: txnErr } = await supabase.from('transactions').insert({
     id: txnId,
     player_id: req.player_id,
+    tournament_id: activeTournamentId,
     type: 'corpus_payment',
     direction: 'credit',
     amount: req.amount,

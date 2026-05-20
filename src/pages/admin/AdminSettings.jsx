@@ -74,7 +74,7 @@ export default function AdminSettings() {
 
       // Compute final balances for all active players
       const opening_balances = {}
-      players.filter(p => p.status === 'active' && p.type === 'corpus').forEach(p => {
+      players.filter(p => p.status === 'active' && (p.type === 'corpus' || p.type === 'new')).forEach(p => {
         const txns   = transactions.filter(t => t.player_id === p.id && t.tournament_id === activeTId)
         const credits = txns.filter(t=>t.direction==='credit').reduce((s,t)=>s+t.amount,0)
         const debits  = txns.filter(t=>t.direction==='debit').reduce((s,t)=>s+t.amount,0)
