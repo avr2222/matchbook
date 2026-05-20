@@ -25,7 +25,11 @@ export default function AdminWeeks() {
   const [selected, setSelected]           = useState(null)
   const [attendanceMap, setAttendanceMap] = useState({})
   const [deductFromMap, setDeductFromMap] = useState({})
-  const [totalMatchCost, setTotalMatchCost] = useState(0)
+  const [matchAmount,    setMatchAmount]    = useState(0)
+  const [snacksAmount,   setSnacksAmount]   = useState(0)
+  const [reimbPlayer,    setReimbPlayer]    = useState('')
+  const [reimbAmount,    setReimbAmount]    = useState('')
+  const [reimbDesc,      setReimbDesc]      = useState('Match/snacks expense')
   const [freePlayerIds, setFreePlayerIds]   = useState(new Set())
   const [ppmPaidIds, setPpmPaidIds]         = useState(new Set())
   const [reapplyDeductions, setReapplyDeductions] = useState(false)
@@ -76,12 +80,17 @@ export default function AdminWeeks() {
         .map(t => t.player_id)
     )
 
+    const defaultSnacks = cfg?.default_snacks_fee ?? 0
     setAttendanceMap(init)
     setDeductFromMap(deductInit)
-    setTotalMatchCost(prefillCost)
+    setMatchAmount(prefillCost)
+    setSnacksAmount(defaultSnacks)
     setFreePlayerIds(new Set())
     setPpmPaidIds(ppmAlreadyPaid)
     setReapplyDeductions(false)
+    setReimbPlayer('')
+    setReimbAmount('')
+    setReimbDesc('Match/snacks expense')
     setSelected(weekId)
   }
 
@@ -151,10 +160,48 @@ export default function AdminWeeks() {
     })
   }
 
+  async function addReimbursement() {
+    const amt = parseFloat(reimbAmount)
+    if (!reimbPlayer || !amt || amt <= 0) return
+    setSaving(true)
+    try {
+      const allPlayers = pData?.players ?? []
+      const target = allPlayers.find(p => p.id === reimbPlayer)
+      const txn = {
+        id: `TXN_REIMB_${Date.now()}_${reimbPlayer}`,
+        player_id: reimbPlayer, tournament_id: activeTId,
+        type: 'expense_reimbursement',
+        amount: Math.round(amt * 100) / 100,
+        direction: 'credit',
+        date: new Date().toISOString().slice(0, 10),
+        description: reimbDesc || 'Expense reimbursement',
+        recorded_by: 'admin', receipt_ref: '',
+      }
+      const newBal = (target?.corpus_balance ?? 0) + amt
+      await writeTransactions([txn], 'expense_reimbursement', null, txn.description, null, null)
+      await writePlayers(
+        allPlayers.map(p => p.id === reimbPlayer
+          ? { ...p, corpus_balance: Math.round(newBal * 100) / 100, balance_status: calcBalanceStatus(newBal, cfg) }
+          : p),
+        'expense_reimbursement', null, txn.description, null, null
+      )
+      qc.invalidateQueries({ queryKey: ['transactions'] })
+      qc.invalidateQueries({ queryKey: ['players'] })
+      setReimbPlayer('')
+      setReimbAmount('')
+      setReimbDesc('Match/snacks expense')
+      showToast(`₹${amt.toLocaleString('en-IN')} credited to ${target?.display_name ?? reimbPlayer}`)
+    } catch (e) {
+      showToast(e.message, 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   async function saveAttendance(week) {
     setSaving(true)
     try {
-      const total = parseFloat(totalMatchCost) || 0
+      const total = (matchAmount || 0) + (snacksAmount || 0)
       const played = players.filter(p => attendanceMap[p.id] === 'played')
       const paidPlayers = played.filter(p => p.type !== 'ppm' && !freePlayerIds.has(p.id))
       const perPlayerFee = paidPlayers.length > 0 ? total / paidPlayers.length : 0
@@ -264,7 +311,11 @@ export default function AdminWeeks() {
       setFreePlayerIds(new Set())
       setPpmPaidIds(new Set())
       setReapplyDeductions(false)
-      setTotalMatchCost(0)
+      setMatchAmount(0)
+      setSnacksAmount(0)
+      setReimbPlayer('')
+      setReimbAmount('')
+      setReimbDesc('Match/snacks expense')
     } catch (e) {
       showToast(e.message, 'error')
     } finally {
@@ -438,19 +489,36 @@ export default function AdminWeeks() {
                 <h2 className="font-medium">Attendance — {format(parseISO(selectedWeek.match_date), 'MMM d, yyyy')}</h2>
                 <p className="text-xs text-gray-400 mt-0.5">{selectedWeek.label}</p>
               </div>
-              <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600">✕</button>
+              <button onClick={() => { setSelected(null); setReimbPlayer(''); setReimbAmount(''); setReimbDesc('Match/snacks expense') }} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
 
-            {/* Total match cost — auto-divided among paid players */}
-            <div className="px-6 py-3 border-b border-gray-100">
-              <label className="label text-xs">Total Match Cost (₹) — split among paid players</label>
-              <input
-                className="input text-sm"
-                type="number" min="0"
-                value={totalMatchCost || ''}
-                placeholder="e.g. 10000"
-                onChange={e => setTotalMatchCost(e.target.value)}
-              />
+            {/* Match + Snacks cost — auto-divided among paid players */}
+            <div className="px-6 py-3 border-b border-gray-100 space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="label text-xs">Match Amount (₹)</label>
+                  <input
+                    className="input text-sm"
+                    type="number" min="0"
+                    value={matchAmount || ''}
+                    placeholder="e.g. 4688"
+                    onChange={e => setMatchAmount(parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+                <div>
+                  <label className="label text-xs">Snacks Amount (₹)</label>
+                  <input
+                    className="input text-sm"
+                    type="number" min="0"
+                    value={snacksAmount || ''}
+                    placeholder="e.g. 500"
+                    onChange={e => setSnacksAmount(parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-gray-400">
+                Total ₹{((matchAmount || 0) + (snacksAmount || 0)).toLocaleString('en-IN')} — split among paid players
+              </p>
             </div>
 
             <div className="px-6 py-2 flex gap-2">
@@ -475,9 +543,50 @@ export default function AdminWeeks() {
                 return next
               })}
             />
+            {/* Reimbursement — credit a player who paid out of pocket */}
+            <div className="px-6 py-3 border-t border-gray-100">
+              <p className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] mb-2">
+                Reimburse player (paid out of pocket)
+              </p>
+              <div className="space-y-2">
+                <select
+                  className="input text-sm"
+                  value={reimbPlayer}
+                  onChange={e => setReimbPlayer(e.target.value)}
+                >
+                  <option value="">Select player…</option>
+                  {players.map(p => (
+                    <option key={p.id} value={p.id}>{p.display_name}</option>
+                  ))}
+                </select>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    className="input text-sm"
+                    type="number" min="0"
+                    placeholder="Amount (₹)"
+                    value={reimbAmount}
+                    onChange={e => setReimbAmount(e.target.value)}
+                  />
+                  <input
+                    className="input text-sm"
+                    placeholder="Description"
+                    value={reimbDesc}
+                    onChange={e => setReimbDesc(e.target.value)}
+                  />
+                </div>
+                <button
+                  disabled={!reimbPlayer || !reimbAmount || saving}
+                  onClick={addReimbursement}
+                  className="btn-secondary text-sm w-full"
+                >
+                  Add corpus credit
+                </button>
+              </div>
+            </div>
+
             <div className="px-6 py-4 border-t border-gray-100">
               {(() => {
-                const total = parseFloat(totalMatchCost) || 0
+                const total = (matchAmount || 0) + (snacksAmount || 0)
                 const paidCount = players.filter(p => attendanceMap[p.id] === 'played' && p.type !== 'ppm' && !freePlayerIds.has(p.id)).length
                 const freeCount = players.filter(p => attendanceMap[p.id] === 'played' && p.type !== 'ppm' && freePlayerIds.has(p.id)).length
                 const perPlayer = paidCount > 0 ? total / paidCount : 0

@@ -89,11 +89,9 @@ export default function AdminDashboard() {
 
   const corpusPlayers  = players.filter(p => p.type === 'corpus' || p.type === 'new')
   const totalPool      = corpusPlayers.reduce((s, p) => s + (p.corpus_balance ?? 0), 0)
-  const avgMatchFee    = completed.length > 0
-    ? completed.reduce((s, w) => s + (w.match_fee ?? 0), 0) / completed.length
-    : cfg?.default_match_fee ?? 500
-  const matchesCovered = avgMatchFee > 0 && corpusPlayers.length > 0
-    ? totalPool / avgMatchFee / corpusPlayers.length
+  const defaultFee     = cfg?.default_match_fee ?? 500
+  const matchesCovered = defaultFee > 0 && corpusPlayers.length > 0
+    ? totalPool / (defaultFee * corpusPlayers.length)
     : 0
 
   const budget    = cfg?.season_budget ?? 0
@@ -243,7 +241,7 @@ export default function AdminDashboard() {
             <span className="text-sm font-normal text-gray-500 ml-1">matches covered</span>
           </p>
           <p className="text-xs text-gray-500 mt-1">
-            ₹{totalPool.toLocaleString('en-IN')} pool ÷ ₹{Math.round(avgMatchFee)} avg fee ÷ {corpusPlayers.length} players
+            ₹{totalPool.toLocaleString('en-IN')} pool ÷ ₹{defaultFee} fee ÷ {corpusPlayers.length} players
           </p>
           <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
             <div

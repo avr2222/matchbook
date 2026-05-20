@@ -1,9 +1,10 @@
-import { useEffect } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
-import { usePlayers, useWeeks, useTransactions, useMatchPerformances } from '../../hooks/useData'
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { usePlayers, useWeeks, useTransactions, useMatchPerformances, useConfig } from '../../hooks/useData'
 import { format, parseISO } from 'date-fns'
 import { PageSpinner } from '../../components/ui/Spinner'
-import { IconArrowLeft, IconCreditCard } from '@tabler/icons-react'
+import { IconArrowLeft, IconCreditCard, IconFlame, IconMedal, IconStar, IconTarget, IconBallBowling, IconCricket, IconMapPin, IconCircleCheck } from '@tabler/icons-react'
+import UpiPaySection from '../../components/ui/UpiPaySection'
 
 const NOT_OUT_KEYS = new Set(['not out','dnb','did not bat','absent','retired hurt','absent hurt','retired not out',''])
 const isInnings   = p => (p.balls_faced || 0) > 0
@@ -68,12 +69,14 @@ const STATUS_COLOR = {
 export default function PlayerDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [showTopUp, setShowTopUp] = useState(false)
 
   useEffect(() => { window.scrollTo(0, 0) }, [id])
   const { data: pData, isLoading } = usePlayers()
   const { data: wData }   = useWeeks()
   const { data: txnData } = useTransactions()
   const { data: perfData } = useMatchPerformances(id)
+  const { data: cfg }      = useConfig()
 
   if (isLoading) return <PageSpinner />
 
@@ -121,6 +124,42 @@ export default function PlayerDetail() {
     return acc
   }, [])
 
+  const tournamentId = cfg?.active_tournament_id
+  const completedWeeks = weeks
+    .filter(w => w.tournament_id === tournamentId && w.status === 'completed')
+    .sort((a, b) => b.match_date.localeCompare(a.match_date))
+  const perfWeekIds = new Set(perfs.map(p => p.week_id))
+  let attendStreak = 0
+  for (const w of completedWeeks) {
+    if (perfWeekIds.has(w.week_id)) attendStreak++; else break
+  }
+  const attendRate  = completedWeeks.length > 0 ? Math.round((perfs.length / completedWeeks.length) * 100) : 0
+  const defaultFee  = cfg?.default_match_fee ?? 500
+  const balance     = player.corpus_balance ?? 0
+  const matchesLeft = balance > 0 ? Math.floor(balance / defaultFee) : 0
+  const nextMatch   = weeks
+    .filter(w => w.tournament_id === tournamentId && w.status === 'scheduled')
+    .sort((a, b) => a.match_date.localeCompare(b.match_date))[0] ?? null
+
+  const totalPotm = perfs.reduce((s, p) => s + (p.potm_count || 0), 0)
+  const totalBba  = perfs.reduce((s, p) => s + (p.bba_count  || 0), 0)
+  const totalBbo  = perfs.reduce((s, p) => s + (p.bbo_count  || 0), 0)
+  const badges = [
+    careerHighScore >= 100                         && { Icon: IconStar,        label: 'Century Club' },
+    careerHighScore >= 50 && careerHighScore < 100 && { Icon: IconCricket,     label: 'Half-century' },
+    careerBestWkts >= 3                            && { Icon: IconTarget,      label: 'Hat-trick hero' },
+    totalPotm > 0                                  && { Icon: IconMedal,       label: `POTM ×${totalPotm}` },
+    totalBba > 0                                   && { Icon: IconStar,        label: `Best bat ×${totalBba}` },
+    totalBbo > 0                                   && { Icon: IconBallBowling, label: `Best bowl ×${totalBbo}` },
+    attendStreak >= 5                              && { Icon: IconFlame,       label: 'Iron Man' },
+    perfs.length >= 5                              && { Icon: IconCricket,     label: 'Regular' },
+  ].filter(Boolean)
+
+  const last5    = sortedPerfs.slice(0, 5)
+  const avgRuns  = perfs.length > 0 ? careerRuns / perfs.length : 0
+  const avgWkts  = perfs.length > 0 ? careerWkts / perfs.length : 0
+  const needsTopUp = player.balance_status !== 'good' && player.type !== 'ppm'
+
   return (
     <div className="max-w-lg mx-auto px-4 pb-12">
 
@@ -151,13 +190,30 @@ export default function PlayerDetail() {
 
         {player.type !== 'ppm' && player.type !== 'guest' && (
           <div className="mt-4 pt-4 border-t border-[rgba(0,0,0,0.06)]">
-            <Link
-              to={`/pay/${player.id}`}
-              className="w-full btn-primary text-sm flex items-center justify-center gap-2"
-            >
-              <IconCreditCard size={15} />
-              Top up balance
-            </Link>
+            {showTopUp ? (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Top up</p>
+                  <button onClick={() => setShowTopUp(false)} className="text-xs text-gray-400 hover:text-gray-600">✕</button>
+                </div>
+                <UpiPaySection player={player} config={cfg} />
+              </div>
+            ) : needsTopUp ? (
+              <UpiPaySection player={player} config={cfg} />
+            ) : (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm text-[#1D9E75]">
+                  <IconCircleCheck size={16} className="shrink-0" />
+                  <span className="font-medium">Balance is healthy</span>
+                </div>
+                <button
+                  onClick={() => setShowTopUp(true)}
+                  className="text-sm text-[#1D9E75] font-medium hover:underline flex items-center gap-1"
+                >
+                  <IconCreditCard size={14} /> Top up
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -178,6 +234,69 @@ export default function PlayerDetail() {
           </div>
         )}
       </div>
+
+      {/* Attendance + streak + matches left */}
+      {completedWeeks.length > 0 && (
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className="card text-center py-3 px-2">
+            <div className="text-[24px] font-medium text-[#1D9E75] tabular-nums">{attendRate}%</div>
+            <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em] mt-0.5">Attendance</div>
+            <div className="text-xs text-gray-300 mt-0.5">{perfs.length}/{completedWeeks.length}</div>
+          </div>
+          <div className="card text-center py-3 px-2">
+            <div className="flex items-center justify-center gap-1 text-[24px] font-medium text-amber-500 tabular-nums">
+              {attendStreak > 0 ? <><IconFlame size={20} className="shrink-0" />{attendStreak}</> : '—'}
+            </div>
+            <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em] mt-0.5">Streak</div>
+            <div className="text-xs text-gray-300 mt-0.5">consecutive</div>
+          </div>
+          {player.type !== 'ppm' ? (
+            <div className="card text-center py-3 px-2">
+              <div className={`text-[24px] font-medium tabular-nums ${matchesLeft <= 2 ? 'text-red-500' : matchesLeft <= 5 ? 'text-amber-500' : 'text-[#1D9E75]'}`}>
+                ~{matchesLeft}
+              </div>
+              <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em] mt-0.5">Matches left</div>
+              <div className="text-xs text-gray-300 mt-0.5">at ₹{defaultFee}/match</div>
+            </div>
+          ) : (
+            <div className="card text-center py-3 px-2">
+              <div className="text-[24px] font-medium text-gray-400">PPM</div>
+              <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em] mt-0.5">Pay per match</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Next match */}
+      {nextMatch && (
+        <div className="card bg-[#E1F5EE] border-[#1D9E75]/20 mb-4">
+          <p className="text-[11px] font-medium text-[#1D9E75] uppercase tracking-[0.05em] mb-1.5">Next match</p>
+          <p className="font-medium text-gray-900 text-base">{format(parseISO(nextMatch.match_date), 'EEEE, MMM d')}</p>
+          {nextMatch.venue && (
+            <p className="text-sm text-gray-600 mt-0.5 flex items-center gap-1">
+              <IconMapPin size={13} className="shrink-0 text-gray-400" />{nextMatch.venue.split(',')[0]}
+            </p>
+          )}
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#1D9E75]/20">
+            <span className="text-xs text-gray-500 font-medium">Match fee</span>
+            <span className="font-medium text-[#1D9E75] text-xl tabular-nums">₹{(nextMatch.match_fee ?? defaultFee).toLocaleString('en-IN')}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Achievements */}
+      {badges.length > 0 && (
+        <div className="card mb-4">
+          <h3 className="text-[11px] font-medium text-gray-900 uppercase tracking-[0.05em] mb-2">Achievements</h3>
+          <div className="flex flex-wrap gap-2">
+            {badges.map(({ Icon, label }) => (
+              <span key={label} className="flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-medium px-2.5 py-1 rounded-full">
+                <Icon size={11} className="shrink-0" /> {label}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Cricket Stats */}
       {perfs.length > 0 && (
@@ -238,6 +357,28 @@ export default function PlayerDetail() {
               <div>
                 <div className="font-medium text-gray-800 tabular-nums">{careerNotOuts}</div>
                 <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Not outs</div>
+              </div>
+            </div>
+          )}
+
+          {last5.length >= 2 && (
+            <div className="mb-3">
+              <p className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] mb-1.5">Form</p>
+              <div className="flex gap-1.5">
+                {[...last5].reverse().map(p => {
+                  const empty = p.runs === 0 && p.wickets === 0
+                  const good  = p.runs > avgRuns || p.wickets > avgWkts
+                  return (
+                    <div
+                      key={p.id}
+                      title={`${p.runs}r ${p.wickets}w`}
+                      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium
+                        ${empty ? 'bg-gray-100 text-gray-400' : good ? 'bg-[#E1F5EE] text-[#1D9E75]' : 'bg-red-100 text-red-600'}`}
+                    >
+                      {empty ? '—' : good ? '↑' : '↓'}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )}

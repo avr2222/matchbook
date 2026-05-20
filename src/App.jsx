@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { HashRouter, Routes, Route, Navigate, Link } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate, Link, useParams } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Navbar from './components/layout/Navbar'
 import AdminSidebar, { AdminMobileNav } from './components/layout/AdminSidebar'
@@ -12,7 +12,10 @@ import { usePushSubscription } from './hooks/usePushSubscription'
 
 import Dashboard      from './pages/public/Dashboard'
 import Players        from './pages/public/Players'
-import PlayerPay      from './pages/public/PlayerPay'
+function PayRedirect() {
+  const { playerId } = useParams()
+  return <Navigate to={`/player/${playerId}`} replace />
+}
 import PlayerDetail   from './pages/public/PlayerDetail'
 import DeviceFlowLogin from './auth/DeviceFlowLogin'
 import MyDashboard    from './pages/player/MyDashboard'
@@ -74,7 +77,7 @@ export default function App() {
               <Route path="/"              element={<Dashboard />} />
               <Route path="/players"       element={<Players />} />
               <Route path="/player/:id"    element={<PlayerDetail />} />
-              <Route path="/pay/:playerId" element={<PlayerPay />} />
+              <Route path="/pay/:playerId" element={<PayRedirect />} />
               <Route path="/leaderboard"  element={<Leaderboard />} />
               <Route path="/compare"      element={<Compare />} />
               <Route path="/timeline"     element={<Timeline />} />

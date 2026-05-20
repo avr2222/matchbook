@@ -27,6 +27,7 @@ export default function AdminSettings() {
         team_name:               cfg.team_name ?? '',
         admin_upi_id:            cfg.admin_upi_id ?? '',
         default_match_fee:       cfg.default_match_fee ?? 0,
+        default_snacks_fee:      cfg.default_snacks_fee ?? 0,
         corpus_low_threshold:    cfg.corpus_low_threshold ?? 1000,
         corpus_urgent_threshold: cfg.corpus_urgent_threshold ?? 500,
         corpus_overdue_threshold:cfg.corpus_overdue_threshold ?? 0,
@@ -123,10 +124,14 @@ export default function AdminSettings() {
               <label className="label">UPI ID</label>
               <input className="input font-mono" {...field('admin_upi_id')} placeholder="yourname@upi" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <div>
                 <label className="label">Default Match Fee (₹)</label>
                 <input className="input" type="number" min="0" {...numField('default_match_fee')} />
+              </div>
+              <div>
+                <label className="label">Default Snacks (₹)</label>
+                <input className="input" type="number" min="0" {...numField('default_snacks_fee')} />
               </div>
               <div>
                 <label className="label">Season Budget (₹)</label>

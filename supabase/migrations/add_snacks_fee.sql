@@ -1,0 +1,1 @@
+ALTER TABLE config ADD COLUMN IF NOT EXISTS default_snacks_fee NUMERIC(10,2) DEFAULT 0;
