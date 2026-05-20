@@ -89,7 +89,7 @@ export default function Compare() {
   ] : []
 
   return (
-    <div className="max-w-2xl mx-auto px-4 pb-12 pt-6">
+    <div className="max-w-4xl mx-auto px-4 pb-12 pt-6">
       <div className="flex items-center gap-3 mb-6">
         <Link to="/leaderboard" className="text-gray-400 hover:text-gray-600 text-sm">← Leaderboard</Link>
         <span className="text-gray-300">|</span>

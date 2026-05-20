@@ -63,7 +63,7 @@ export default function Navbar() {
 
   return (
     <nav className="bg-white border-b border-[rgba(0,0,0,0.10)] sticky top-0 z-40" ref={menuRef}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-2">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-2">
         <Link to="/" className="flex items-center gap-2 font-medium text-[#1D9E75] text-base tracking-tight shrink-0">
           <span className="w-7 h-7 bg-[#E1F5EE] border border-[#1D9E75]/20 rounded-lg flex items-center justify-center">
             <IconCricket size={16} />

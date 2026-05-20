@@ -50,7 +50,7 @@ function AdminLayout({ children }) {
   const canWrite = role === 'admin' || role === 'host'
   useAdminNotifications()
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 space-y-3">
+    <div className="max-w-screen-2xl mx-auto px-4 py-6 space-y-3">
       {!canWrite && (
         <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 text-sm text-amber-800">
           <span>👁️ View-only — you can browse but not make changes.</span>

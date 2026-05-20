@@ -33,7 +33,7 @@ export default function Players() {
   })
 
   return (
-    <div className="max-w-5xl mx-auto px-4 pb-12">
+    <div className="max-w-7xl mx-auto px-4 pb-12">
 
       {/* Hero */}
       <div className="rounded-xl mt-6 mb-6 bg-[#1D9E75] px-6 py-7 text-white">

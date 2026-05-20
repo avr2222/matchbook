@@ -50,7 +50,7 @@ export default function Timeline() {
   const detailWeek = detail ? sessions.find(w => w.week_id === detail) : null
 
   return (
-    <div className="max-w-2xl mx-auto px-4 pb-12 pt-6">
+    <div className="max-w-3xl mx-auto px-4 pb-12 pt-6">
       <div className="flex items-center gap-3 mb-3">
         <Link to="/" className="text-gray-400 hover:text-gray-600 text-sm">← Home</Link>
         <span className="text-gray-300">|</span>

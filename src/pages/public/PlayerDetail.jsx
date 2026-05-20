@@ -83,7 +83,7 @@ export default function PlayerDetail() {
   const player = (pData?.players ?? []).find(p => p.id === id)
 
   if (!player) return (
-    <div className="max-w-lg mx-auto px-4 py-12 text-center">
+    <div className="max-w-3xl mx-auto px-4 py-12 text-center">
       <p className="text-gray-400 mb-4">Player not found.</p>
       <Link to="/" className="text-[#1D9E75] font-medium">← Back to dashboard</Link>
     </div>
@@ -162,7 +162,7 @@ export default function PlayerDetail() {
   const needsTopUp = player.balance_status !== 'good' && player.type !== 'ppm'
 
   return (
-    <div className="max-w-lg mx-auto px-4 pb-12">
+    <div className="max-w-3xl mx-auto px-4 pb-12">
 
       {/* Back nav */}
       <div className="flex items-center gap-3 py-4">

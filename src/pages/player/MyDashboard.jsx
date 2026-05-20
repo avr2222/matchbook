@@ -180,7 +180,7 @@ export default function MyDashboard() {
       p.status === 'active' && p.type !== 'guest' && !p.auth_user_id
     )
     return (
-      <div className="max-w-lg mx-auto px-4 py-12">
+      <div className="max-w-2xl mx-auto px-4 py-12">
         <div className="card text-center space-y-4">
           <IconCricket size={36} className="text-gray-300 mx-auto" />
           <h2 className="font-medium text-gray-900 text-lg">Link your player name</h2>

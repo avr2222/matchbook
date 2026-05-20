@@ -237,7 +237,7 @@ export default function Dashboard() {
   const upiHref      = selectedP ? `upi://pay?pa=${upiId}&pn=${payName}&am=${payFinal}&cu=INR&tn=${payNote}` : ''
 
   return (
-    <div className="max-w-5xl mx-auto px-4 pb-12">
+    <div className="max-w-7xl mx-auto px-4 pb-12">
 
       {/* Pay Corpus card */}
       {upiId && (
