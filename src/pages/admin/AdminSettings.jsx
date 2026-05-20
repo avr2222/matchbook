@@ -28,6 +28,7 @@ export default function AdminSettings() {
         admin_upi_id:            cfg.admin_upi_id ?? '',
         default_match_fee:       cfg.default_match_fee ?? 0,
         default_snacks_fee:      cfg.default_snacks_fee ?? 0,
+        default_snacks_payer_id: cfg.default_snacks_payer_id ?? '',
         corpus_low_threshold:    cfg.corpus_low_threshold ?? 1000,
         corpus_urgent_threshold: cfg.corpus_urgent_threshold ?? 500,
         corpus_overdue_threshold:cfg.corpus_overdue_threshold ?? 0,
@@ -137,6 +138,17 @@ export default function AdminSettings() {
                 <label className="label">Season Budget (₹)</label>
                 <input className="input" type="number" min="0" {...numField('season_budget')} />
               </div>
+            </div>
+            <div>
+              <label className="label">Default Snacks Payer</label>
+              <select className="input" {...field('default_snacks_payer_id')}>
+                <option value="">— None / rotate —</option>
+                {(pData?.players ?? [])
+                  .filter(p => p.status === 'active')
+                  .sort((a, b) => a.display_name.localeCompare(b.display_name))
+                  .map(p => <option key={p.id} value={p.id}>{p.display_name}</option>)}
+              </select>
+              <p className="text-xs text-gray-400 mt-1">Pre-selects this player in the attendance reimburse section.</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>

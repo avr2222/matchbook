@@ -81,15 +81,18 @@ export default function AdminWeeks() {
     )
 
     const defaultSnacks = cfg?.default_snacks_fee ?? 0
+    const existingFreeIds = new Set(
+      weekRecords.filter(r => r.fee_deducted === true && r.status === 'played').map(r => r.player_id)
+    )
     setAttendanceMap(init)
     setDeductFromMap(deductInit)
     setMatchAmount(prefillCost)
     setSnacksAmount(defaultSnacks)
-    setFreePlayerIds(new Set())
+    setFreePlayerIds(existingFreeIds)
     setPpmPaidIds(ppmAlreadyPaid)
     setReapplyDeductions(false)
-    setReimbPlayer('')
-    setReimbAmount('')
+    setReimbPlayer(cfg?.default_snacks_payer_id ?? '')
+    setReimbAmount(prefillCost + defaultSnacks > 0 ? String(prefillCost + defaultSnacks) : '')
     setReimbDesc('Match/snacks expense')
     setSelected(weekId)
   }
@@ -223,7 +226,7 @@ export default function AdminWeeks() {
           player_id: p.id, week_id: week.week_id,
           tournament_id: activeTId,
           status: attendanceMap[p.id] ?? 'absent',
-          source: 'admin', fee_deducted: false,
+          source: 'admin', fee_deducted: freePlayerIds.has(p.id),
           // store override for any player type (guest or corpus with a sponsor)
           sponsor_player_id: chargeId,
         }
@@ -544,42 +547,51 @@ export default function AdminWeeks() {
               })}
             />
             {/* Reimbursement — credit a player who paid out of pocket */}
-            <div className="px-6 py-3 border-t border-gray-100">
-              <p className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] mb-2">
-                Reimburse player (paid out of pocket)
+            <div className="px-6 py-4 border-t border-gray-100 bg-[#F8F8F6]">
+              <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-[0.05em] mb-3">
+                💸 Reimburse player (paid out of pocket)
               </p>
-              <div className="space-y-2">
-                <select
-                  className="input text-sm"
-                  value={reimbPlayer}
-                  onChange={e => setReimbPlayer(e.target.value)}
-                >
-                  <option value="">Select player…</option>
-                  {players.map(p => (
-                    <option key={p.id} value={p.id}>{p.display_name}</option>
-                  ))}
-                </select>
-                <div className="grid grid-cols-2 gap-2">
-                  <input
+              <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.08)] p-4 space-y-3">
+                <div>
+                  <label className="label text-xs">Player who paid</label>
+                  <select
                     className="input text-sm"
-                    type="number" min="0"
-                    placeholder="Amount (₹)"
-                    value={reimbAmount}
-                    onChange={e => setReimbAmount(e.target.value)}
-                  />
-                  <input
-                    className="input text-sm"
-                    placeholder="Description"
-                    value={reimbDesc}
-                    onChange={e => setReimbDesc(e.target.value)}
-                  />
+                    value={reimbPlayer}
+                    onChange={e => setReimbPlayer(e.target.value)}
+                  >
+                    <option value="">Select player…</option>
+                    {players.map(p => (
+                      <option key={p.id} value={p.id}>{p.display_name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="label text-xs">Amount (₹)</label>
+                    <input
+                      className="input text-sm"
+                      type="number" min="0"
+                      placeholder="e.g. 4727"
+                      value={reimbAmount}
+                      onChange={e => setReimbAmount(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="label text-xs">Description</label>
+                    <input
+                      className="input text-sm"
+                      placeholder="Match/snacks expense"
+                      value={reimbDesc}
+                      onChange={e => setReimbDesc(e.target.value)}
+                    />
+                  </div>
                 </div>
                 <button
                   disabled={!reimbPlayer || !reimbAmount || saving}
                   onClick={addReimbursement}
-                  className="btn-secondary text-sm w-full"
+                  className="btn-primary text-sm w-full"
                 >
-                  Add corpus credit
+                  + Add corpus credit
                 </button>
               </div>
             </div>
@@ -587,8 +599,14 @@ export default function AdminWeeks() {
             <div className="px-6 py-4 border-t border-gray-100">
               {(() => {
                 const total = (matchAmount || 0) + (snacksAmount || 0)
-                const paidCount = players.filter(p => attendanceMap[p.id] === 'played' && p.type !== 'ppm' && !freePlayerIds.has(p.id)).length
+                const paidCount = players.filter(p =>
+                  attendanceMap[p.id] === 'played' &&
+                  p.type !== 'ppm' &&
+                  !freePlayerIds.has(p.id) &&
+                  !(p.type === 'guest' && !deductFromMap[p.id])
+                ).length
                 const freeCount = players.filter(p => attendanceMap[p.id] === 'played' && p.type !== 'ppm' && freePlayerIds.has(p.id)).length
+                const guestDirectCount = players.filter(p => attendanceMap[p.id] === 'played' && p.type === 'guest' && !deductFromMap[p.id] && !freePlayerIds.has(p.id)).length
                 const perPlayer = paidCount > 0 ? total / paidCount : 0
                 const alreadyDeducted = transactions.some(
                   t => t.week_id === selectedWeek?.week_id && t.type === 'match_deduction'
@@ -597,7 +615,10 @@ export default function AdminWeeks() {
                   <>
                     {total > 0 && paidCount > 0 && (
                       <p className="text-xs text-gray-500 mb-3">
-                        ₹{total.toFixed(0)} ÷ {paidCount} paid{freeCount > 0 ? ` (${freeCount} free)` : ''} = ₹{perPlayer.toFixed(0)}/player
+                        ₹{total.toFixed(0)} ÷ {paidCount} paid
+                        {freeCount > 0 ? ` (${freeCount} free)` : ''}
+                        {guestDirectCount > 0 ? ` · ${guestDirectCount} guest${guestDirectCount > 1 ? 's' : ''} pay directly` : ''}
+                        {' '}= ₹{perPlayer.toFixed(0)}/player
                       </p>
                     )}
                     {alreadyDeducted && (
