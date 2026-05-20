@@ -1,0 +1,1 @@
+ALTER TABLE config ADD COLUMN IF NOT EXISTS auto_deduct_on_sync BOOLEAN DEFAULT false;

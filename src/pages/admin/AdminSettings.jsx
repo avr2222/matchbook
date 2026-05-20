@@ -33,6 +33,7 @@ export default function AdminSettings() {
         corpus_urgent_threshold: cfg.corpus_urgent_threshold ?? 500,
         corpus_overdue_threshold:cfg.corpus_overdue_threshold ?? 0,
         season_budget:           cfg.season_budget ?? 0,
+        auto_deduct_on_sync:     cfg.auto_deduct_on_sync ?? false,
       })
     }
   }, [cfg, form])
@@ -163,6 +164,18 @@ export default function AdminSettings() {
                 <label className="label">Overdue Threshold (₹)</label>
                 <input className="input" type="number" min="0" {...numField('corpus_overdue_threshold')} />
               </div>
+            </div>
+            <div className="flex items-start justify-between gap-4 py-1">
+              <div>
+                <label className="text-sm font-medium text-gray-800">Auto-deduct on Sunday sync</label>
+                <p className="text-xs text-gray-400 mt-0.5">CricHeroes sync will automatically create match deductions for corpus players who attended.</p>
+              </div>
+              <input
+                type="checkbox"
+                className="mt-1 w-4 h-4 accent-[#1D9E75] shrink-0"
+                checked={form?.auto_deduct_on_sync ?? false}
+                onChange={e => setForm(f => ({ ...f, auto_deduct_on_sync: e.target.checked }))}
+              />
             </div>
             <div className="pt-1 space-y-1 text-xs text-gray-400 bg-[#F4F3F0] rounded-lg p-2">
               <div>active_tournament_id: <span className="font-mono text-gray-600">{cfg?.active_tournament_id ?? '—'}</span></div>

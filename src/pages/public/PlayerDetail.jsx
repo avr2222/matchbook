@@ -133,7 +133,8 @@ export default function PlayerDetail() {
   for (const w of completedWeeks) {
     if (perfWeekIds.has(w.week_id)) attendStreak++; else break
   }
-  const attendRate  = completedWeeks.length > 0 ? Math.round((perfs.length / completedWeeks.length) * 100) : 0
+  const attendedWeeks = completedWeeks.filter(w => perfWeekIds.has(w.week_id)).length
+  const attendRate  = completedWeeks.length > 0 ? Math.round((attendedWeeks / completedWeeks.length) * 100) : 0
   const defaultFee  = cfg?.default_match_fee ?? 500
   const balance     = player.corpus_balance ?? 0
   const matchesLeft = balance > 0 ? Math.floor(balance / defaultFee) : 0
@@ -241,7 +242,7 @@ export default function PlayerDetail() {
           <div className="card text-center py-3 px-2">
             <div className="text-[24px] font-medium text-[#1D9E75] tabular-nums">{attendRate}%</div>
             <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em] mt-0.5">Attendance</div>
-            <div className="text-xs text-gray-300 mt-0.5">{perfs.length}/{completedWeeks.length}</div>
+            <div className="text-xs text-gray-300 mt-0.5">{attendedWeeks}/{completedWeeks.length}</div>
           </div>
           <div className="card text-center py-3 px-2">
             <div className="flex items-center justify-center gap-1 text-[24px] font-medium text-amber-500 tabular-nums">

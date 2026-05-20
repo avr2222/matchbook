@@ -496,6 +496,13 @@ def sync():
     active_tournament_id = config["active_tournament_id"]
     match_fee            = config.get("default_match_fee", 500)
     tournament_url       = config.get("cricheroes_tournament_url", "")
+    auto_deduct          = bool(config.get("auto_deduct_on_sync", False))
+
+    existing_deduct_ids = set()
+    if auto_deduct:
+        deduct_rows = sb_get_all('transactions', select='id', filters='type=eq.match_deduction')
+        existing_deduct_ids = {r['id'] for r in (deduct_rows or [])}
+        print(f"  Auto-deduct enabled — {len(existing_deduct_ids)} existing match_deduction txn(s) loaded")
 
     m = re.search(r"/tournament/(\d+)/", tournament_url)
     if not m:
@@ -896,6 +903,72 @@ def sync():
         played  = sum(1 for a in new_attendance if a['status'] == 'played')
         absent  = sum(1 for a in new_attendance if a['status'] == 'absent')
         print(f"  Saved {len(new_attendance)} attendance record(s) — {played} played, {absent} absent")
+
+    if auto_deduct and new_attendance:
+        corpus_types = {'corpus', 'new'}
+        player_map = {p['id']: p for p in players}
+        for p in new_players:
+            player_map[p['id']] = p
+
+        # Merge existing + new attendance; new records take precedence
+        all_att = {r['id']: r for r in attendance}
+        for a in new_attendance:
+            all_att[a['id']] = a
+
+        affected_week_ids = {a['week_id'] for a in new_attendance if a['status'] == 'played'}
+
+        new_deduct_txns = []
+        balance_deltas  = {}  # player_id -> total to subtract
+
+        for wid in affected_week_ids:
+            week_obj  = next((w for w in weeks + new_weeks if w['week_id'] == wid), None)
+            week_date = week_obj['match_date'] if week_obj else ''
+
+            played_corpus = [
+                r for r in all_att.values()
+                if r['week_id'] == wid
+                and r['status'] == 'played'
+                and not r.get('fee_deducted')   # skip players marked free
+                and player_map.get(r['player_id'], {}).get('type') in corpus_types
+                and player_map.get(r['player_id'], {}).get('status') == 'active'
+            ]
+            if not played_corpus:
+                continue
+
+            per_fee = round(match_fee / len(played_corpus), 2)
+
+            for rec in played_corpus:
+                pid    = rec['player_id']
+                txn_id = f"TXN_DEDUCT_{wid}_{pid}"
+                if txn_id in existing_deduct_ids:
+                    continue  # already deducted — idempotent
+
+                new_deduct_txns.append({
+                    'id':            txn_id,
+                    'player_id':     pid,
+                    'tournament_id': active_tournament_id,
+                    'type':          'match_deduction',
+                    'amount':        per_fee,
+                    'direction':     'debit',
+                    'date':          week_date,
+                    'week_id':       wid,
+                    'description':   f'Auto match fee - {wid}',
+                    'recorded_by':   'cricheroes_sync',
+                    'receipt_ref':   '',
+                })
+                balance_deltas[pid] = balance_deltas.get(pid, 0) - per_fee
+
+        if new_deduct_txns:
+            sb_upsert('transactions', new_deduct_txns)
+            print(f"  Auto-deducted {len(new_deduct_txns)} match fee transaction(s)")
+
+            for pid, delta in balance_deltas.items():
+                p       = player_map.get(pid)
+                new_bal = round((p.get('corpus_balance') or 0) + delta, 2) if p else 0
+                sb_patch('players', f'id=eq.{pid}', {'corpus_balance': new_bal})
+            print(f"  Updated corpus_balance for {len(balance_deltas)} player(s)")
+        else:
+            print("  Auto-deduct: no new deductions needed (already up to date)")
 
     if new_performances:
         sb_upsert('match_performances', new_performances)
