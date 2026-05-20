@@ -961,12 +961,7 @@ def sync():
         if new_deduct_txns:
             sb_upsert('transactions', new_deduct_txns)
             print(f"  Auto-deducted {len(new_deduct_txns)} match fee transaction(s)")
-
-            for pid, delta in balance_deltas.items():
-                p       = player_map.get(pid)
-                new_bal = round((p.get('corpus_balance') or 0) + delta, 2) if p else 0
-                sb_patch('players', f'id=eq.{pid}', {'corpus_balance': new_bal})
-            print(f"  Updated corpus_balance for {len(balance_deltas)} player(s)")
+            # corpus_balance is computed live by the player_balances VIEW — no manual patch needed.
         else:
             print("  Auto-deduct: no new deductions needed (already up to date)")
 

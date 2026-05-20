@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { usePlayers, useWeeks, useTransactions, useMatchPerformances, useConfig } from '../../hooks/useData'
 import { format, parseISO } from 'date-fns'
 import { PageSpinner } from '../../components/ui/Spinner'

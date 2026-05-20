@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, lazy, Suspense } from 'react'
 import { HashRouter, Routes, Route, Navigate, Link, useParams } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Navbar from './components/layout/Navbar'
@@ -9,33 +9,38 @@ import { useIsAdmin } from './hooks/useIsAdmin'
 import { useAuthStore } from './store/authStore'
 import { useAdminNotifications } from './hooks/useAdminNotifications'
 import { usePushSubscription } from './hooks/usePushSubscription'
+import { PageSpinner } from './components/ui/Spinner'
 
+// Public pages — loaded eagerly (part of the initial bundle)
 import Dashboard      from './pages/public/Dashboard'
 import Players        from './pages/public/Players'
-function PayRedirect() {
-  const { playerId } = useParams()
-  return <Navigate to={`/player/${playerId}`} replace />
-}
 import PlayerDetail   from './pages/public/PlayerDetail'
 import DeviceFlowLogin from './auth/DeviceFlowLogin'
-import MyDashboard    from './pages/player/MyDashboard'
-import AdminDashboard from './pages/admin/AdminDashboard'
-import AdminPlayers   from './pages/admin/AdminPlayers'
-import AdminWeeks     from './pages/admin/AdminWeeks'
-import AdminTransactions from './pages/admin/AdminTransactions'
-import AdminAudit     from './pages/admin/AdminAudit'
-import AdminMapping   from './pages/admin/AdminMapping'
-import AdminSettings  from './pages/admin/AdminSettings'
-import AdminExpenses       from './pages/admin/AdminExpenses'
-import AdminGuests          from './pages/admin/AdminGuests'
-import AdminAnnouncements   from './pages/admin/AdminAnnouncements'
-import AdminSignups         from './pages/admin/AdminSignups'
-import AdminPayments        from './pages/admin/AdminPayments'
 import Signup               from './pages/auth/Signup'
 import ForgotPassword       from './pages/auth/ForgotPassword'
 import Leaderboard          from './pages/public/Leaderboard'
 import Compare              from './pages/public/Compare'
 import Timeline             from './pages/public/Timeline'
+
+// Admin + player portal pages — lazy loaded (split into separate chunks)
+const MyDashboard       = lazy(() => import('./pages/player/MyDashboard'))
+const AdminDashboard    = lazy(() => import('./pages/admin/AdminDashboard'))
+const AdminPlayers      = lazy(() => import('./pages/admin/AdminPlayers'))
+const AdminWeeks        = lazy(() => import('./pages/admin/AdminWeeks'))
+const AdminTransactions = lazy(() => import('./pages/admin/AdminTransactions'))
+const AdminAudit        = lazy(() => import('./pages/admin/AdminAudit'))
+const AdminMapping      = lazy(() => import('./pages/admin/AdminMapping'))
+const AdminSettings     = lazy(() => import('./pages/admin/AdminSettings'))
+const AdminExpenses     = lazy(() => import('./pages/admin/AdminExpenses'))
+const AdminGuests       = lazy(() => import('./pages/admin/AdminGuests'))
+const AdminAnnouncements = lazy(() => import('./pages/admin/AdminAnnouncements'))
+const AdminSignups      = lazy(() => import('./pages/admin/AdminSignups'))
+const AdminPayments     = lazy(() => import('./pages/admin/AdminPayments'))
+
+function PayRedirect() {
+  const { playerId } = useParams()
+  return <Navigate to={`/player/${playerId}`} replace />
+}
 
 const qc = new QueryClient()
 
@@ -72,6 +77,7 @@ export default function App() {
         <div className="min-h-screen flex flex-col">
           <Navbar />
           <div className="flex-1">
+            <Suspense fallback={<PageSpinner />}>
             <Routes>
               {/* Public */}
               <Route path="/"              element={<Dashboard />} />
@@ -115,6 +121,7 @@ export default function App() {
 
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            </Suspense>
           </div>
         </div>
         <ToastProvider />

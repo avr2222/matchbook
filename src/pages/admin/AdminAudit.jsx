@@ -13,21 +13,26 @@ const ACTION_ICON = {
   edit_config: 'CFG',
 }
 
+const PAGE_SIZE = 50
+
 export default function AdminAudit() {
   const { data, isLoading } = useAuditLog()
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
 
   if (isLoading) return <PageSpinner />
 
-  const entries = (data?.entries ?? []).filter(e =>
+  const filtered = (data?.entries ?? []).filter(e =>
     !search || e.actor.includes(search) || e.summary.includes(search) || e.action.includes(search)
   )
+  const entries = filtered.slice(0, page * PAGE_SIZE)
+  const hasMore = filtered.length > entries.length
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-[22px] font-medium text-gray-900">Audit Log</h1>
-        <input className="input w-48 text-sm" placeholder="Search…" value={search} onChange={e => setSearch(e.target.value)} />
+        <input className="input w-48 text-sm" placeholder="Search…" value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} />
       </div>
 
       {entries.length === 0 ? (
@@ -69,6 +74,18 @@ export default function AdminAudit() {
             </div>
           ))}
         </div>
+      )}
+
+      {hasMore && (
+        <button
+          onClick={() => setPage(p => p + 1)}
+          className="btn-secondary w-full text-sm"
+        >
+          Show more ({filtered.length - entries.length} remaining)
+        </button>
+      )}
+      {!hasMore && filtered.length > PAGE_SIZE && (
+        <p className="text-center text-xs text-gray-400">{filtered.length} entries shown</p>
       )}
     </div>
   )
