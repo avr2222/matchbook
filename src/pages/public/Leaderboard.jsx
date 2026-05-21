@@ -40,9 +40,9 @@ function Sparkline({ vals }) {
 
 function PodiumCard({ rank, playerName, playerLink, heroValue, heroLabel, subValue, subLabel }) {
   const styles = [
-    { bg: 'bg-amber-50', border: 'border-amber-200', num: 'text-amber-600', badge: 'bg-amber-400', pt: 'pt-6' },
-    { bg: 'bg-slate-50',  border: 'border-slate-200',  num: 'text-slate-500',  badge: 'bg-slate-400',  pt: 'pt-4' },
-    { bg: 'bg-orange-50', border: 'border-orange-200', num: 'text-orange-500', badge: 'bg-orange-400', pt: 'pt-2' },
+    { bg: 'bg-amber-50', border: 'border-amber-200', num: 'text-amber-600', badge: 'bg-amber-400', pt: 'pt-12' },
+    { bg: 'bg-slate-50',  border: 'border-slate-200',  num: 'text-slate-500',  badge: 'bg-slate-400',  pt: 'pt-6' },
+    { bg: 'bg-orange-50', border: 'border-orange-200', num: 'text-orange-500', badge: 'bg-orange-400', pt: 'pt-0' },
   ][rank - 1]
   return (
     <div className={`flex-1 rounded-xl border ${styles.bg} ${styles.border} ${styles.pt} px-3 pb-4 min-w-0`}>
@@ -412,9 +412,13 @@ export default function Leaderboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[rgba(0,0,0,0.04)]">
-              {displayBatters.map((s, i) => (
-                <tr key={s.player_id} className={i === 0 && !sortCol ? 'font-medium' : ''}>
-                  <td className="py-2 text-gray-400 text-xs">{i + 1}</td>
+              {showBatPodium && displayBatters.length <= 3 ? (
+                <tr><td colSpan={12} className="py-4 text-center text-sm text-gray-400">Top 3 shown above</td></tr>
+              ) : (showBatPodium ? displayBatters.slice(3) : displayBatters).map((s, i) => {
+                const rank = showBatPodium ? i + 4 : i + 1
+                return (
+                <tr key={s.player_id} className="">
+                  <td className="py-2 text-gray-400 text-xs">{rank}</td>
                   <td className="py-2 pr-2 max-w-[140px]">
                     <Link to={`/player/${s.player_id}`} className="font-medium text-gray-900 hover:text-[#1D9E75] truncate block">
                       {playerMap[s.player_id]?.display_name ?? s.player_id}
@@ -450,7 +454,8 @@ export default function Leaderboard() {
                     >vs</button>
                   </td>
                 </tr>
-              ))}
+                )
+              })}
             </tbody>
           </table>
         </div>
@@ -510,9 +515,13 @@ export default function Leaderboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[rgba(0,0,0,0.04)]">
-              {displayBowlers.map((s, i) => (
-                <tr key={s.player_id} className={i === 0 && !sortCol ? 'font-medium' : ''}>
-                  <td className="py-2 text-gray-400 text-xs">{i + 1}</td>
+              {showBowlPodium && displayBowlers.length <= 3 ? (
+                <tr><td colSpan={10} className="py-4 text-center text-sm text-gray-400">Top 3 shown above</td></tr>
+              ) : (showBowlPodium ? displayBowlers.slice(3) : displayBowlers).map((s, i) => {
+                const rank = showBowlPodium ? i + 4 : i + 1
+                return (
+                <tr key={s.player_id} className="">
+                  <td className="py-2 text-gray-400 text-xs">{rank}</td>
                   <td className="py-2 pr-2 max-w-[140px]">
                     <Link to={`/player/${s.player_id}`} className="font-medium text-gray-900 hover:text-[#1D9E75] truncate block">
                       {playerMap[s.player_id]?.display_name ?? s.player_id}
@@ -544,7 +553,8 @@ export default function Leaderboard() {
                     >vs</button>
                   </td>
                 </tr>
-              ))}
+                )
+              })}
             </tbody>
           </table>
         </div>
