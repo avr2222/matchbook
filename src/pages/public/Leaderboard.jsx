@@ -40,12 +40,13 @@ function Sparkline({ vals }) {
 
 function PodiumCard({ rank, playerName, playerLink, heroValue, heroLabel, subValue, subLabel }) {
   const styles = [
-    { bg: 'bg-amber-50', border: 'border-amber-200', num: 'text-amber-600', badge: 'bg-amber-400', pt: 'pt-12' },
-    { bg: 'bg-slate-50',  border: 'border-slate-200',  num: 'text-slate-500',  badge: 'bg-slate-400',  pt: 'pt-6' },
-    { bg: 'bg-orange-50', border: 'border-orange-200', num: 'text-orange-500', badge: 'bg-orange-400', pt: 'pt-0' },
+    { bg: 'bg-amber-50', border: 'border-amber-200', num: 'text-amber-600', badge: 'bg-amber-400' },
+    { bg: 'bg-slate-50',  border: 'border-slate-200',  num: 'text-slate-500',  badge: 'bg-slate-400' },
+    { bg: 'bg-orange-50', border: 'border-orange-200', num: 'text-orange-500', badge: 'bg-orange-400' },
   ][rank - 1]
+  const topPad = rank === 1 ? '3rem' : rank === 2 ? '1.5rem' : '0.25rem'
   return (
-    <div className={`flex-1 rounded-xl border ${styles.bg} ${styles.border} ${styles.pt} px-3 pb-4 min-w-0`}>
+    <div className={`flex-1 rounded-xl border ${styles.bg} ${styles.border} px-3 pb-4 min-w-0`} style={{ paddingTop: topPad }}>
       <div className={`w-7 h-7 rounded-lg ${styles.badge} text-white text-xs font-medium flex items-center justify-center mb-2`}>
         {rank}
       </div>
