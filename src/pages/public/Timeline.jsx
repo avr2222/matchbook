@@ -168,6 +168,34 @@ export default function Timeline() {
                           ))}
                         </div>
                       )}
+
+                      {/* Performance strip — top contributors for this match */}
+                      {(() => {
+                        const notable = sessionPerfs
+                          .filter(p => (p.runs || 0) > 0 || (p.wickets || 0) > 0)
+                          .sort((a, b) => ((b.runs||0) + (b.wickets||0)*20) - ((a.runs||0) + (a.wickets||0)*20))
+                          .slice(0, 8)
+                        if (!notable.length) return null
+                        return (
+                          <div className="overflow-x-auto -mx-4 px-4 mt-2 pt-2 border-t border-[rgba(0,0,0,0.05)]">
+                            <div className="flex gap-1.5 w-max pb-1">
+                              {notable.map(p => (
+                                <div key={p.id} className="w-10 shrink-0 bg-[#F4F3F0] rounded-lg py-1.5 text-center">
+                                  <div className="text-[9px] text-gray-400 font-medium truncate px-1 leading-none mb-0.5">
+                                    {(playerById[p.player_id]?.display_name ?? '?').split(' ')[0].slice(0, 5)}
+                                  </div>
+                                  {(p.runs || 0) > 0 && (
+                                    <div className="text-[11px] font-medium text-[#1D9E75] tabular-nums leading-none">{p.runs}</div>
+                                  )}
+                                  {(p.wickets || 0) > 0 && (
+                                    <div className="text-[11px] font-medium text-purple-600 tabular-nums leading-none">{p.wickets}w</div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      })()}
                     </div>
                   </div>
                 </div>

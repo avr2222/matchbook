@@ -132,15 +132,41 @@ export default function Compare() {
             {rows.map(({ label, a, b, higher, fmt }) => {
               const aWins = higher ? a > b : (a > 0 && (b === 0 || a < b))
               const bWins = higher ? b > a : (b > 0 && (a === 0 || b < a))
+              const total = a + b
+              const aPct = total > 0 ? Math.round((a / total) * 100) : 50
+              const bPct = total > 0 ? 100 - aPct : 50
               return (
-                <div key={label} className="grid grid-cols-3 items-center">
-                  <div className="px-4 py-2.5 text-xs text-gray-500 font-medium">{label}</div>
-                  <div className={`px-4 py-2.5 text-center text-sm font-medium tabular-nums ${aWins ? 'text-[#1D9E75] bg-[#E1F5EE]' : 'text-gray-600'}`}>
-                    {fmt(a)}
+                <div key={label}>
+                  <div className="grid grid-cols-3 items-center">
+                    <div className="px-4 py-2.5 text-xs text-gray-500 font-medium">{label}</div>
+                    <div className={`px-4 py-2.5 text-center text-sm font-medium tabular-nums ${aWins ? 'text-[#1D9E75] bg-[#E1F5EE]' : 'text-gray-600'}`}>
+                      {fmt(a)}
+                    </div>
+                    <div className={`px-4 py-2.5 text-center text-sm font-medium tabular-nums ${bWins ? 'text-[#1D9E75] bg-[#E1F5EE]' : 'text-gray-600'}`}>
+                      {fmt(b)}
+                    </div>
                   </div>
-                  <div className={`px-4 py-2.5 text-center text-sm font-medium tabular-nums ${bWins ? 'text-[#1D9E75] bg-[#E1F5EE]' : 'text-gray-600'}`}>
-                    {fmt(b)}
-                  </div>
+                  {/* Visual comparison bar */}
+                  {total > 0 && (
+                    <div className="px-4 pb-2 grid grid-cols-3">
+                      <div />
+                      <div className="col-span-2 flex h-1.5 rounded-full overflow-hidden bg-gray-100">
+                        <div className="flex flex-1 justify-end">
+                          <div
+                            className="bg-[#1D9E75] h-full rounded-l-full transition-all duration-500"
+                            style={{ width: `${aWins ? aPct : 50}%` }}
+                          />
+                        </div>
+                        <div className="w-px bg-gray-300 shrink-0" />
+                        <div className="flex flex-1">
+                          <div
+                            className="bg-sky-400 h-full rounded-r-full transition-all duration-500"
+                            style={{ width: `${bWins ? bPct : 50}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )
             })}
