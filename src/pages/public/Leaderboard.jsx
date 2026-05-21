@@ -413,13 +413,14 @@ export default function Leaderboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[rgba(0,0,0,0.04)]">
-              {showBatPodium && displayBatters.length <= 3 ? (
-                <tr><td colSpan={12} className="py-4 text-center text-sm text-gray-400">Top 3 shown above</td></tr>
-              ) : (showBatPodium ? displayBatters.slice(3) : displayBatters).map((s, i) => {
-                const rank = showBatPodium ? i + 4 : i + 1
-                return (
-                <tr key={s.player_id} className="">
-                  <td className="py-2 text-gray-400 text-xs">{rank}</td>
+              {(() => {
+                const tableRows = showBatPodium ? displayBatters.slice(3) : displayBatters
+                const startRank = showBatPodium ? 4 : 1
+                if (tableRows.length === 0)
+                  return <tr><td colSpan={12} className="py-4 text-center text-sm text-gray-400">Top 3 shown above</td></tr>
+                return tableRows.map((s, i) => (
+                <tr key={s.player_id}>
+                  <td className="py-2 text-gray-400 text-xs">{startRank + i}</td>
                   <td className="py-2 pr-2 max-w-[140px]">
                     <Link to={`/player/${s.player_id}`} className="font-medium text-gray-900 hover:text-[#1D9E75] truncate block">
                       {playerMap[s.player_id]?.display_name ?? s.player_id}
@@ -455,8 +456,8 @@ export default function Leaderboard() {
                     >vs</button>
                   </td>
                 </tr>
-                )
-              })}
+                ))
+              })()}
             </tbody>
           </table>
         </div>
@@ -516,13 +517,14 @@ export default function Leaderboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[rgba(0,0,0,0.04)]">
-              {showBowlPodium && displayBowlers.length <= 3 ? (
-                <tr><td colSpan={10} className="py-4 text-center text-sm text-gray-400">Top 3 shown above</td></tr>
-              ) : (showBowlPodium ? displayBowlers.slice(3) : displayBowlers).map((s, i) => {
-                const rank = showBowlPodium ? i + 4 : i + 1
-                return (
-                <tr key={s.player_id} className="">
-                  <td className="py-2 text-gray-400 text-xs">{rank}</td>
+              {(() => {
+                const tableRows = showBowlPodium ? displayBowlers.slice(3) : displayBowlers
+                const startRank = showBowlPodium ? 4 : 1
+                if (tableRows.length === 0)
+                  return <tr><td colSpan={10} className="py-4 text-center text-sm text-gray-400">Top 3 shown above</td></tr>
+                return tableRows.map((s, i) => (
+                <tr key={s.player_id}>
+                  <td className="py-2 text-gray-400 text-xs">{startRank + i}</td>
                   <td className="py-2 pr-2 max-w-[140px]">
                     <Link to={`/player/${s.player_id}`} className="font-medium text-gray-900 hover:text-[#1D9E75] truncate block">
                       {playerMap[s.player_id]?.display_name ?? s.player_id}
@@ -554,8 +556,8 @@ export default function Leaderboard() {
                     >vs</button>
                   </td>
                 </tr>
-                )
-              })}
+                ))
+              })()}
             </tbody>
           </table>
         </div>
