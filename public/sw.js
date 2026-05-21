@@ -1,4 +1,4 @@
-const CACHE = 'matchbook-v2'
+const CACHE = 'matchbook-v3'
 
 const SHELL = [
   '/matchbook/',
