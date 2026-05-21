@@ -241,11 +241,11 @@ export default function Dashboard() {
 
       {/* Pay Corpus card */}
       {upiId && (
-        <div className="rounded-xl mt-6 mb-4 bg-[#1D9E75] px-5 py-5 text-white">
-          <p className="text-[11px] font-medium text-white/70 uppercase tracking-[0.05em] mb-3">Top up your corpus</p>
+        <div className="card mt-6 mb-4">
+          <p className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] mb-3">Top up your corpus</p>
 
           <select
-            className="w-full bg-white/20 text-white rounded-lg px-3 py-2.5 text-sm font-medium outline-none border border-white/20 focus:border-white/60 transition-colors mb-2"
+            className="w-full bg-[#F4F3F0] text-gray-900 rounded-lg px-3 py-2.5 text-sm font-medium outline-none border border-[rgba(0,0,0,0.08)] focus:border-[#1D9E75] transition-colors mb-2"
             value={payPlayer}
             onChange={e => { setPayPlayer(e.target.value); setCopied(false); setPayAmt('') }}
           >
@@ -258,25 +258,25 @@ export default function Dashboard() {
           {selectedP && (
             <div className="flex gap-2 items-center">
               <div className="relative flex-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60 text-sm font-medium pointer-events-none">₹</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium pointer-events-none">₹</span>
                 <input
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
                   placeholder={`Suggested: ₹${paySuggested.toLocaleString('en-IN')}`}
-                  className="w-full bg-white/20 text-white placeholder-white/50 rounded-lg pl-7 pr-3 py-2.5 text-sm outline-none border border-white/20 focus:border-white/60 transition-colors"
+                  className="w-full bg-[#F4F3F0] text-gray-900 placeholder-gray-400 rounded-lg pl-7 pr-3 py-2.5 text-sm outline-none border border-[rgba(0,0,0,0.08)] focus:border-[#1D9E75] transition-colors"
                   value={payAmt}
                   onChange={e => setPayAmt(e.target.value.replace(/[^0-9]/g, ''))}
                 />
               </div>
               {isMobile ? (
-                <a href={upiHref} className="shrink-0 bg-white text-[#1D9E75] font-medium text-sm px-4 py-2.5 rounded-lg hover:bg-[#E1F5EE] transition-colors">
+                <a href={upiHref} className="shrink-0 bg-[#1D9E75] text-white font-medium text-sm px-4 py-2.5 rounded-lg hover:bg-[#0F6E56] transition-colors">
                   Pay ₹{payFinal.toLocaleString('en-IN')} →
                 </a>
               ) : (
                 <button
                   onClick={() => { navigator.clipboard.writeText(upiId); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
-                  className="shrink-0 bg-white text-[#1D9E75] font-medium text-sm px-4 py-2.5 rounded-lg hover:bg-[#E1F5EE] transition-colors"
+                  className="shrink-0 bg-[#1D9E75] text-white font-medium text-sm px-4 py-2.5 rounded-lg hover:bg-[#0F6E56] transition-colors"
                 >
                   {copied ? 'Copied!' : 'Copy UPI'}
                 </button>
@@ -285,7 +285,7 @@ export default function Dashboard() {
           )}
 
           {selectedP && (
-            <p className="text-xs text-white/70 mt-2">
+            <p className="text-xs text-gray-400 mt-2">
               Balance: ₹{(selectedP.corpus_balance ?? 0).toLocaleString('en-IN')} · Suggested: ₹{paySuggested.toLocaleString('en-IN')}
               {!isMobile && <span className="ml-1">· UPI: {upiId}</span>}
             </p>
@@ -453,6 +453,39 @@ export default function Dashboard() {
         </div>
       ) : null}
 
+      {/* Who's Hot */}
+      {hotPlayers.length > 0 && (
+        <div className="card mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <IconFlame size={16} className="text-orange-500" />
+              <h2 className="font-medium text-gray-900">Who's hot</h2>
+            </div>
+            <span className="text-xs text-gray-400">Last 3 sessions</span>
+          </div>
+          <div className="space-y-0.5">
+            {hotPlayers.map(({ pid, recentRuns, recentWkts, matches }) => (
+              <Link key={pid} to={`/player/${pid}`}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#F4F3F0] transition-colors">
+                <div className="w-7 h-7 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
+                  <IconFlame size={14} className="text-orange-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 text-sm truncate">{perfPlayerMap[pid]?.display_name ?? pid}</p>
+                  <p className="text-xs text-gray-400">
+                    {recentRuns}r{recentWkts > 0 ? ` · ${recentWkts}w` : ''} in last {matches} match{matches !== 1 ? 'es' : ''}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1 text-xs font-medium text-[#1D9E75] shrink-0">
+                  <IconTrendingUp size={13} />
+                  In form
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Balance health */}
       <div className="card mb-6">
         <div className="flex items-center justify-between mb-4">
@@ -585,39 +618,6 @@ export default function Dashboard() {
           </div>
         )}
       </div>
-
-      {/* Who's Hot */}
-      {hotPlayers.length > 0 && (
-        <div className="card mt-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <IconFlame size={16} className="text-orange-500" />
-              <h2 className="font-medium text-gray-900">Who's hot</h2>
-            </div>
-            <span className="text-xs text-gray-400">Last 3 sessions</span>
-          </div>
-          <div className="space-y-0.5">
-            {hotPlayers.map(({ pid, recentRuns, recentWkts, matches }) => (
-              <Link key={pid} to={`/player/${pid}`}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#F4F3F0] transition-colors">
-                <div className="w-7 h-7 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
-                  <IconFlame size={14} className="text-orange-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 text-sm truncate">{perfPlayerMap[pid]?.display_name ?? pid}</p>
-                  <p className="text-xs text-gray-400">
-                    {recentRuns}r{recentWkts > 0 ? ` · ${recentWkts}w` : ''} in last {matches} match{matches !== 1 ? 'es' : ''}
-                  </p>
-                </div>
-                <div className="flex items-center gap-1 text-xs font-medium text-[#1D9E75] shrink-0">
-                  <IconTrendingUp size={13} />
-                  In form
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Recent financial activity */}
       {recentActivity.length > 0 && (
