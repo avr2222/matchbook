@@ -132,7 +132,7 @@ export default function AdminGuests() {
 
       <div className="card p-0 overflow-hidden overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-[#F8F8F6] border-b border-[rgba(0,0,0,0.06)]">
+          <thead className="bg-white/[0.03] border-b border-white/[0.06]">
             <tr>
               <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Match</th>
               <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Guest</th>
@@ -143,7 +143,7 @@ export default function AdminGuests() {
               <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[rgba(0,0,0,0.04)]">
+          <tbody className="divide-y divide-white/[0.05]">
             {visits.length === 0 ? (
               <tr><td colSpan={7} className="text-center py-10 text-gray-400">No guest visits recorded yet.</td></tr>
             ) : visits.map(v => {
@@ -152,7 +152,7 @@ export default function AdminGuests() {
               const frequent = isFrequent(v.guest_name)
               const alreadyConverted = !!v.converted_to_player_id
               return (
-                <tr key={v.id} className="hover:bg-[#F8F8F6]">
+                <tr key={v.id} className="hover:bg-white/[0.03]">
                   <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
                     {week ? format(parseISO(week.match_date), 'MMM d') : v.week_id}
                   </td>
@@ -162,7 +162,7 @@ export default function AdminGuests() {
                       <div className="text-xs text-purple-600 mt-0.5">Frequent Guest</div>
                     )}
                     {alreadyConverted && (
-                      <div className="text-xs text-[#1D9E75] mt-0.5">Converted to player</div>
+                      <div className="text-xs text-[#10b981] mt-0.5">Converted to player</div>
                     )}
                   </td>
                   <td className="px-4 py-3 text-gray-500 hidden sm:table-cell">{invite?.display_name ?? '—'}</td>
@@ -174,13 +174,13 @@ export default function AdminGuests() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right font-mono text-gray-700">₹{(v.guest_fee ?? 0).toLocaleString('en-IN')}</td>
-                  <td className="px-4 py-3 text-center text-xs font-medium">{v.fee_paid ? <span className="text-[#1D9E75]">Paid</span> : <span className="text-red-500">Unpaid</span>}</td>
+                  <td className="px-4 py-3 text-center text-xs font-medium">{v.fee_paid ? <span className="text-[#10b981]">Paid</span> : <span className="text-red-500">Unpaid</span>}</td>
                   <td className="px-4 py-3 text-center">
                     {isAdmin && !alreadyConverted && (
                       <button
                         onClick={() => convertToPlayer(v)}
                         disabled={converting === v.id}
-                        className="text-xs text-[#1D9E75] hover:underline disabled:opacity-50 whitespace-nowrap"
+                        className="text-xs text-[#10b981] hover:underline disabled:opacity-50 whitespace-nowrap"
                       >
                         {converting === v.id ? 'Converting…' : '→ Make Player'}
                       </button>

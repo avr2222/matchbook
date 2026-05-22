@@ -93,8 +93,8 @@ export default function UpiPaySection({ player, config }) {
             onClick={() => { setAmount(a); setCustomAmt('') }}
             className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
               chosen === a && !customAmt
-                ? 'bg-[#1D9E75] text-white border-[#1D9E75]'
-                : 'border-gray-200 text-gray-600 hover:border-[#1D9E75]/40'
+                ? 'bg-[#10b981] text-white border-[#10b981]'
+                : 'border-gray-200 text-gray-600 hover:border-[#10b981]/40'
             }`}
           >
             ₹{a.toLocaleString('en-IN')}
@@ -129,16 +129,16 @@ export default function UpiPaySection({ player, config }) {
           {saving ? 'Opening…' : `Pay ₹${chosen.toLocaleString('en-IN')} via UPI`}
         </button>
       ) : (
-        <div className="bg-[#E1F5EE] border border-[#1D9E75]/20 rounded-xl p-4 space-y-2">
-          <p className="text-[11px] font-medium text-[#1D9E75] uppercase tracking-[0.05em]">Pay to UPI ID</p>
+        <div className="bg-[rgba(16,185,129,0.08)] border border-[#10b981]/20 rounded-xl p-4 space-y-2">
+          <p className="text-[11px] font-medium text-[#10b981] uppercase tracking-[0.05em]">Pay to UPI ID</p>
           <div className="flex items-center gap-2">
             <span className="font-mono text-base font-medium text-gray-900 flex-1 break-all">{upiId}</span>
             <button
               onClick={copy}
               className={`shrink-0 text-sm font-medium px-3 py-1.5 rounded-lg border transition-colors ${
                 copied
-                  ? 'bg-[#1D9E75] text-white border-[#1D9E75]'
-                  : 'text-[#1D9E75] border-[#1D9E75]/30 hover:bg-[#1D9E75]/10'
+                  ? 'bg-[#10b981] text-white border-[#10b981]'
+                  : 'text-[#10b981] border-[#10b981]/30 hover:bg-[#10b981]/10'
               }`}
             >
               {copied ? '✓ Copied' : 'Copy'}
@@ -152,7 +152,7 @@ export default function UpiPaySection({ player, config }) {
             <button
               onClick={handlePayNow}
               disabled={saving}
-              className="text-xs text-[#1D9E75] font-medium hover:underline"
+              className="text-xs text-[#10b981] font-medium hover:underline"
             >
               {saving ? 'Recording…' : 'Record payment intent →'}
             </button>
@@ -184,9 +184,9 @@ export default function UpiPaySection({ player, config }) {
       )}
 
       {refSaved && (
-        <div className="bg-[#E1F5EE] border border-[#1D9E75]/20 rounded-xl p-3 text-center">
-          <p className="text-sm font-medium text-[#1D9E75]">Payment reference saved!</p>
-          <p className="text-xs text-[#1D9E75]/70 mt-1">Admin will confirm and credit your account shortly.</p>
+        <div className="bg-[rgba(16,185,129,0.08)] border border-[#10b981]/20 rounded-xl p-3 text-center">
+          <p className="text-sm font-medium text-[#10b981]">Payment reference saved!</p>
+          <p className="text-xs text-[#10b981]/70 mt-1">Admin will confirm and credit your account shortly.</p>
         </div>
       )}
 

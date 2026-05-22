@@ -367,7 +367,7 @@ export default function AdminWeeks() {
 
       <div className="card p-0 overflow-hidden overflow-x-auto">
         <table className="w-full text-sm min-w-[640px]">
-          <thead className="bg-[#F8F8F6] border-b border-[rgba(0,0,0,0.06)]">
+          <thead className="bg-white/[0.03] border-b border-white/[0.06]">
             <tr>
               <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Date</th>
               <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Venue / Teams</th>
@@ -377,7 +377,7 @@ export default function AdminWeeks() {
               <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[rgba(0,0,0,0.04)]">
+          <tbody className="divide-y divide-white/[0.05]">
             {weeks.map(w => {
               const played         = records.filter(r => r.week_id === w.week_id && r.status === 'played').length
               const weekExps       = expenses.filter(e => e.week_id === w.week_id)
@@ -388,12 +388,12 @@ export default function AdminWeeks() {
               return (
                 <tr
                   key={w.week_id}
-                  className={`hover:bg-[#F8F8F6] transition-colors ${w.status === 'completed' ? 'cursor-pointer' : 'cursor-default'}`}
+                  className={`hover:bg-white/[0.03] transition-colors ${w.status === 'completed' ? 'cursor-pointer' : 'cursor-default'}`}
                   onClick={() => w.status === 'completed' && setDetail(w.week_id)}
                 >
                   <td className="px-4 py-3 font-medium text-gray-800">
                     {format(parseISO(w.match_date), 'MMM d, yyyy')}
-                    {w.result && <div className="text-xs text-[#1D9E75] font-medium mt-0.5">{w.result}</div>}
+                    {w.result && <div className="text-xs text-[#10b981] font-medium mt-0.5">{w.result}</div>}
                   </td>
                   <td className="px-4 py-3 text-gray-500 text-xs">
                     <div>{w.venue?.split(',')[0] || '—'}</div>
@@ -404,7 +404,7 @@ export default function AdminWeeks() {
                   <td className="px-4 py-3 text-center">
                     {w.status === 'completed' ? (
                       <div>
-                        <span className="text-[#1D9E75] font-medium">{played}</span>
+                        <span className="text-[#10b981] font-medium">{played}</span>
                         {weekExps.length > 0 ? (
                           <div className="text-xs text-red-400 mt-0.5">₹{totalCost.toLocaleString('en-IN')}</div>
                         ) : deductionTotal > 0 ? (
@@ -416,7 +416,7 @@ export default function AdminWeeks() {
                   <td className="px-4 py-3 text-center">
                     <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
                       w.status === 'completed'
-                        ? 'bg-[#E1F5EE] text-[#1D9E75]'
+                        ? 'bg-[rgba(16,185,129,0.08)] text-[#10b981]'
                         : 'bg-amber-100 text-amber-700'
                     }`}>{w.status}</span>
                   </td>
@@ -457,7 +457,7 @@ export default function AdminWeeks() {
       {editResult && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-sm">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between">
+            <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between">
               <h2 className="font-medium">Match Result</h2>
               <button onClick={() => setEditResult(null)} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
@@ -475,7 +475,7 @@ export default function AdminWeeks() {
                 <input className="input" value={resultForm.result} onChange={e => setResultForm(f => ({ ...f, result: e.target.value }))} placeholder="e.g. Team Alpha won by 15 runs" />
               </div>
             </div>
-            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2">
+            <div className="px-6 py-4 border-t border-white/[0.06] flex justify-end gap-2">
               <button onClick={() => setEditResult(null)} className="btn-secondary">Cancel</button>
               <button onClick={saveResult} disabled={saving} className="btn-primary">{saving ? 'Saving…' : 'Save'}</button>
             </div>
@@ -487,7 +487,7 @@ export default function AdminWeeks() {
       {selected && selectedWeek && canWrite && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between">
+            <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between">
               <div>
                 <h2 className="font-medium">Attendance — {format(parseISO(selectedWeek.match_date), 'MMM d, yyyy')}</h2>
                 <p className="text-xs text-gray-400 mt-0.5">{selectedWeek.label}</p>
@@ -496,7 +496,7 @@ export default function AdminWeeks() {
             </div>
 
             {/* Match + Snacks cost — auto-divided among paid players */}
-            <div className="px-6 py-3 border-b border-gray-100 space-y-2">
+            <div className="px-6 py-3 border-b border-white/[0.06] space-y-2">
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="label text-xs">Match Amount (₹)</label>
@@ -547,7 +547,7 @@ export default function AdminWeeks() {
               })}
             />
             {/* Reimbursement — credit a player who paid out of pocket */}
-            <div className="px-6 py-4 border-t border-gray-100 bg-[#F8F8F6]">
+            <div className="px-6 py-4 border-t border-white/[0.06] bg-white/[0.03]">
               <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-[0.05em] mb-3">
                 💸 Reimburse player (paid out of pocket)
               </p>
@@ -596,7 +596,7 @@ export default function AdminWeeks() {
               </div>
             </div>
 
-            <div className="px-6 py-4 border-t border-gray-100">
+            <div className="px-6 py-4 border-t border-white/[0.06]">
               {(() => {
                 const total = (matchAmount || 0) + (snacksAmount || 0)
                 const paidCount = players.filter(p =>
@@ -652,7 +652,7 @@ export default function AdminWeeks() {
       {showNew && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-sm">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between">
+            <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between">
               <h2 className="font-medium">Add Match Week</h2>
               <button onClick={() => setShowNew(false)} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
@@ -665,7 +665,7 @@ export default function AdminWeeks() {
                 <label className="label">Venue</label>
                 <input className="input" value={newWeek.venue} onChange={e => setNewWeek(f => ({ ...f, venue: e.target.value }))} />
               </div>
-              <div className="bg-[#F4F3F0] rounded-xl p-3 space-y-2">
+              <div className="bg-white/[0.04] rounded-xl p-3 space-y-2">
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-[0.05em]">Fee calculator (optional)</p>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
@@ -708,7 +708,7 @@ export default function AdminWeeks() {
                 <input className="input" value={newWeek.notes} onChange={e => setNewWeek(f => ({ ...f, notes: e.target.value }))} />
               </div>
             </div>
-            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2">
+            <div className="px-6 py-4 border-t border-white/[0.06] flex justify-end gap-2">
               <button onClick={() => setShowNew(false)} className="btn-secondary">Cancel</button>
               <button onClick={addWeek} disabled={saving} className="btn-primary">{saving ? 'Saving…' : 'Add Match'}</button>
             </div>
@@ -739,7 +739,7 @@ function AttendanceList({ players, attendanceMap, onToggle, corpusPlayers, deduc
             className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
               status === 'played'
                 ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                : 'bg-gray-100 text-gray-400 hover:bg-white/[0.08]'
             }`}
           >
             {status === 'played' ? '✅ Played' : 'Absent'}
@@ -754,7 +754,7 @@ function AttendanceList({ players, attendanceMap, onToggle, corpusPlayers, deduc
               className={`px-2.5 py-0.5 rounded text-xs font-semibold transition-colors ${
                 ppmPaidIds?.has(p.id)
                   ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                  : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                  : 'bg-gray-100 text-gray-400 hover:bg-white/[0.08]'
               }`}
             >
               {ppmPaidIds?.has(p.id) ? '💵 Paid (cash)' : '💵 Mark as Paid?'}
@@ -771,7 +771,7 @@ function AttendanceList({ players, attendanceMap, onToggle, corpusPlayers, deduc
                 className={`px-2 py-0.5 rounded text-xs font-semibold transition-colors ${
                   freePlayerIds?.has(p.id)
                     ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                    : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                    : 'bg-gray-100 text-gray-400 hover:bg-white/[0.08]'
                 }`}
               >
                 {freePlayerIds?.has(p.id) ? 'Free' : 'Free?'}

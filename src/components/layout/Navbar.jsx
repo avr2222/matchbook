@@ -120,7 +120,7 @@ export default function Navbar() {
               </div>
               <button
                 onClick={handleLogout}
-                className="text-xs font-medium text-gray-500 hover:text-red-400 transition-colors px-2 py-1 rounded-lg hover:bg-red-500/10"
+                className="text-xs font-medium text-gray-500 hover:text-red-400 transition-colors px-2 py-1 rounded-lg hover:bg-red-900/100/10"
               >
                 Logout
               </button>
@@ -170,7 +170,7 @@ export default function Navbar() {
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="text-sm font-semibold text-red-400 hover:text-red-300 transition-colors px-3 py-1.5 rounded-lg hover:bg-red-500/10"
+                  className="text-sm font-semibold text-red-400 hover:text-red-300 transition-colors px-3 py-1.5 rounded-lg hover:bg-red-900/100/10"
                 >
                   Logout
                 </button>

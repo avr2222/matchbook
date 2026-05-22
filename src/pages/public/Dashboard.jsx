@@ -109,7 +109,7 @@ export default function Dashboard() {
     { key: 'good',         label: 'Good',        color: 'bg-emerald-500', dot: 'bg-emerald-500' },
     { key: 'collect_soon', label: 'Collect',      color: 'bg-amber-400',  dot: 'bg-amber-400'   },
     { key: 'urgent',       label: 'Urgent',       color: 'bg-orange-500', dot: 'bg-orange-500'  },
-    { key: 'overdue',      label: 'Overdue',      color: 'bg-red-500',    dot: 'bg-red-500'     },
+    { key: 'overdue',      label: 'Overdue',      color: 'bg-red-900/100',    dot: 'bg-red-900/100'     },
   ]
   const statusCounts = { good: 0, collect_soon: 0, urgent: 0, overdue: 0 }
   corpusPlayers.forEach(p => { if (statusCounts[p.balance_status] !== undefined) statusCounts[p.balance_status]++ })

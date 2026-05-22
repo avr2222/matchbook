@@ -172,12 +172,12 @@ export default function AdminSettings() {
               </div>
               <input
                 type="checkbox"
-                className="mt-1 w-4 h-4 accent-[#1D9E75] shrink-0"
+                className="mt-1 w-4 h-4 accent-[#10b981] shrink-0"
                 checked={form?.auto_deduct_on_sync ?? false}
                 onChange={e => setForm(f => ({ ...f, auto_deduct_on_sync: e.target.checked }))}
               />
             </div>
-            <div className="pt-1 space-y-1 text-xs text-gray-400 bg-[#F4F3F0] rounded-lg p-2">
+            <div className="pt-1 space-y-1 text-xs text-gray-400 bg-white/[0.04] rounded-lg p-2">
               <div>active_tournament_id: <span className="font-mono text-gray-600">{cfg?.active_tournament_id ?? '—'}</span></div>
               <div>default_ppm_rate: <span className="font-mono text-gray-600">₹{cfg?.default_ppm_rate ?? '—'}</span></div>
             </div>
@@ -211,12 +211,12 @@ export default function AdminSettings() {
       {/* All tournaments */}
       <div className="card">
         <h2 className="font-medium text-gray-800 mb-3">Tournament History</h2>
-        <div className="divide-y divide-[rgba(0,0,0,0.04)]">
+        <div className="divide-y divide-white/[0.05]">
           {(tData?.tournaments ?? []).map(t => (
             <div key={t.id} className="py-2.5 flex items-center justify-between text-sm">
               <div>
                 <span className="font-medium text-gray-800">{t.name}</span>
-                {t.id === activeTId && <span className="ml-2 text-xs bg-[#E1F5EE] text-[#1D9E75] px-1.5 py-0.5 rounded">Active</span>}
+                {t.id === activeTId && <span className="ml-2 text-xs bg-[rgba(16,185,129,0.08)] text-[#10b981] px-1.5 py-0.5 rounded">Active</span>}
               </div>
               <span className="text-xs text-gray-400">{t.start_date ?? '?'} → {t.end_date ?? 'ongoing'}</span>
             </div>

@@ -18,7 +18,7 @@ export default function ConfirmModal({ title, message, confirmLabel = 'Confirm',
           <div className="flex items-center gap-2">
             {danger
               ? <IconAlertTriangle size={18} className="text-red-500 shrink-0" />
-              : <IconCircleCheck size={18} className="text-[#1D9E75] shrink-0" />
+              : <IconCircleCheck size={18} className="text-[#10b981] shrink-0" />
             }
             <h3 className="font-medium text-gray-900">{title}</h3>
           </div>

@@ -14,7 +14,7 @@ export function ToastProvider() {
   }, [toast])
 
   if (!toast) return null
-  const bg = toast.type === 'error' ? 'bg-red-600' : toast.type === 'warn' ? 'bg-amber-600' : 'bg-[#1D9E75]'
+  const bg = toast.type === 'error' ? 'bg-red-600' : toast.type === 'warn' ? 'bg-amber-600' : 'bg-[#10b981]'
   return (
     <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-lg text-white text-sm font-medium ${bg}`}>
       {toast.message}

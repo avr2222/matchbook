@@ -7,7 +7,7 @@ import { PageSpinner } from '../../components/ui/Spinner'
 import { useIsAdmin } from '../../hooks/useIsAdmin'
 import ConfirmModal from '../../components/ui/ConfirmModal'
 
-const CONFIDENCE_CLASS = c => c >= 0.85 ? 'text-[#1D9E75]' : c >= 0.5 ? 'text-yellow-600' : 'text-red-500'
+const CONFIDENCE_CLASS = c => c >= 0.85 ? 'text-[#10b981]' : c >= 0.5 ? 'text-yellow-600' : 'text-red-500'
 const CONFIDENCE_LABEL = c => c >= 0.85 ? 'Auto' : c >= 0.5 ? 'Review' : 'Manual'
 
 export default function AdminMapping() {
@@ -137,7 +137,7 @@ export default function AdminMapping() {
       {unmatched.length > 0 && (
         <div className="card border-l-4 border-yellow-400">
           <h2 className="font-medium text-gray-800 mb-3">Unmatched Players ({unmatched.length})</h2>
-          <div className="divide-y divide-[rgba(0,0,0,0.04)]">
+          <div className="divide-y divide-white/[0.05]">
             {unmatched.map(u => (
               <div key={u.cricheroes_player_id} className="py-3 flex items-center justify-between gap-4 text-sm">
                 <div>
@@ -161,7 +161,7 @@ export default function AdminMapping() {
 
       <div className="card p-0 overflow-hidden overflow-x-auto">
         <table className="w-full text-sm min-w-[480px]">
-          <thead className="bg-[#F8F8F6] border-b border-[rgba(0,0,0,0.06)]">
+          <thead className="bg-white/[0.03] border-b border-white/[0.06]">
             <tr>
               <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">CricHeroes Name</th>
               <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Mapped To</th>
@@ -170,11 +170,11 @@ export default function AdminMapping() {
               <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Name</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[rgba(0,0,0,0.04)]">
+          <tbody className="divide-y divide-white/[0.05]">
             {mappings.map(m => {
               const player = players.find(p => p.id === m.player_id)
               return (
-                <tr key={m.cricheroes_player_id} className={`hover:bg-[#F8F8F6] ${!m.confirmed ? 'bg-yellow-50' : ''}`}>
+                <tr key={m.cricheroes_player_id} className={`hover:bg-white/[0.03] ${!m.confirmed ? 'bg-yellow-900/10' : ''}`}>
                   <td className="px-4 py-3">
                     <div className="font-medium text-gray-800">{m.cricheroes_name}</div>
                     <div className="text-xs text-gray-400">ID: {m.cricheroes_player_id}</div>

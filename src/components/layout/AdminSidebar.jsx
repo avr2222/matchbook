@@ -88,7 +88,7 @@ export function AdminMobileNav() {
             <Icon size={18} className="leading-none" />
             <span className="text-[10px] font-medium leading-tight line-clamp-1">{label}</span>
             {badge > 0 && (
-              <span className="absolute top-1 right-1 bg-red-500 text-white text-[9px] font-medium rounded-full w-3.5 h-3.5 flex items-center justify-center leading-none">
+              <span className="absolute top-1 right-1 bg-red-900/100 text-white text-[9px] font-medium rounded-full w-3.5 h-3.5 flex items-center justify-center leading-none">
                 {badge > 9 ? '!' : badge}
               </span>
             )}
@@ -125,7 +125,7 @@ export default function AdminSidebar() {
                 <Icon size={15} />
                 <span className="flex-1">{label}</span>
                 {badge > 0 && (
-                  <span className="bg-red-500 text-white text-[10px] font-medium rounded-full w-4 h-4 flex items-center justify-center leading-none">
+                  <span className="bg-red-900/100 text-white text-[10px] font-medium rounded-full w-4 h-4 flex items-center justify-center leading-none">
                     {badge > 9 ? '!' : badge}
                   </span>
                 )}

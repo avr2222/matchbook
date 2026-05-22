@@ -78,7 +78,7 @@ function UpiPaySection({ player, config }) {
     <div className="space-y-4">
       <div className="text-center">
         <p className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] mb-1">Top-up amount</p>
-        <div className="text-[36px] font-medium text-gray-900 tabular-nums">
+        <div className="text-[36px] font-medium text-gray-100 tabular-nums">
           ₹{chosen.toLocaleString('en-IN')}
         </div>
         <p className="text-xs text-gray-400 mt-1">
@@ -94,8 +94,8 @@ function UpiPaySection({ player, config }) {
             onClick={() => { setAmount(a); setCustomAmt('') }}
             className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
               chosen === a && !customAmt
-                ? 'bg-[#1D9E75] text-white border-[#1D9E75]'
-                : 'border-gray-200 text-gray-600 hover:border-[#1D9E75]/40'
+                ? 'bg-[#10b981] text-white border-[#10b981]'
+                : 'border-gray-200 text-gray-400 hover:border-[#10b981]/40'
             }`}
           >
             ₹{a.toLocaleString('en-IN')}
@@ -130,30 +130,30 @@ function UpiPaySection({ player, config }) {
           {saving ? 'Opening…' : `Pay ₹${chosen.toLocaleString('en-IN')} via UPI`}
         </button>
       ) : (
-        <div className="bg-[#E1F5EE] border border-[#1D9E75]/20 rounded-xl p-4 space-y-2">
-          <p className="text-[11px] font-medium text-[#1D9E75] uppercase tracking-[0.05em]">Pay to UPI ID</p>
+        <div className="bg-[rgba(16,185,129,0.08)] border border-[#10b981]/20 rounded-xl p-4 space-y-2">
+          <p className="text-[11px] font-medium text-[#10b981] uppercase tracking-[0.05em]">Pay to UPI ID</p>
           <div className="flex items-center gap-2">
-            <span className="font-mono text-base font-medium text-gray-900 flex-1 break-all">{upiId}</span>
+            <span className="font-mono text-base font-medium text-gray-100 flex-1 break-all">{upiId}</span>
             <button
               onClick={copy}
               className={`shrink-0 text-sm font-medium px-3 py-1.5 rounded-lg border transition-colors ${
                 copied
-                  ? 'bg-[#1D9E75] text-white border-[#1D9E75]'
-                  : 'text-[#1D9E75] border-[#1D9E75]/30 hover:bg-[#1D9E75]/10'
+                  ? 'bg-[#10b981] text-white border-[#10b981]'
+                  : 'text-[#10b981] border-[#10b981]/30 hover:bg-[#10b981]/10'
               }`}
             >
               {copied ? '✓ Copied' : 'Copy'}
             </button>
           </div>
           <p className="text-xs text-gray-500 font-medium">
-            Use note: <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded">{note}</span>
+            Use note: <span className="font-mono bg-white/[0.06] px-1.5 py-0.5 rounded">{note}</span>
           </p>
           <p className="text-xs text-gray-400">Open any UPI app and pay, or open this page on your phone to pay in one tap.</p>
           {!pendingReqId && (
             <button
               onClick={handlePayNow}
               disabled={saving}
-              className="text-xs text-[#1D9E75] font-medium hover:underline"
+              className="text-xs text-[#10b981] font-medium hover:underline"
             >
               {saving ? 'Recording…' : 'Record payment intent →'}
             </button>
@@ -185,9 +185,9 @@ function UpiPaySection({ player, config }) {
       )}
 
       {refSaved && (
-        <div className="bg-[#E1F5EE] border border-[#1D9E75]/20 rounded-xl p-3 text-center">
-          <p className="text-sm font-medium text-[#1D9E75]">Payment reference saved!</p>
-          <p className="text-xs text-[#1D9E75]/70 mt-1">Admin will confirm and credit your account shortly.</p>
+        <div className="bg-[rgba(16,185,129,0.08)] border border-[#10b981]/20 rounded-xl p-3 text-center">
+          <p className="text-sm font-medium text-[#10b981]">Payment reference saved!</p>
+          <p className="text-xs text-[#10b981]/70 mt-1">Admin will confirm and credit your account shortly.</p>
         </div>
       )}
 
@@ -216,9 +216,9 @@ export default function PlayerPay() {
     return (
       <div className="max-w-sm mx-auto px-4 py-16 text-center space-y-3">
         <IconCricket size={40} className="text-gray-300 mx-auto" />
-        <p className="text-gray-700 font-medium text-lg">Player not found.</p>
+        <p className="text-gray-300 font-medium text-lg">Player not found.</p>
         <p className="text-sm text-gray-400">Check the link or contact your admin.</p>
-        <Link to="/" className="inline-block mt-2 text-[#1D9E75] hover:underline text-sm font-medium">← Back to home</Link>
+        <Link to="/" className="inline-block mt-2 text-[#10b981] hover:underline text-sm font-medium">← Back to home</Link>
       </div>
     )
   }
@@ -283,11 +283,11 @@ export default function PlayerPay() {
   ].filter(Boolean)
 
   return (
-    <div className="min-h-screen bg-[#F8F8F6] flex flex-col items-center pb-12 px-4">
+    <div className="min-h-screen flex flex-col items-center pb-12 px-4">
       <div className="w-full max-w-sm">
 
         {/* Hero */}
-        <div className="bg-[#1D9E75] rounded-b-xl px-6 pt-10 pb-10 text-white text-center mb-6">
+        <div className="bg-[#10b981] rounded-b-xl px-6 pt-10 pb-10 text-white text-center mb-6">
           <p className="text-white/70 text-xs font-medium uppercase tracking-[0.05em] mb-2">{cfg?.team_name ?? 'Cricket Team'}</p>
           <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center text-2xl font-medium mx-auto mb-3">
             {player.display_name.charAt(0).toUpperCase()}
@@ -299,7 +299,7 @@ export default function PlayerPay() {
         {/* Balance card */}
         <div className="card text-center mb-4">
           <p className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] mb-2">Corpus balance</p>
-          <div className={`text-[40px] font-medium tracking-tight tabular-nums mb-3 ${balance < 0 ? 'text-red-600' : 'text-gray-900'}`}>
+          <div className={`text-[40px] font-medium tracking-tight tabular-nums mb-3 ${balance < 0 ? 'text-red-400' : 'text-gray-100'}`}>
             {player.type === 'ppm'
               ? <span className="text-[28px] text-gray-500">PPM</span>
               : `₹${balance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -314,7 +314,7 @@ export default function PlayerPay() {
         {completedWeeks.length > 0 && (
           <div className="grid grid-cols-3 gap-3 mb-4">
             <div className="card text-center py-3 px-2">
-              <div className="text-[24px] font-medium text-[#1D9E75] tabular-nums">{attendRate}%</div>
+              <div className="text-[24px] font-medium text-[#10b981] tabular-nums">{attendRate}%</div>
               <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em] mt-0.5">Attendance</div>
               <div className="text-xs text-gray-300 mt-0.5">{perfs.length}/{completedWeeks.length}</div>
             </div>
@@ -329,7 +329,7 @@ export default function PlayerPay() {
             </div>
             {player.type !== 'ppm' && (
               <div className="card text-center py-3 px-2">
-                <div className={`text-[24px] font-medium tabular-nums ${matchesLeft <= 2 ? 'text-red-500' : matchesLeft <= 5 ? 'text-amber-500' : 'text-[#1D9E75]'}`}>
+                <div className={`text-[24px] font-medium tabular-nums ${matchesLeft <= 2 ? 'text-red-500' : matchesLeft <= 5 ? 'text-amber-500' : 'text-[#10b981]'}`}>
                   ~{matchesLeft}
                 </div>
                 <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em] mt-0.5">Matches left</div>
@@ -353,12 +353,12 @@ export default function PlayerPay() {
               </div>
             ) : (
               <div className="py-4 space-y-3 text-center">
-                <IconCircleCheck size={36} className="text-[#1D9E75] mx-auto" />
-                <p className="font-medium text-[#1D9E75] text-base">You're all good!</p>
+                <IconCircleCheck size={36} className="text-[#10b981] mx-auto" />
+                <p className="font-medium text-[#10b981] text-base">You're all good!</p>
                 <p className="text-sm text-gray-400">Your corpus balance is healthy. No action needed.</p>
                 <button
                   onClick={() => setShowTopUp(true)}
-                  className="mt-1 text-sm text-[#1D9E75] font-medium hover:underline transition-colors"
+                  className="mt-1 text-sm text-[#10b981] font-medium hover:underline transition-colors"
                 >
                   Top up anyway →
                 </button>
@@ -369,17 +369,17 @@ export default function PlayerPay() {
 
         {/* Next match */}
         {nextMatch && (
-          <div className="card bg-[#E1F5EE] border-[#1D9E75]/20 mb-4">
-            <p className="text-[11px] font-medium text-[#1D9E75] uppercase tracking-[0.05em] mb-1.5">Next match</p>
-            <p className="font-medium text-gray-900 text-base">{format(parseISO(nextMatch.match_date), 'EEEE, MMM d')}</p>
+          <div className="card bg-[rgba(16,185,129,0.08)] border-[#10b981]/20 mb-4">
+            <p className="text-[11px] font-medium text-[#10b981] uppercase tracking-[0.05em] mb-1.5">Next match</p>
+            <p className="font-medium text-gray-100 text-base">{format(parseISO(nextMatch.match_date), 'EEEE, MMM d')}</p>
             {nextMatch.venue && (
-              <p className="text-sm text-gray-600 mt-0.5 flex items-center gap-1">
+              <p className="text-sm text-gray-400 mt-0.5 flex items-center gap-1">
                 <IconMapPin size={13} className="shrink-0 text-gray-400" />{nextMatch.venue.split(',')[0]}
               </p>
             )}
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#1D9E75]/20">
+            <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#10b981]/20">
               <span className="text-xs text-gray-500 font-medium">Match fee</span>
-              <span className="font-medium text-[#1D9E75] text-xl tabular-nums">₹{(nextMatch.match_fee ?? 0).toLocaleString('en-IN')}</span>
+              <span className="font-medium text-[#10b981] text-xl tabular-nums">₹{(nextMatch.match_fee ?? 0).toLocaleString('en-IN')}</span>
             </div>
           </div>
         )}
@@ -387,7 +387,7 @@ export default function PlayerPay() {
         {/* Achievements */}
         {badges.length > 0 && (
           <div className="card mb-4">
-            <h3 className="font-medium text-gray-900 mb-2 text-[11px] uppercase tracking-[0.05em]">Achievements</h3>
+            <h3 className="font-medium text-gray-100 mb-2 text-[11px] uppercase tracking-[0.05em]">Achievements</h3>
             <div className="flex flex-wrap gap-2">
               {badges.map(({ Icon, label }) => (
                 <span key={label} className="flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-medium px-2.5 py-1 rounded-full">
@@ -401,18 +401,18 @@ export default function PlayerPay() {
         {/* Cricket Stats */}
         {perfs.length > 0 && (
           <div className="card mb-4">
-            <h3 className="font-medium text-gray-900 mb-3 text-[11px] uppercase tracking-[0.05em]">Cricket stats</h3>
+            <h3 className="font-medium text-gray-100 mb-3 text-[11px] uppercase tracking-[0.05em]">Cricket stats</h3>
             <div className="grid grid-cols-3 gap-3 mb-4">
-              <div className="bg-[#F4F3F0] rounded-xl p-3 text-center">
-                <div className="text-[24px] font-medium text-gray-900 tabular-nums">{careerRuns}</div>
+              <div className="bg-white/[0.04] rounded-xl p-3 text-center">
+                <div className="text-[24px] font-medium text-gray-100 tabular-nums">{careerRuns}</div>
                 <div className="text-[11px] text-gray-500 uppercase tracking-[0.05em] mt-0.5">Runs</div>
               </div>
-              <div className="bg-[#F4F3F0] rounded-xl p-3 text-center">
-                <div className="text-[24px] font-medium text-gray-900 tabular-nums">{careerWkts}</div>
+              <div className="bg-white/[0.04] rounded-xl p-3 text-center">
+                <div className="text-[24px] font-medium text-gray-100 tabular-nums">{careerWkts}</div>
                 <div className="text-[11px] text-gray-500 uppercase tracking-[0.05em] mt-0.5">Wickets</div>
               </div>
-              <div className="bg-[#F4F3F0] rounded-xl p-3 text-center">
-                <div className="text-[24px] font-medium text-gray-900 tabular-nums">{perfs.length}</div>
+              <div className="bg-white/[0.04] rounded-xl p-3 text-center">
+                <div className="text-[24px] font-medium text-gray-100 tabular-nums">{perfs.length}</div>
                 <div className="text-[11px] text-gray-500 uppercase tracking-[0.05em] mt-0.5">Weeks</div>
                 {totalGames > perfs.length && (
                   <div className="text-[10px] text-gray-400 mt-0.5">{totalGames} matches</div>
@@ -456,7 +456,7 @@ export default function PlayerPay() {
                           key={p.id}
                           title={`${p.runs}r ${p.wickets}w`}
                           className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium
-                            ${empty ? 'bg-gray-100 text-gray-400' : good ? 'bg-[#E1F5EE] text-[#1D9E75]' : 'bg-red-100 text-red-600'}`}
+                            ${empty ? 'bg-white/[0.06] text-gray-500' : good ? 'bg-[rgba(16,185,129,0.08)] text-[#10b981]' : 'bg-red-900/20 text-red-400'}`}
                         >
                           {empty ? '—' : good ? '↑' : '↓'}
                         </div>
@@ -473,20 +473,20 @@ export default function PlayerPay() {
                   {last5.map(perf => {
                     const week = weeks.find(w => w.week_id === perf.week_id)
                     return (
-                      <div key={perf.id} className="flex items-center justify-between bg-[#F4F3F0] rounded-lg px-3 py-2">
+                      <div key={perf.id} className="flex items-center justify-between bg-white/[0.04] rounded-lg px-3 py-2">
                         <div className="flex items-center gap-2 min-w-0">
                           <div className="text-xs text-gray-500 w-14 shrink-0">
                             {week ? format(parseISO(week.match_date), 'MMM d') : perf.week_id}
                           </div>
                           {week?.result && (
-                            <span className="text-xs font-medium text-[#1D9E75] bg-[#E1F5EE] px-1.5 py-0.5 rounded-md truncate max-w-[90px]">
+                            <span className="text-xs font-medium text-[#10b981] bg-[rgba(16,185,129,0.08)] px-1.5 py-0.5 rounded-md truncate max-w-[90px]">
                               {week.result}
                             </span>
                           )}
                         </div>
                         <div className="flex gap-3 items-center text-sm shrink-0">
                           <span>
-                            <span className="font-medium text-[#1D9E75] tabular-nums">{perf.runs}</span>
+                            <span className="font-medium text-[#10b981] tabular-nums">{perf.runs}</span>
                             <span className="text-xs text-gray-400"> r</span>
                             {perf.balls_faced > 0 && (
                               <span className="text-xs text-gray-400"> ({perf.balls_faced}b)</span>
@@ -517,7 +517,7 @@ export default function PlayerPay() {
 
         {/* Footer */}
         <p className="text-center text-xs text-gray-400 mt-2">
-          <Link to="/login" className="text-[#1D9E75] hover:underline font-medium">Log in</Link>
+          <Link to="/login" className="text-[#10b981] hover:underline font-medium">Log in</Link>
           {' '}to view your full transaction history.
         </p>
 

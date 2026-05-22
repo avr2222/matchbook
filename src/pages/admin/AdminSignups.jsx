@@ -24,7 +24,7 @@ function useSignups() {
 
 const STATUS_BADGE = {
   pending:  'bg-amber-100 text-amber-800',
-  approved: 'bg-[#E1F5EE] text-[#1D9E75]',
+  approved: 'bg-[rgba(16,185,129,0.08)] text-[#10b981]',
   rejected: 'bg-red-100 text-red-600',
 }
 
@@ -109,8 +109,8 @@ export default function AdminSignups() {
               onClick={() => setFilter(f)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                 filter === f
-                  ? 'bg-[#1D9E75] text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-[#10b981] text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-white/[0.08]'
               }`}
             >
               {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -170,7 +170,7 @@ export default function AdminSignups() {
                             <button
                               onClick={() => savePlayerLink(s)}
                               disabled={editBusy}
-                              className="text-xs text-[#1D9E75] font-medium hover:underline"
+                              className="text-xs text-[#10b981] font-medium hover:underline"
                             >
                               {editBusy ? '…' : 'Save'}
                             </button>
@@ -237,7 +237,7 @@ export default function AdminSignups() {
                 {/* Security questions (collapsed by default) */}
                 <details className="text-xs text-gray-400">
                   <summary className="cursor-pointer hover:text-gray-600 select-none">Security questions</summary>
-                  <div className="mt-2 space-y-1 bg-[#F4F3F0] rounded-lg p-2">
+                  <div className="mt-2 space-y-1 bg-white/[0.04] rounded-lg p-2">
                     <div><span className="font-medium text-gray-600">Q1:</span> {s.security_question_1}</div>
                     <div><span className="font-medium text-gray-600">A1:</span> {s.security_answer_1 ? '••••••' : '—'}</div>
                     <div><span className="font-medium text-gray-600">Q2:</span> {s.security_question_2}</div>

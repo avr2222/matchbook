@@ -54,7 +54,7 @@ function PayNowButton({ player, config }) {
         <button
           onClick={copyUpi}
           className={`shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${
-            copied ? 'bg-white text-[#1D9E75]' : 'bg-white/25 text-white hover:bg-white/35'
+            copied ? 'bg-white text-[#10b981]' : 'bg-white/25 text-white hover:bg-white/35'
           }`}
         >
           {copied ? '✓ Copied' : 'Copy'}
@@ -346,7 +346,7 @@ export default function MyDashboard() {
                   `${cfg?.team_name ?? 'Cricket'} — next match on ${format(parseISO(nextMatch.match_date), 'EEEE, MMM d')} at ${nextMatch.venue?.split(',')[0] ?? 'TBD'}. Fee: ₹${nextMatch.match_fee}. Reply if you're playing!`
                 )}`}
                 target="_blank" rel="noreferrer"
-                className="flex items-center gap-1 text-xs text-gray-400 font-medium hover:text-[#1D9E75] mt-1 justify-end"
+                className="flex items-center gap-1 text-xs text-gray-400 font-medium hover:text-[#10b981] mt-1 justify-end"
               >
                 <IconShare size={12} /> Share
               </a>
@@ -359,19 +359,19 @@ export default function MyDashboard() {
       <div className="grid grid-cols-2 gap-3">
         <div className="card">
           <div className="flex items-center gap-2 mb-2">
-            <IconCricket size={16} className="text-[#1D9E75]" />
+            <IconCricket size={16} className="text-[#10b981]" />
             <span className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Matches played</span>
           </div>
           <div className="text-[24px] font-medium text-gray-100 tabular-nums">
             {played}<span className="text-base font-normal text-gray-400">/{total}</span>
           </div>
-          <div className={`text-xs font-medium mt-1 ${pct >= 75 ? 'text-[#1D9E75]' : pct >= 50 ? 'text-amber-500' : 'text-red-500'}`}>
+          <div className={`text-xs font-medium mt-1 ${pct >= 75 ? 'text-[#10b981]' : pct >= 50 ? 'text-amber-500' : 'text-red-500'}`}>
             {pct}% attendance
           </div>
         </div>
         <div className="card">
           <div className="flex items-center gap-2 mb-2">
-            <IconCalendar size={16} className="text-[#1D9E75]" />
+            <IconCalendar size={16} className="text-[#10b981]" />
             <span className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Upcoming</span>
           </div>
           <div className="text-[24px] font-medium text-gray-100 tabular-nums">{scheduledWeeks.length}</div>

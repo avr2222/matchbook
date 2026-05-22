@@ -236,7 +236,7 @@ export default function AdminExpenses() {
       {completedWeeks.length > 0 && (
         <div className="card">
           <h2 className="font-medium text-gray-800 mb-3">Match Fee Collections</h2>
-          <div className="divide-y divide-[rgba(0,0,0,0.04)] -mx-4 -mb-4">
+          <div className="divide-y divide-white/[0.05] -mx-4 -mb-4">
             {completedWeeks.map(w => {
               const d = deductByWeek[w.week_id]
               return (
@@ -249,7 +249,7 @@ export default function AdminExpenses() {
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-gray-500">{d.count} players</span>
                       <span className="font-mono text-gray-700">₹{Math.round(d.total).toLocaleString('en-IN')}</span>
-                      <span className="text-xs px-2 py-0.5 rounded bg-[#E1F5EE] text-[#1D9E75] font-medium">Applied</span>
+                      <span className="text-xs px-2 py-0.5 rounded bg-[rgba(16,185,129,0.08)] text-[#10b981] font-medium">Applied</span>
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
@@ -266,7 +266,7 @@ export default function AdminExpenses() {
 
       <div className="card p-0 overflow-hidden overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-[#F8F8F6] border-b border-[rgba(0,0,0,0.06)]">
+          <thead className="bg-white/[0.03] border-b border-white/[0.06]">
             <tr>
               <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Date</th>
               <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Category</th>
@@ -276,11 +276,11 @@ export default function AdminExpenses() {
               <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[rgba(0,0,0,0.04)]">
+          <tbody className="divide-y divide-white/[0.05]">
             {expenses.length === 0 ? (
               <tr><td colSpan={6} className="text-center py-10 text-gray-400">No expenses recorded yet.</td></tr>
             ) : expenses.map(e => (
-                <tr key={e.id} className="hover:bg-[#F8F8F6]">
+                <tr key={e.id} className="hover:bg-white/[0.03]">
                   <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{format(parseISO(e.date), 'MMM d, yyyy')}</td>
                   <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{CATEGORIES.find(c => c.value === e.category)?.label ?? e.category}</td>
                   <td className="px-4 py-3 text-gray-600">
@@ -323,7 +323,7 @@ export default function AdminExpenses() {
             ))}
           </tbody>
           {expenses.length > 0 && (
-            <tfoot className="bg-[#F8F8F6] border-t border-[rgba(0,0,0,0.06)]">
+            <tfoot className="bg-white/[0.03] border-t border-white/[0.06]">
               <tr>
                 <td colSpan={4} className="px-4 py-2 text-right text-sm font-medium text-gray-700">Total</td>
                 <td className="px-4 py-2 text-right font-mono font-medium text-gray-900">₹{total.toLocaleString('en-IN')}</td>
@@ -426,7 +426,7 @@ export default function AdminExpenses() {
                   {SPLIT_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
                 {preview && (
-                  <p className="text-xs text-[#1D9E75] mt-1">≈ {preview}</p>
+                  <p className="text-xs text-[#10b981] mt-1">≈ {preview}</p>
                 )}
               </div>
               <div>
@@ -453,7 +453,7 @@ export default function AdminExpenses() {
                       type="checkbox"
                       checked={form.reimburse_corpus}
                       onChange={e => setForm(f => ({ ...f, reimburse_corpus: e.target.checked }))}
-                      className="w-4 h-4 accent-[#1D9E75]"
+                      className="w-4 h-4 accent-[#10b981]"
                     />
                     Add ₹{parseFloat(form.amount).toLocaleString('en-IN')} to their corpus balance
                   </label>

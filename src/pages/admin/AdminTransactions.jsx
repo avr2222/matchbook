@@ -373,7 +373,7 @@ export default function AdminTransactions() {
         <h1 className="text-[22px] font-medium text-gray-900">
           Payments & Transactions
           {pendingReqs.length > 0 && (
-            <span className="ml-2 bg-red-500 text-white text-xs font-medium rounded-full px-2 py-0.5">{pendingReqs.length}</span>
+            <span className="ml-2 bg-red-900/100 text-white text-xs font-medium rounded-full px-2 py-0.5">{pendingReqs.length}</span>
           )}
         </h1>
         <div className="flex gap-2 flex-wrap">
@@ -392,7 +392,7 @@ export default function AdminTransactions() {
       {isAdmin && pendingReqs.length > 0 && (
         <div className="card border-l-4 border-amber-400 space-y-2">
           <h2 className="font-medium text-gray-800 text-sm">Pending Payment References ({pendingReqs.length})</h2>
-          <div className="divide-y divide-[rgba(0,0,0,0.04)]">
+          <div className="divide-y divide-white/[0.05]">
             {pendingReqs.map(req => {
               const payer = players.find(p => p.id === req.player_id)
               return (
@@ -400,7 +400,7 @@ export default function AdminTransactions() {
                   <div>
                     <span className="font-medium text-gray-800">{payer?.display_name ?? req.player_id}</span>
                     <span className="mx-2 text-gray-300">·</span>
-                    <span className="font-mono text-[#1D9E75]">₹{req.amount.toLocaleString('en-IN')}</span>
+                    <span className="font-mono text-[#10b981]">₹{req.amount.toLocaleString('en-IN')}</span>
                     <span className="mx-2 text-gray-300">·</span>
                     <span className="text-gray-500 text-xs">Ref: {req.upi_ref}</span>
                     <div className="text-xs text-gray-400 mt-0.5">{req.submitted_on}</div>
@@ -409,7 +409,7 @@ export default function AdminTransactions() {
                     <button
                       onClick={() => approveRequest(req)}
                       disabled={approvingId === req.id}
-                      className="text-xs text-[#1D9E75] font-medium border border-[#1D9E75]/20 rounded px-2 py-1 hover:bg-[#E1F5EE] disabled:opacity-50"
+                      className="text-xs text-[#10b981] font-medium border border-[#10b981]/20 rounded px-2 py-1 hover:bg-[rgba(16,185,129,0.08)] disabled:opacity-50"
                     >
                       {approvingId === req.id ? '…' : '✓ Approve'}
                     </button>
@@ -452,7 +452,7 @@ export default function AdminTransactions() {
 
       <div className="card p-0 overflow-hidden overflow-x-auto">
         <table className="w-full text-sm min-w-[640px]">
-          <thead className="bg-[#F8F8F6] border-b border-[rgba(0,0,0,0.06)]">
+          <thead className="bg-white/[0.03] border-b border-white/[0.06]">
             <tr>
               {isAdmin && (
                 <th className="pl-4 pr-2 py-3 w-8">
@@ -473,13 +473,13 @@ export default function AdminTransactions() {
               <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[rgba(0,0,0,0.04)]">
+          <tbody className="divide-y divide-white/[0.05]">
             {transactions.length === 0 ? (
               <tr><td colSpan={isAdmin ? 7 : 6} className="text-center py-10 text-gray-400">No transactions found.</td></tr>
             ) : transactions.map(t => {
               const player = players.find(p => p.id === t.player_id)
               return (
-                <tr key={t.id} className={`hover:bg-[#F8F8F6] ${selectedIds.has(t.id) ? 'bg-red-50' : ''}`}>
+                <tr key={t.id} className={`hover:bg-white/[0.03] ${selectedIds.has(t.id) ? 'bg-red-900/10' : ''}`}>
                   {isAdmin && (
                     <td className="pl-4 pr-2 py-3 w-8">
                       <input
@@ -493,7 +493,7 @@ export default function AdminTransactions() {
                   <td className="px-4 py-3 text-gray-500">{format(parseISO(t.date), 'MMM d, yyyy')}</td>
                   <td className="px-4 py-3 font-medium text-gray-800">{player?.display_name ?? t.player_id}</td>
                   <td className="px-4 py-3 text-gray-500">{TYPES.find(x => x.value === t.type)?.label ?? t.type}</td>
-                  <td className={`px-4 py-3 text-right font-mono font-medium ${t.direction === 'credit' ? 'text-[#1D9E75]' : 'text-red-500'}`}>
+                  <td className={`px-4 py-3 text-right font-mono font-medium ${t.direction === 'credit' ? 'text-[#10b981]' : 'text-red-500'}`}>
                     {t.direction === 'credit' ? '+' : '-'}₹{t.amount.toLocaleString('en-IN')}
                   </td>
                   <td className="px-4 py-3 text-gray-400 text-xs">{t.description}</td>
@@ -558,9 +558,9 @@ export default function AdminTransactions() {
                 <input className="input" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
               </div>
               {newBalance !== null && (
-                <div className="bg-[#F4F3F0] rounded-lg p-3 text-sm text-gray-700">
+                <div className="bg-white/[0.04] rounded-lg p-3 text-sm text-gray-700">
                   Preview: <strong>{selectedPlayer?.display_name}</strong>{' '}
-                  <span className={typeInfo?.dir === 'credit' ? 'text-[#1D9E75]' : 'text-red-500'}>
+                  <span className={typeInfo?.dir === 'credit' ? 'text-[#10b981]' : 'text-red-500'}>
                     {typeInfo?.dir === 'credit' ? '+' : '-'}₹{parseFloat(form.amount || 0).toLocaleString('en-IN')}
                   </span>{' → '}
                   New balance: <strong>₹{Math.round(newBalance * 100) / 100}</strong>
@@ -656,7 +656,7 @@ export default function AdminTransactions() {
                   <input className="input" type="date" value={bulkDate} onChange={e => setBulkDate(e.target.value)} />
                 </div>
               </div>
-              <div className="divide-y divide-[rgba(0,0,0,0.04)]">
+              <div className="divide-y divide-white/[0.05]">
                 {bulkRows.map((row, i) => (
                   <div key={i} className="py-2 flex gap-2 items-center">
                     <select
@@ -677,7 +677,7 @@ export default function AdminTransactions() {
                   </div>
                 ))}
               </div>
-              <button onClick={() => setBulkRows(rows => [...rows, { player_id: '', amount: '' }])} className="text-sm text-[#1D9E75] hover:underline">
+              <button onClick={() => setBulkRows(rows => [...rows, { player_id: '', amount: '' }])} className="text-sm text-[#10b981] hover:underline">
                 + Add row
               </button>
             </div>

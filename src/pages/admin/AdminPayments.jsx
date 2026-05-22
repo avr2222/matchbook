@@ -24,7 +24,7 @@ function usePaymentRequestsFull() {
 
 const STATUS_BADGE = {
   pending:   'bg-amber-100 text-amber-800',
-  confirmed: 'bg-[#E1F5EE] text-[#1D9E75]',
+  confirmed: 'bg-[rgba(16,185,129,0.08)] text-[#10b981]',
   rejected:  'bg-red-100 text-red-600',
 }
 
@@ -103,8 +103,8 @@ export default function AdminPayments() {
               onClick={() => setFilter(f)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                 filter === f
-                  ? 'bg-[#1D9E75] text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-[#10b981] text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-white/[0.08]'
               }`}
             >
               {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -123,7 +123,7 @@ export default function AdminPayments() {
       ) : (
         <div className="overflow-x-auto -mx-4 sm:mx-0">
           <table className="min-w-full text-sm">
-            <thead className="bg-[#F8F8F6] border-b border-[rgba(0,0,0,0.06)]">
+            <thead className="bg-white/[0.03] border-b border-white/[0.06]">
               <tr>
                 <th className="px-4 py-3 text-left text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Player</th>
                 <th className="px-4 py-3 text-right text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Amount</th>
@@ -133,7 +133,7 @@ export default function AdminPayments() {
                 <th className="px-4 py-3 text-right text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[rgba(0,0,0,0.04)] bg-white">
+            <tbody className="divide-y divide-white/[0.05] bg-white">
               {visible.map(req => {
                 const player = playerMap[req.player_id]
                 const isBusy = busy === req.id
@@ -145,7 +145,7 @@ export default function AdminPayments() {
                         <div className="text-xs text-gray-400 font-normal">{req.notes}</div>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right font-mono font-medium text-[#1D9E75]">
+                    <td className="px-4 py-3 text-right font-mono font-medium text-[#10b981]">
                       ₹{(req.amount ?? 0).toLocaleString('en-IN')}
                     </td>
                     <td className="px-4 py-3 text-gray-500 font-mono text-xs hidden sm:table-cell">
@@ -179,7 +179,7 @@ export default function AdminPayments() {
                         </div>
                       )}
                       {req.status === 'confirmed' && (
-                        <span className="text-xs text-[#1D9E75] font-medium">
+                        <span className="text-xs text-[#10b981] font-medium">
                           {req.paid_at ? format(parseISO(req.paid_at), 'MMM d') : '✓'}
                         </span>
                       )}

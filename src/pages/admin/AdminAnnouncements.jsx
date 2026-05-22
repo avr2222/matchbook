@@ -126,7 +126,7 @@ export default function AdminAnnouncements() {
         {active.length === 0 ? (
           <p className="text-sm text-gray-400 py-4 text-center">No active announcements.</p>
         ) : (
-          <div className="divide-y divide-[rgba(0,0,0,0.04)]">
+          <div className="divide-y divide-white/[0.05]">
             {active.map(a => (
               <AnnRow key={a.id} ann={a} todayStr={todayStr} onEdit={openEdit} onDelete={deleteAnn} deletingId={deletingId} isAdmin={isAdmin} />
             ))}
@@ -137,7 +137,7 @@ export default function AdminAnnouncements() {
       {expired.length > 0 && (
         <div className="card">
           <h2 className="font-medium text-gray-400 mb-2 text-sm">Expired ({expired.length})</h2>
-          <div className="divide-y divide-[rgba(0,0,0,0.04)]">
+          <div className="divide-y divide-white/[0.05]">
             {expired.map(a => (
               <AnnRow key={a.id} ann={a} todayStr={todayStr} onEdit={openEdit} onDelete={deleteAnn} deletingId={deletingId} isAdmin={isAdmin} />
             ))}
@@ -176,7 +176,7 @@ export default function AdminAnnouncements() {
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
-                  className="w-4 h-4 accent-[#1D9E75]"
+                  className="w-4 h-4 accent-[#10b981]"
                   checked={editing.pinned ?? false}
                   onChange={e => setEditing(p => ({ ...p, pinned: e.target.checked }))}
                 />

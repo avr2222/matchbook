@@ -104,7 +104,7 @@ export default function ForgotPassword() {
                 required
               />
             </div>
-            {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
+            {error && <p className="text-sm text-red-600 bg-red-900/10 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
             <button type="submit" disabled={loading} className="btn-primary w-full">
               {loading ? 'Looking up…' : 'Find Account →'}
             </button>
@@ -155,7 +155,7 @@ export default function ForgotPassword() {
                 autoComplete="new-password"
               />
             </div>
-            {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
+            {error && <p className="text-sm text-red-600 bg-red-900/10 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
             <button type="submit" disabled={loading} className="btn-primary w-full">
               {loading ? 'Resetting…' : 'Reset Password'}
             </button>

@@ -214,7 +214,7 @@ export default function Signup() {
           </div>
 
           {/* Security questions */}
-          <div className="pt-2 border-t border-gray-100">
+          <div className="pt-2 border-t border-white/[0.06]">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Security Questions (for password recovery)</p>
 
             <div className="space-y-2 mb-3">
@@ -249,7 +249,7 @@ export default function Signup() {
           </div>
 
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+            <div className="p-3 bg-red-900/10 border border-red-200 rounded-lg text-sm text-red-700">
               {error}
             </div>
           )}

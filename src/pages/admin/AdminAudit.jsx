@@ -38,7 +38,7 @@ export default function AdminAudit() {
       {entries.length === 0 ? (
         <div className="card text-center text-gray-400 py-10">No audit entries yet.</div>
       ) : (
-        <div className="card p-0 divide-y divide-[rgba(0,0,0,0.04)]">
+        <div className="card p-0 divide-y divide-white/[0.05]">
           {entries.map(e => (
             <div key={e.id} className="px-4 py-3 flex items-start gap-3">
               <span className="text-[10px] font-medium text-gray-400 mt-1 w-10 shrink-0 text-center">{ACTION_ICON[e.action] ?? 'LOG'}</span>
@@ -56,7 +56,7 @@ export default function AdminAudit() {
                     <summary className="text-xs text-blue-500 cursor-pointer">View changes</summary>
                     <div className="mt-1 grid grid-cols-2 gap-2 text-xs">
                       {e.before && (
-                        <div className="bg-red-50 rounded p-2 font-mono text-red-700 overflow-auto max-h-20">
+                        <div className="bg-red-900/10 rounded p-2 font-mono text-red-700 overflow-auto max-h-20">
                           <div className="font-medium mb-1">Before</div>
                           {JSON.stringify(e.before, null, 2)}
                         </div>

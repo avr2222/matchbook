@@ -60,7 +60,7 @@ function PlayerHistoryModal({ player, allTxns, attendance, weeks, expenses, onCl
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-lg max-h-[90vh] flex flex-col">
-        <div className="px-6 py-4 border-b border-[rgba(0,0,0,0.06)] flex items-start justify-between shrink-0">
+        <div className="px-6 py-4 border-b border-white/[0.06] flex items-start justify-between shrink-0">
           <div>
             <h2 className="font-medium text-gray-900 text-lg">{player.display_name}</h2>
             <div className="flex items-center gap-2 mt-1">
@@ -71,14 +71,14 @@ function PlayerHistoryModal({ player, allTxns, attendance, weeks, expenses, onCl
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
         </div>
 
-        <div className="px-6 py-3 bg-[#F4F3F0] grid grid-cols-3 gap-3 border-b border-[rgba(0,0,0,0.06)] shrink-0">
+        <div className="px-6 py-3 bg-white/[0.04] grid grid-cols-3 gap-3 border-b border-white/[0.06] shrink-0">
           <div className="text-center">
             <div className="text-xs text-gray-500 mb-0.5">Balance</div>
             <div className={`font-medium text-sm ${(player.corpus_balance ?? 0) < 0 ? 'text-red-600' : 'text-gray-900'}`}>₹{fmt(player.corpus_balance)}</div>
           </div>
           <div className="text-center">
             <div className="text-xs text-gray-500 mb-0.5">Total paid in</div>
-            <div className="font-medium text-sm text-[#1D9E75]">₹{fmt(player.total_paid)}</div>
+            <div className="font-medium text-sm text-[#10b981]">₹{fmt(player.total_paid)}</div>
           </div>
           <div className="text-center">
             <div className="text-xs text-gray-500 mb-0.5">Matches played</div>
@@ -86,7 +86,7 @@ function PlayerHistoryModal({ player, allTxns, attendance, weeks, expenses, onCl
           </div>
         </div>
 
-        <div className="overflow-y-auto flex-1 divide-y divide-[rgba(0,0,0,0.04)]">
+        <div className="overflow-y-auto flex-1 divide-y divide-white/[0.05]">
           {timeline.length === 0 ? (
             <p className="text-sm text-gray-400 py-8 text-center">No transaction history found.</p>
           ) : timeline.map((entry, i) => (
@@ -95,7 +95,7 @@ function PlayerHistoryModal({ player, allTxns, attendance, weeks, expenses, onCl
                 <div className="text-gray-800">{entry.label}</div>
                 <div className="text-xs text-gray-400 mt-0.5">{format(parseISO(entry.date), 'MMM d, yyyy')}</div>
               </div>
-              <div className={`font-mono font-medium shrink-0 ml-4 ${entry.kind === 'credit' ? 'text-[#1D9E75]' : 'text-red-500'}`}>
+              <div className={`font-mono font-medium shrink-0 ml-4 ${entry.kind === 'credit' ? 'text-[#10b981]' : 'text-red-500'}`}>
                 {entry.kind === 'credit' ? '+' : '−'}₹{entry.amount.toLocaleString('en-IN')}
               </div>
             </div>
@@ -333,8 +333,8 @@ export default function AdminPlayers() {
             onClick={() => setTypeTab(tab)}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
               typeTab === tab
-                ? 'bg-[#1D9E75] text-white'
-                : 'bg-[#F4F3F0] text-gray-600 hover:bg-gray-200'
+                ? 'bg-[#10b981] text-white'
+                : 'bg-white/[0.04] text-gray-600 hover:bg-white/[0.08]'
             }`}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -350,7 +350,7 @@ export default function AdminPlayers() {
       </div>
 
       {isAdmin && selected.size > 0 && (
-        <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
+        <div className="flex items-center gap-3 bg-red-900/10 border border-red-200 rounded-xl px-4 py-2.5">
           <span className="text-sm text-red-700 font-medium flex-1">{selected.size} player{selected.size > 1 ? 's' : ''} selected</span>
           <button onClick={() => setSelected(new Set())} className="text-xs text-gray-400 hover:text-gray-600">Clear</button>
           <button onClick={bulkDeactivate} className="btn-danger text-sm py-1 px-3">
@@ -361,7 +361,7 @@ export default function AdminPlayers() {
 
       <div className="card p-0 overflow-hidden overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-[#F8F8F6] border-b border-[rgba(0,0,0,0.06)]">
+          <thead className="bg-white/[0.03] border-b border-white/[0.06]">
             <tr>
               {isAdmin && (
                 <th className="pl-4 py-3 w-8">
@@ -386,14 +386,14 @@ export default function AdminPlayers() {
               <th className="px-4 py-3 text-center text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[rgba(0,0,0,0.04)]">
+          <tbody className="divide-y divide-white/[0.05]">
             {visible.length === 0 && (
               <tr>
                 <td colSpan={isAdmin ? 9 : 8} className="px-4 py-8 text-center text-gray-400 text-sm">No players found.</td>
               </tr>
             )}
             {visible.map(p => (
-              <tr key={p.id} className={`hover:bg-[#F8F8F6] ${p.status === 'inactive' ? 'opacity-40' : ''} ${selected.has(p.id) ? 'bg-red-50' : ''}`}>
+              <tr key={p.id} className={`hover:bg-white/[0.03] ${p.status === 'inactive' ? 'opacity-40' : ''} ${selected.has(p.id) ? 'bg-red-900/10' : ''}`}>
                 {isAdmin && (
                   <td className="pl-4 py-3 w-8">
                     {p.status === 'active' && (
@@ -413,7 +413,7 @@ export default function AdminPlayers() {
                 <td className="px-4 py-3 font-medium text-gray-900">
                   <button
                     onClick={() => setDetail(p)}
-                    className="font-medium text-gray-900 hover:text-[#1D9E75] hover:underline text-left"
+                    className="font-medium text-gray-900 hover:text-[#10b981] hover:underline text-left"
                   >
                     {p.display_name}
                   </button>
@@ -431,7 +431,7 @@ export default function AdminPlayers() {
                         : <span className="text-gray-400">PPM</span>)
                     : `₹${fmt(p.corpus_balance)}`}
                 </td>
-                <td className="px-4 py-3 text-right font-mono text-[#1D9E75] whitespace-nowrap hidden sm:table-cell">
+                <td className="px-4 py-3 text-right font-mono text-[#10b981] whitespace-nowrap hidden sm:table-cell">
                   ₹{fmt(p.total_paid)}
                 </td>
                 <td className="px-4 py-3 text-right font-mono text-red-500 whitespace-nowrap hidden sm:table-cell">
@@ -441,7 +441,7 @@ export default function AdminPlayers() {
                   {p.type === 'ppm'
                     ? (p.corpus_balance < 0
                         ? <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700">₹{fmt(Math.abs(p.corpus_balance))} pending</span>
-                        : <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[#E1F5EE] text-[#1D9E75]">✓ Paid</span>)
+                        : <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[rgba(16,185,129,0.08)] text-[#10b981]">✓ Paid</span>)
                     : <BalanceBadge status={p.balance_status} />}
                 </td>
                 <td className="px-4 py-3 text-center text-gray-400 text-xs hidden sm:table-cell">{p.github_username || '—'}</td>
@@ -449,7 +449,7 @@ export default function AdminPlayers() {
                   {(p.type === 'corpus' || p.type === 'new') && (
                     <button
                       onClick={() => sharePayLink(p.id)}
-                      className="text-[#1D9E75] hover:underline text-xs mr-3"
+                      className="text-[#10b981] hover:underline text-xs mr-3"
                       title="Copy pay link"
                     >
                       {copiedId === p.id ? '✓ Copied' : 'Pay link'}
@@ -460,13 +460,13 @@ export default function AdminPlayers() {
                       {(p.type === 'ppm' || p.type === 'guest') && p.status === 'active' && (
                         <button
                           onClick={() => { setCashModal({ player: p }); setCashAmount(String(cfg?.default_match_fee ?? '')); setCashDesc('') }}
-                          className="text-xs text-[#1D9E75] border border-[#1D9E75]/20 rounded-lg px-2 py-1 hover:bg-[#E1F5EE] transition-colors mr-3"
+                          className="text-xs text-[#10b981] border border-[#10b981]/20 rounded-lg px-2 py-1 hover:bg-[rgba(16,185,129,0.08)] transition-colors mr-3"
                           title="Record cash payment"
                         >
                           Cash
                         </button>
                       )}
-                      <button onClick={() => openEdit(p)} className="text-gray-500 hover:text-[#1D9E75] hover:underline text-xs mr-3">Edit</button>
+                      <button onClick={() => openEdit(p)} className="text-gray-500 hover:text-[#10b981] hover:underline text-xs mr-3">Edit</button>
                       {p.status === 'active' && (
                         <button onClick={() => remove(p)} className="text-red-500 hover:underline text-xs">Remove</button>
                       )}
@@ -529,7 +529,7 @@ export default function AdminPlayers() {
       {editing && isAdmin && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="px-6 py-4 border-b border-[rgba(0,0,0,0.06)] flex justify-between items-center">
+            <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between items-center">
               <h2 className="font-medium text-gray-900">
                 {players.find(p => p.id === editing.id) ? 'Edit player' : 'Add player'}
               </h2>

@@ -142,7 +142,7 @@ export default function AdminDashboard() {
             to={to}
             className="card hover:border-[rgba(0,0,0,0.18)] transition-colors"
           >
-            <Icon size={18} className={`mb-2 ${warn ? 'text-red-500' : 'text-[#1D9E75]'}`} />
+            <Icon size={18} className={`mb-2 ${warn ? 'text-red-500' : 'text-[#10b981]'}`} />
             <div className="text-[24px] font-medium text-gray-900 tabular-nums leading-tight">{value}</div>
             <div className="text-xs text-gray-400 mt-0.5">{label}</div>
           </Link>
@@ -153,7 +153,7 @@ export default function AdminDashboard() {
       {canWrite && (
         <div className="card space-y-3">
           <h2 className="font-medium text-gray-800 flex items-center gap-2">
-            <IconCurrencyRupee size={16} className="text-[#1D9E75]" />
+            <IconCurrencyRupee size={16} className="text-[#10b981]" />
             Collect cash payment
           </h2>
 
@@ -204,7 +204,7 @@ export default function AdminDashboard() {
           </button>
 
           {hostCollections.length > 0 && (
-            <div className="pt-3 border-t border-[rgba(0,0,0,0.06)] space-y-2">
+            <div className="pt-3 border-t border-white/[0.06] space-y-2">
               <p className="text-[11px] font-medium text-amber-700 uppercase tracking-[0.05em]">
                 Pending admin confirmation
               </p>
@@ -218,7 +218,7 @@ export default function AdminDashboard() {
                         <span className="ml-2 text-xs text-gray-400">{req.notes.replace('[HOST] ', '')}</span>
                       )}
                     </div>
-                    <span className="font-mono font-medium text-[#1D9E75]">
+                    <span className="font-mono font-medium text-[#10b981]">
                       ₹{(req.amount ?? 0).toLocaleString('en-IN')}
                     </span>
                   </div>
@@ -245,7 +245,7 @@ export default function AdminDashboard() {
           </p>
           <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all ${matchesCovered >= 3 ? 'bg-[#1D9E75]' : matchesCovered >= 1 ? 'bg-amber-400' : 'bg-red-500'}`}
+              className={`h-full rounded-full transition-all ${matchesCovered >= 3 ? 'bg-[#10b981]' : matchesCovered >= 1 ? 'bg-amber-400' : 'bg-red-900/100'}`}
               style={{ width: `${Math.min(100, (matchesCovered / 5) * 100)}%` }}
             />
           </div>
@@ -261,7 +261,7 @@ export default function AdminDashboard() {
               </p>
               <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all ${budgetPct < 70 ? 'bg-[#1D9E75]' : budgetPct < 90 ? 'bg-amber-400' : 'bg-red-500'}`}
+                  className={`h-full rounded-full transition-all ${budgetPct < 70 ? 'bg-[#10b981]' : budgetPct < 90 ? 'bg-amber-400' : 'bg-red-900/100'}`}
                   style={{ width: `${budgetPct}%` }}
                 />
               </div>
@@ -282,9 +282,9 @@ export default function AdminDashboard() {
         <div className="card">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-medium text-gray-800">Needs attention</h2>
-            <Link to="/admin/players" className="text-sm text-[#1D9E75] hover:underline">All players →</Link>
+            <Link to="/admin/players" className="text-sm text-[#10b981] hover:underline">All players →</Link>
           </div>
-          <div className="divide-y divide-[rgba(0,0,0,0.04)]">
+          <div className="divide-y divide-white/[0.05]">
             {atRisk.map(p => (
               <div key={p.id} className="py-2.5 flex items-center justify-between text-sm">
                 <span className="font-medium text-gray-800">{p.display_name}</span>
@@ -319,12 +319,12 @@ export default function AdminDashboard() {
       <div className="card">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-medium text-gray-800">Recent matches</h2>
-          <Link to="/admin/weeks" className="text-sm text-[#1D9E75] hover:underline">Manage →</Link>
+          <Link to="/admin/weeks" className="text-sm text-[#10b981] hover:underline">Manage →</Link>
         </div>
         {recentWeeks.length === 0 ? (
           <p className="text-sm text-gray-400 py-4 text-center">No matches yet.</p>
         ) : (
-          <div className="divide-y divide-[rgba(0,0,0,0.04)]">
+          <div className="divide-y divide-white/[0.05]">
             {recentWeeks.map(w => {
               const played = records.filter(r => r.week_id === w.week_id && r.status === 'played').length
               return (
@@ -341,7 +341,7 @@ export default function AdminDashboard() {
                     )}
                   </div>
                   <div className="flex items-center gap-3 text-gray-500">
-                    {w.result && <span className="text-xs font-medium text-[#1D9E75]">{w.result}</span>}
+                    {w.result && <span className="text-xs font-medium text-[#10b981]">{w.result}</span>}
                     <span className="flex items-center gap-1"><IconUsers size={13} />{played}</span>
                   </div>
                 </div>
