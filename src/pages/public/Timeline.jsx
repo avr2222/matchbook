@@ -52,10 +52,10 @@ export default function Timeline() {
   return (
     <div className="max-w-3xl mx-auto px-4 pb-12 pt-6">
       <div className="flex items-center gap-3 mb-3">
-        <Link to="/" className="text-gray-400 hover:text-gray-600 text-sm">← Home</Link>
-        <span className="text-gray-300">|</span>
+        <Link to="/" className="text-gray-400 hover:text-gray-200 text-sm">← Home</Link>
+        <span className="text-gray-600">|</span>
         <div>
-          <h1 className="text-[22px] font-medium text-gray-900">Season timeline</h1>
+          <h1 className="text-[22px] font-medium text-gray-100">Season timeline</h1>
           <p className="text-xs text-gray-400">{sessions.length} week{sessions.length !== 1 ? 's' : ''} · {cfg?.team_name ?? ''}</p>
         </div>
       </div>
@@ -63,7 +63,7 @@ export default function Timeline() {
       {topVenues.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-6">
           {topVenues.map(([venue, count]) => (
-            <span key={venue} className="inline-flex items-center gap-1 text-xs text-gray-500 bg-[#F4F3F0] rounded-full px-2.5 py-1">
+            <span key={venue} className="inline-flex items-center gap-1 text-xs text-gray-400 bg-white/[0.04] rounded-full px-2.5 py-1">
               <IconMapPin size={11} />
               {venue} ×{count}
             </span>
@@ -73,11 +73,11 @@ export default function Timeline() {
 
       {sessions.length === 0 ? (
         <div className="card text-center py-12">
-          <p className="font-medium text-gray-700">No sessions yet</p>
+          <p className="font-medium text-gray-300">No sessions yet</p>
         </div>
       ) : (
         <div className="relative">
-          <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-gray-100" />
+          <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-white/[0.08]" />
           <div className="space-y-4">
             {sessions.map((w, idx) => {
               const played = records.filter(r => r.week_id === w.week_id && r.status === 'played').length
@@ -93,19 +93,19 @@ export default function Timeline() {
                 <div key={w.week_id} className="relative flex gap-4">
                   {/* Timeline dot */}
                   <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-sm font-medium border-2
-                    ${idx === 0 ? 'bg-[#1D9E75] border-[#1D9E75] text-white' : 'bg-white border-gray-200 text-gray-500'}`}>
+                    ${idx === 0 ? 'bg-[#10b981] border-[#10b981] text-white' : 'bg-white/[0.04] border-white/[0.15] text-gray-400'}`}>
                     {format(parseISO(w.match_date), 'd')}
                   </div>
 
                   {/* Card */}
                   <div
-                    className="flex-1 bg-white rounded-xl border border-[rgba(0,0,0,0.10)] hover:border-[rgba(0,0,0,0.18)] transition-colors cursor-pointer mb-1"
+                    className="flex-1 bg-white/[0.02] rounded-xl border border-white/[0.06] hover:border-white/[0.15] transition-colors cursor-pointer mb-1"
                     onClick={() => setDetail(w.week_id)}
                   >
                     <div className="px-4 pt-3 pb-2">
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <p className="font-medium text-gray-900 text-sm">
+                          <p className="font-medium text-gray-100 text-sm">
                             {format(parseISO(w.match_date), 'EEEE, MMM d, yyyy')}
                           </p>
                           {w.venue && (
@@ -117,11 +117,11 @@ export default function Timeline() {
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
                           {w.result && (
-                            <span className="text-xs font-medium text-[#1D9E75] bg-[#E1F5EE] px-2 py-0.5 rounded">
+                            <span className="text-xs font-medium text-[#10b981] bg-[rgba(16,185,129,0.08)] px-2 py-0.5 rounded">
                               {w.result}
                             </span>
                           )}
-                          <span className="text-xs text-gray-400 bg-[#F4F3F0] px-2 py-0.5 rounded flex items-center gap-1">
+                          <span className="text-xs text-gray-400 bg-white/[0.04] px-2 py-0.5 rounded flex items-center gap-1">
                             <IconUsers size={11} />
                             {played}
                           </span>
@@ -151,16 +151,16 @@ export default function Timeline() {
                       </div>
 
                       {winner && (
-                        <p className="text-xs text-[#1D9E75] font-medium mt-1.5 flex items-center gap-1">
+                        <p className="text-xs text-[#10b981] font-medium mt-1.5 flex items-center gap-1">
                           <IconTrophy size={12} />
                           {winner.split(' ')[0]} won
                         </p>
                       )}
 
                       {stars.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-2 pt-2 border-t border-[rgba(0,0,0,0.05)]">
+                        <div className="flex flex-wrap gap-2 mt-2 pt-2 border-t border-white/[0.06]">
                           {stars.map(({ Icon, label, name }) => (
-                            <div key={label} className="flex items-center gap-1 text-xs text-gray-600">
+                            <div key={label} className="flex items-center gap-1 text-xs text-gray-300">
                               <Icon size={12} className="text-amber-500 shrink-0" />
                               <span className="text-gray-400">{label}:</span>
                               <span className="font-medium">{name}</span>

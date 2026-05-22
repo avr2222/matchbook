@@ -3,10 +3,10 @@ import { IconX, IconCricket, IconMedal, IconStar, IconBallBowling } from '@table
 
 const TYPE_LABEL = { corpus: 'Corpus', ppm: 'PPM', guest: 'Guest', new: 'New' }
 const TYPE_COLOR = {
-  corpus: 'bg-orange-50 text-orange-700',
-  ppm:    'bg-purple-50 text-purple-700',
-  guest:  'bg-gray-100 text-gray-600',
-  new:    'bg-gray-50 text-gray-600',
+  corpus: 'bg-orange-900/30 text-orange-300',
+  ppm:    'bg-purple-900/30 text-purple-300',
+  guest:  'bg-white/[0.06] text-gray-400',
+  new:    'bg-white/[0.04] text-gray-400',
 }
 
 const EXPENSE_CATEGORY = {
@@ -53,38 +53,38 @@ export default function MatchPlayersModal({ week, players, records, expenses, pe
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-md max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+      <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] w-full max-w-md max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
 
         {/* Header */}
-        <div className="px-5 py-4 border-b border-[rgba(0,0,0,0.08)] flex items-start justify-between">
+        <div className="px-5 py-4 border-b border-white/[0.06] flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <IconCricket size={16} className="text-[#1D9E75] shrink-0" />
-              <h2 className="font-medium text-gray-900">{dateLabel}</h2>
+              <IconCricket size={16} className="text-[#10b981] shrink-0" />
+              <h2 className="font-medium text-gray-100">{dateLabel}</h2>
             </div>
             <p className="text-xs text-gray-400 mt-0.5">
               {week.venue?.split(',')[0]}
               {week.cricheroes_match_ids?.length > 1 && ` · ${week.cricheroes_match_ids.length} games`}
             </p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 mt-0.5">
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-200 mt-0.5">
             <IconX size={16} />
           </button>
         </div>
 
         {/* Summary stats */}
-        <div className="px-5 py-3 grid grid-cols-3 gap-3 border-b border-[rgba(0,0,0,0.06)] bg-[#F8F8F6]">
+        <div className="px-5 py-3 grid grid-cols-3 gap-3 border-b border-white/[0.06] bg-white/[0.03]">
           <div className="text-center">
             <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em] mb-0.5">Players</div>
-            <div className="font-medium text-gray-900 text-[15px]">{played.length}</div>
+            <div className="font-medium text-gray-100 text-[15px]">{played.length}</div>
           </div>
           <div className="text-center">
             <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em] mb-0.5">Match fee</div>
-            <div className="font-medium text-gray-900 text-[15px]">₹{(week.match_fee ?? 0).toLocaleString('en-IN')}</div>
+            <div className="font-medium text-gray-100 text-[15px]">₹{(week.match_fee ?? 0).toLocaleString('en-IN')}</div>
           </div>
           <div className="text-center">
             <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em] mb-0.5">Total cost</div>
-            <div className="font-medium text-gray-900 text-[15px]">
+            <div className="font-medium text-gray-100 text-[15px]">
               ₹{(week.total_cost ?? totalExpenses ?? 0).toLocaleString('en-IN')}
             </div>
           </div>
@@ -104,15 +104,15 @@ export default function MatchPlayersModal({ week, players, records, expenses, pe
           }).filter(Boolean)
           if (!stars.length) return null
           return (
-            <div className="px-5 py-3 border-b border-[rgba(0,0,0,0.06)] bg-amber-50">
-              <p className="text-[11px] font-medium text-amber-700 uppercase tracking-[0.05em] mb-2">Match stars</p>
+            <div className="px-5 py-3 border-b border-white/[0.06] bg-amber-900/10">
+              <p className="text-[11px] font-medium text-amber-400 uppercase tracking-[0.05em] mb-2">Match stars</p>
               <div className="flex flex-wrap gap-2">
                 {stars.map(({ Icon, label, names }) => (
-                  <div key={label} className="flex items-center gap-1.5 bg-white rounded-lg px-3 py-1.5 border border-amber-100">
-                    <Icon size={14} className="text-amber-600 shrink-0" />
+                  <div key={label} className="flex items-center gap-1.5 bg-white/[0.04] rounded-lg px-3 py-1.5 border border-amber-700/20">
+                    <Icon size={14} className="text-amber-500 shrink-0" />
                     <div>
                       <div className="text-[10px] text-gray-400 leading-none">{label}</div>
-                      <div className="text-sm font-medium text-gray-800 leading-tight">{names}</div>
+                      <div className="text-sm font-medium text-gray-100 leading-tight">{names}</div>
                     </div>
                   </div>
                 ))}
@@ -124,13 +124,13 @@ export default function MatchPlayersModal({ week, players, records, expenses, pe
         <div className="overflow-y-auto flex-1">
           {/* Expenses section */}
           {matchExpenses.length > 0 && (
-            <div className="px-5 py-3 border-b border-[rgba(0,0,0,0.06)]">
+            <div className="px-5 py-3 border-b border-white/[0.06]">
               <p className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] mb-2">Expenses</p>
               <div className="space-y-1.5">
                 {matchExpenses.map(e => (
                   <div key={e.id} className="flex items-start justify-between text-sm gap-2">
                     <div className="flex-1 min-w-0">
-                      <span className="text-gray-700">{e.description || EXPENSE_CATEGORY[e.category] || e.category}</span>
+                      <span className="text-gray-300">{e.description || EXPENSE_CATEGORY[e.category] || e.category}</span>
                       {e.paid_by && (
                         <span className="text-xs text-gray-400 ml-1.5">· paid by {e.paid_by}</span>
                       )}
@@ -140,9 +140,9 @@ export default function MatchPlayersModal({ week, players, records, expenses, pe
                     </span>
                   </div>
                 ))}
-                <div className="flex justify-between text-sm font-medium border-t border-gray-100 pt-1.5 mt-1">
-                  <span className="text-gray-700">Total expenses</span>
-                  <span className="font-mono text-gray-900">₹{totalExpenses.toLocaleString('en-IN')}</span>
+                <div className="flex justify-between text-sm font-medium border-t border-white/[0.06] pt-1.5 mt-1">
+                  <span className="text-gray-400">Total expenses</span>
+                  <span className="font-mono text-gray-100">₹{totalExpenses.toLocaleString('en-IN')}</span>
                 </div>
                 {played.length > 0 && week.match_fee > 0 && (
                   <div className="text-xs text-gray-400 text-right">
@@ -176,7 +176,7 @@ export default function MatchPlayersModal({ week, players, records, expenses, pe
                       {group.map((p, i) => (
                         <div key={p.id} className="flex items-center gap-2 py-1.5">
                           <span className="text-xs text-gray-300 w-5 text-right shrink-0">{i + 1}.</span>
-                          <span className="text-sm font-medium text-gray-800 flex-1">{p.display_name}</span>
+                          <span className="text-sm font-medium text-gray-100 flex-1">{p.display_name}</span>
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_COLOR[type]}`}>
                             {TYPE_LABEL[type]}
                           </span>
@@ -190,7 +190,7 @@ export default function MatchPlayersModal({ week, players, records, expenses, pe
           </div>
         </div>
 
-        <div className="px-5 py-3 border-t border-[rgba(0,0,0,0.06)] flex justify-end">
+        <div className="px-5 py-3 border-t border-white/[0.06] flex justify-end">
           <button onClick={onClose} className="btn-secondary text-sm">Close</button>
         </div>
       </div>

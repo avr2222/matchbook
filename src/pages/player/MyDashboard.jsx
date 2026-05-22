@@ -101,15 +101,15 @@ function PaymentProofForm({ playerId, cfg, existingRequests }) {
   }
 
   return (
-    <div className="card bg-[#E1F5EE] border-[#1D9E75]/20 space-y-2">
-      <p className="text-sm font-medium text-gray-800">Already paid via UPI?</p>
+    <div className="card bg-[rgba(16,185,129,0.05)] border-[#10b981]/20 space-y-2">
+      <p className="text-sm font-medium text-gray-100">Already paid via UPI?</p>
       {pending.length > 0 && (
-        <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+        <div className="text-xs text-amber-400 bg-amber-900/20 border border-amber-700/30 rounded-lg px-3 py-2">
           {pending.length} pending request{pending.length > 1 ? 's' : ''} awaiting admin review
         </div>
       )}
       {!open ? (
-        <button onClick={() => setOpen(true)} className="text-sm text-[#1D9E75] font-medium hover:underline">
+        <button onClick={() => setOpen(true)} className="text-sm text-[#10b981] font-medium hover:underline">
           Submit your UPI transaction reference →
         </button>
       ) : (
@@ -183,8 +183,8 @@ export default function MyDashboard() {
       <div className="max-w-2xl mx-auto px-4 py-12">
         <div className="card text-center space-y-4">
           <IconCricket size={36} className="text-gray-300 mx-auto" />
-          <h2 className="font-medium text-gray-900 text-lg">Link your player name</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="font-medium text-gray-100 text-lg">Link your player name</h2>
+          <p className="text-sm text-gray-400">
             Select your name from the list to see your balance and match history.
           </p>
           <select
@@ -271,7 +271,7 @@ export default function MyDashboard() {
     <div className="max-w-3xl mx-auto pb-12">
 
       {/* Hero */}
-      <div className="bg-[#1D9E75] px-6 pt-8 pb-8 text-white mb-6 rounded-b-xl">
+      <div className="px-6 pt-8 pb-8 text-white mb-6 rounded-b-xl" style={{ background: 'linear-gradient(135deg, #04120e 0%, #0a2e20 100%)' }}>
         <p className="text-white/70 text-xs font-medium uppercase tracking-[0.05em] mb-2">{cfg?.team_name ?? 'Cricket Team'}</p>
         <h1 className="text-[22px] font-medium">Hi, {player.display_name}</h1>
         {attendStreak >= 2 && (
@@ -306,14 +306,14 @@ export default function MyDashboard() {
 
       {/* Announcements */}
       {activeAnnouncements.map(a => (
-        <div key={a.id} className="card bg-[#E1F5EE] border-[#1D9E75]/20">
+        <div key={a.id} className="card bg-[rgba(16,185,129,0.05)] border-[#10b981]/20">
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#1D9E75]/20 flex items-center justify-center shrink-0">
-              <IconBell size={14} className="text-[#1D9E75]" />
+            <div className="w-8 h-8 rounded-full bg-[#10b981]/15 flex items-center justify-center shrink-0">
+              <IconBell size={14} className="text-[#10b981]" />
             </div>
             <div>
-              <p className="font-medium text-gray-900 text-sm">{a.title}</p>
-              <p className="text-gray-700 text-sm mt-0.5">{a.body}</p>
+              <p className="font-medium text-gray-100 text-sm">{a.title}</p>
+              <p className="text-gray-300 text-sm mt-0.5">{a.body}</p>
               <p className="text-xs text-gray-400 mt-1">{format(parseISO(a.posted_on), 'MMM d, yyyy')}</p>
             </div>
           </div>
@@ -322,23 +322,23 @@ export default function MyDashboard() {
 
       {/* Next match */}
       {nextMatch && (
-        <div className="card bg-[#E1F5EE] border-[#1D9E75]/20">
+        <div className="card bg-[rgba(16,185,129,0.05)] border-[#10b981]/20">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[11px] font-medium text-[#1D9E75] uppercase tracking-[0.05em] mb-1">Upcoming match</p>
-              <p className="font-medium text-gray-900 text-base">
+              <p className="text-[11px] font-medium text-[#10b981] uppercase tracking-[0.05em] mb-1">Upcoming match</p>
+              <p className="font-medium text-gray-100 text-base">
                 {format(parseISO(nextMatch.match_date), 'EEEE, MMM d')}
               </p>
               {nextMatch.venue && (
-                <p className="text-sm text-gray-600 mt-0.5 flex items-center gap-1">
-                  <IconMapPin size={13} className="shrink-0 text-gray-400" />{nextMatch.venue.split(',')[0]}
+                <p className="text-sm text-gray-400 mt-0.5 flex items-center gap-1">
+                  <IconMapPin size={13} className="shrink-0 text-gray-500" />{nextMatch.venue.split(',')[0]}
                 </p>
               )}
-              {nextMatch.notes && <p className="text-xs text-gray-500 mt-1 italic">{nextMatch.notes}</p>}
+              {nextMatch.notes && <p className="text-xs text-gray-400 mt-1 italic">{nextMatch.notes}</p>}
             </div>
             <div className="text-right shrink-0 ml-4">
-              <p className="text-xs text-gray-500">Match fee</p>
-              <p className="text-[24px] font-medium text-[#1D9E75] tabular-nums">
+              <p className="text-xs text-gray-400">Match fee</p>
+              <p className="text-[24px] font-medium text-[#10b981] tabular-nums">
                 ₹{(nextMatch.match_fee ?? 0).toLocaleString('en-IN')}
               </p>
               <a
@@ -362,7 +362,7 @@ export default function MyDashboard() {
             <IconCricket size={16} className="text-[#1D9E75]" />
             <span className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Matches played</span>
           </div>
-          <div className="text-[24px] font-medium text-gray-900 tabular-nums">
+          <div className="text-[24px] font-medium text-gray-100 tabular-nums">
             {played}<span className="text-base font-normal text-gray-400">/{total}</span>
           </div>
           <div className={`text-xs font-medium mt-1 ${pct >= 75 ? 'text-[#1D9E75]' : pct >= 50 ? 'text-amber-500' : 'text-red-500'}`}>
@@ -374,7 +374,7 @@ export default function MyDashboard() {
             <IconCalendar size={16} className="text-[#1D9E75]" />
             <span className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Upcoming</span>
           </div>
-          <div className="text-[24px] font-medium text-gray-900 tabular-nums">{scheduledWeeks.length}</div>
+          <div className="text-[24px] font-medium text-gray-100 tabular-nums">{scheduledWeeks.length}</div>
           {scheduledWeeks[0] && (
             <div className="text-xs text-gray-400 mt-1">
               Next: {format(parseISO(scheduledWeeks[0].match_date), 'MMM d')}
@@ -395,10 +395,10 @@ export default function MyDashboard() {
       {/* Missed matches */}
       {missedWeeks.length > 0 && (
         <div className="card">
-          <h2 className="font-medium text-gray-700 mb-2 text-sm">Recent missed matches</h2>
+          <h2 className="font-medium text-gray-300 mb-2 text-sm">Recent missed matches</h2>
           <div className="space-y-1.5">
             {missedWeeks.map(w => (
-              <div key={w.week_id} className="flex items-center justify-between text-sm text-gray-600">
+              <div key={w.week_id} className="flex items-center justify-between text-sm text-gray-400">
                 <span className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0" />
                   {format(parseISO(w.match_date), 'MMM d, yyyy')}
@@ -412,17 +412,17 @@ export default function MyDashboard() {
 
       {/* Activity feed */}
       <div className="card">
-        <h2 className="font-medium text-gray-800 mb-3">Activity</h2>
+        <h2 className="font-medium text-gray-100 mb-3">Activity</h2>
         {activityFeed.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-4">No activity yet.</p>
         ) : (
-          <div className="divide-y divide-[rgba(0,0,0,0.04)]">
+          <div className="divide-y divide-white/[0.05]">
             {activityFeed.map((item, i) => (
               <div
                 key={i}
                 className={`py-3 flex items-center justify-between text-sm ${
                   item.type === 'attendance' && item.status === 'played'
-                    ? 'cursor-pointer hover:bg-[#F8F8F6] -mx-4 px-4 rounded-lg'
+                    ? 'cursor-pointer hover:bg-white/[0.03] -mx-4 px-4 rounded-lg'
                     : ''
                 }`}
                 onClick={() =>
@@ -432,11 +432,11 @@ export default function MyDashboard() {
                 <div className="flex items-center gap-3">
                   <span className={`w-2 h-2 rounded-full shrink-0 ${
                     item.type === 'attendance'
-                      ? item.status === 'played' ? 'bg-[#1D9E75]' : 'bg-gray-300'
-                      : item.direction === 'credit' ? 'bg-[#1D9E75]' : 'bg-red-400'
+                      ? item.status === 'played' ? 'bg-[#10b981]' : 'bg-gray-600'
+                      : item.direction === 'credit' ? 'bg-[#10b981]' : 'bg-red-400'
                   }`} />
                   <div>
-                    <div className="font-medium text-gray-800">{item.label}</div>
+                    <div className="font-medium text-gray-100">{item.label}</div>
                     {item.description && <div className="text-xs text-gray-500">{item.description}</div>}
                     {item.type === 'attendance' && (
                       <div className="text-xs text-gray-500">
@@ -446,7 +446,7 @@ export default function MyDashboard() {
                   </div>
                 </div>
                 {item.type === 'transaction' && (
-                  <span className={`font-mono font-medium ${item.direction === 'credit' ? 'text-[#1D9E75]' : 'text-red-500'}`}>
+                  <span className={`font-mono font-medium ${item.direction === 'credit' ? 'text-[#10b981]' : 'text-red-400'}`}>
                     {item.direction === 'credit' ? '+' : '−'}₹{item.amount.toLocaleString('en-IN')}
                   </span>
                 )}
@@ -460,7 +460,7 @@ export default function MyDashboard() {
         {allMyTxns.length > 10 && (
           <button
             onClick={() => setShowAllTxns(v => !v)}
-            className="mt-3 text-sm text-[#1D9E75] font-medium hover:underline w-full text-center"
+            className="mt-3 text-sm text-[#10b981] font-medium hover:underline w-full text-center"
           >
             {showAllTxns ? 'Show less' : `Show all ${allMyTxns.length} transactions`}
           </button>

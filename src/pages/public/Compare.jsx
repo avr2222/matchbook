@@ -91,9 +91,9 @@ export default function Compare() {
   return (
     <div className="max-w-4xl mx-auto px-4 pb-12 pt-6">
       <div className="flex items-center gap-3 mb-6">
-        <Link to="/leaderboard" className="text-gray-400 hover:text-gray-600 text-sm">← Leaderboard</Link>
-        <span className="text-gray-300">|</span>
-        <h1 className="text-[22px] font-medium text-gray-900">Compare players</h1>
+        <Link to="/leaderboard" className="text-gray-400 hover:text-gray-200 text-sm">← Leaderboard</Link>
+        <span className="text-gray-600">|</span>
+        <h1 className="text-[22px] font-medium text-gray-100">Compare players</h1>
       </div>
 
       {/* Player selectors */}
@@ -118,27 +118,27 @@ export default function Compare() {
       {/* Comparison table */}
       {sA && sB && pA && pB ? (
         <div className="card overflow-hidden p-0">
-          <div className="grid grid-cols-3 border-b border-[rgba(0,0,0,0.06)] bg-[#F8F8F6]">
-            <div className="col-span-1 px-4 py-3 text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Stat</div>
+          <div className="grid grid-cols-3 border-b border-white/[0.06] bg-white/[0.03]">
+            <div className="col-span-1 px-4 py-3 text-[11px] font-medium text-gray-500 uppercase tracking-[0.05em]">Stat</div>
             <div className="px-4 py-3 text-center">
-              <Link to={`/player/${pA.id}`} className="font-medium text-sm text-gray-900 hover:text-[#1D9E75]">{pA.display_name}</Link>
+              <Link to={`/player/${pA.id}`} className="font-medium text-sm text-gray-100 hover:text-[#10b981]">{pA.display_name}</Link>
             </div>
             <div className="px-4 py-3 text-center">
-              <Link to={`/player/${pB.id}`} className="font-medium text-sm text-gray-900 hover:text-[#1D9E75]">{pB.display_name}</Link>
+              <Link to={`/player/${pB.id}`} className="font-medium text-sm text-gray-100 hover:text-[#10b981]">{pB.display_name}</Link>
             </div>
           </div>
 
-          <div className="divide-y divide-[rgba(0,0,0,0.04)]">
+          <div className="divide-y divide-white/[0.05]">
             {rows.map(({ label, a, b, higher, fmt }) => {
               const aWins = higher ? a > b : (a > 0 && (b === 0 || a < b))
               const bWins = higher ? b > a : (b > 0 && (a === 0 || b < a))
               return (
                 <div key={label} className="grid grid-cols-3 items-center">
                   <div className="px-4 py-2.5 text-xs text-gray-500 font-medium">{label}</div>
-                  <div className={`px-4 py-2.5 text-center text-sm font-medium tabular-nums ${aWins ? 'text-[#1D9E75] bg-[#E1F5EE]' : 'text-gray-600'}`}>
+                  <div className={`px-4 py-2.5 text-center text-sm font-medium tabular-nums ${aWins ? 'text-[#10b981] bg-[rgba(16,185,129,0.08)]' : 'text-gray-400'}`}>
                     {fmt(a)}
                   </div>
-                  <div className={`px-4 py-2.5 text-center text-sm font-medium tabular-nums ${bWins ? 'text-[#1D9E75] bg-[#E1F5EE]' : 'text-gray-600'}`}>
+                  <div className={`px-4 py-2.5 text-center text-sm font-medium tabular-nums ${bWins ? 'text-[#10b981] bg-[rgba(16,185,129,0.08)]' : 'text-gray-400'}`}>
                     {fmt(b)}
                   </div>
                 </div>
@@ -148,7 +148,7 @@ export default function Compare() {
         </div>
       ) : (
         <div className="card text-center py-12">
-          <p className="font-medium text-gray-700">Select two players to compare</p>
+          <p className="font-medium text-gray-300">Select two players to compare</p>
           <p className="text-sm text-gray-400 mt-1">Choose from the dropdowns above</p>
         </div>
       )}

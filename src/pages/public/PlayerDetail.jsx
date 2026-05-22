@@ -31,12 +31,12 @@ function PerformanceChart({ perfs, weeks }) {
     <div className="mb-4">
       <p className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] mb-2">Season form</p>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" className="overflow-visible">
-        <line x1={0} y1={barAreaH} x2={W} y2={barAreaH} stroke="rgba(0,0,0,0.07)" strokeWidth={1} />
+        <line x1={0} y1={barAreaH} x2={W} y2={barAreaH} stroke="rgba(255,255,255,0.07)" strokeWidth={1} />
         {data.map((d, i) => {
           const x = i * (barW + gap) + gap / 2
           const barH = Math.max((d.runs / maxRuns) * (barAreaH - 6), d.runs > 0 ? 2 : 0)
           const y = barAreaH - barH
-          const fill = d.runs >= 30 ? '#1D9E75' : d.runs >= 15 ? '#6ECBAD' : '#B8E4D6'
+          const fill = d.runs >= 30 ? '#10b981' : d.runs >= 15 ? '#6ECBAD' : 'rgba(16,185,129,0.2)'
           return (
             <g key={i}>
               <rect x={x} y={y} width={barW} height={barH} rx={1.5} fill={fill} opacity={0.9} />
@@ -49,7 +49,7 @@ function PerformanceChart({ perfs, weeks }) {
       </svg>
       <div className="flex gap-3 mt-1.5">
         <span className="flex items-center gap-1 text-[10px] text-gray-400">
-          <span className="inline-block w-2.5 h-2.5 rounded-sm bg-[#1D9E75]" /> Runs
+          <span className="inline-block w-2.5 h-2.5 rounded-sm bg-[#10b981]" /> Runs
         </span>
         <span className="flex items-center gap-1 text-[10px] text-gray-400">
           <span className="inline-block w-2 h-2 rounded-full bg-purple-600" /> Wicket
@@ -60,10 +60,10 @@ function PerformanceChart({ perfs, weeks }) {
 }
 
 const STATUS_COLOR = {
-  good:         'bg-emerald-100 text-emerald-700',
-  collect_soon: 'bg-amber-100 text-amber-700',
-  urgent:       'bg-orange-100 text-orange-700',
-  overdue:      'bg-red-100 text-red-700',
+  good:         'bg-emerald-900/30 text-emerald-300',
+  collect_soon: 'bg-amber-900/30 text-amber-300',
+  urgent:       'bg-orange-900/30 text-orange-300',
+  overdue:      'bg-red-900/30 text-red-300',
 }
 
 export default function PlayerDetail() {
@@ -166,21 +166,21 @@ export default function PlayerDetail() {
 
       {/* Back nav */}
       <div className="flex items-center gap-3 py-4">
-        <button onClick={() => navigate(-1)} className="text-gray-400 hover:text-gray-700 transition-colors">
+        <button onClick={() => navigate(-1)} className="text-gray-400 hover:text-gray-200 transition-colors">
           <IconArrowLeft size={20} />
         </button>
-        <h1 className="font-medium text-gray-900">Player details</h1>
+        <h1 className="font-medium text-gray-100">Player details</h1>
       </div>
 
       {/* Player card */}
       <div className="card mb-4">
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-[20px] font-medium text-gray-900">{player.display_name}</h2>
+            <h2 className="text-[20px] font-medium text-gray-100">{player.display_name}</h2>
             <p className="text-sm text-gray-400 mt-0.5 capitalize">{player.type} · {player.status}</p>
           </div>
           <div className="text-right">
-            <div className="text-[24px] font-medium text-gray-900 tabular-nums">
+            <div className="text-[24px] font-medium text-gray-100 tabular-nums">
               ₹{Math.round(player.corpus_balance ?? 0).toLocaleString('en-IN')}
             </div>
             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${sc}`}>
@@ -190,12 +190,12 @@ export default function PlayerDetail() {
         </div>
 
         {player.type !== 'ppm' && player.type !== 'guest' && (
-          <div className="mt-4 pt-4 border-t border-[rgba(0,0,0,0.06)]">
+          <div className="mt-4 pt-4 border-t border-white/[0.06]">
             {showTopUp ? (
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Top up</p>
-                  <button onClick={() => setShowTopUp(false)} className="text-xs text-gray-400 hover:text-gray-600">✕</button>
+                  <button onClick={() => setShowTopUp(false)} className="text-xs text-gray-400 hover:text-gray-200">✕</button>
                 </div>
                 <UpiPaySection player={player} config={cfg} />
               </div>
@@ -219,18 +219,18 @@ export default function PlayerDetail() {
         )}
 
         {txns.length > 0 && (
-          <div className="flex gap-4 mt-4 pt-4 border-t border-[rgba(0,0,0,0.06)] text-sm">
+          <div className="flex gap-4 mt-4 pt-4 border-t border-white/[0.06] text-sm">
             <div>
               <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Total paid in</div>
-              <div className="font-medium text-[#1D9E75]">+₹{Math.round(totalCredits).toLocaleString('en-IN')}</div>
+              <div className="font-medium text-[#10b981]">+₹{Math.round(totalCredits).toLocaleString('en-IN')}</div>
             </div>
             <div>
               <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Total deducted</div>
-              <div className="font-medium text-red-500">−₹{Math.round(totalDebits).toLocaleString('en-IN')}</div>
+              <div className="font-medium text-red-400">−₹{Math.round(totalDebits).toLocaleString('en-IN')}</div>
             </div>
             <div>
               <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Transactions</div>
-              <div className="font-medium text-gray-700">{txns.length}</div>
+              <div className="font-medium text-gray-300">{txns.length}</div>
             </div>
           </div>
         )}
@@ -270,17 +270,17 @@ export default function PlayerDetail() {
 
       {/* Next match */}
       {nextMatch && (
-        <div className="card bg-[#E1F5EE] border-[#1D9E75]/20 mb-4">
-          <p className="text-[11px] font-medium text-[#1D9E75] uppercase tracking-[0.05em] mb-1.5">Next match</p>
-          <p className="font-medium text-gray-900 text-base">{format(parseISO(nextMatch.match_date), 'EEEE, MMM d')}</p>
+        <div className="card bg-[rgba(16,185,129,0.05)] border-[#10b981]/20 mb-4">
+          <p className="text-[11px] font-medium text-[#10b981] uppercase tracking-[0.05em] mb-1.5">Next match</p>
+          <p className="font-medium text-gray-100 text-base">{format(parseISO(nextMatch.match_date), 'EEEE, MMM d')}</p>
           {nextMatch.venue && (
-            <p className="text-sm text-gray-600 mt-0.5 flex items-center gap-1">
-              <IconMapPin size={13} className="shrink-0 text-gray-400" />{nextMatch.venue.split(',')[0]}
+            <p className="text-sm text-gray-400 mt-0.5 flex items-center gap-1">
+              <IconMapPin size={13} className="shrink-0 text-gray-500" />{nextMatch.venue.split(',')[0]}
             </p>
           )}
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#1D9E75]/20">
-            <span className="text-xs text-gray-500 font-medium">Match fee</span>
-            <span className="font-medium text-[#1D9E75] text-xl tabular-nums">₹{(nextMatch.match_fee ?? defaultFee).toLocaleString('en-IN')}</span>
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#10b981]/15">
+            <span className="text-xs text-gray-400 font-medium">Match fee</span>
+            <span className="font-medium text-[#10b981] text-xl tabular-nums">₹{(nextMatch.match_fee ?? defaultFee).toLocaleString('en-IN')}</span>
           </div>
         </div>
       )}
@@ -291,7 +291,7 @@ export default function PlayerDetail() {
           <h3 className="text-[11px] font-medium text-gray-900 uppercase tracking-[0.05em] mb-2">Achievements</h3>
           <div className="flex flex-wrap gap-2">
             {badges.map(({ Icon, label }) => (
-              <span key={label} className="flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-medium px-2.5 py-1 rounded-full">
+              <span key={label} className="flex items-center gap-1 bg-amber-900/20 text-amber-400 border border-amber-700/30 text-xs font-medium px-2.5 py-1 rounded-full">
                 <Icon size={11} className="shrink-0" /> {label}
               </span>
             ))}
@@ -302,20 +302,20 @@ export default function PlayerDetail() {
       {/* Cricket Stats */}
       {perfs.length > 0 && (
         <div className="card mb-4">
-          <h3 className="font-medium text-gray-900 mb-3">Cricket stats</h3>
+          <h3 className="font-medium text-gray-100 mb-3">Cricket stats</h3>
 
           <div className="grid grid-cols-3 gap-3 mb-4">
-            <div className="bg-[#F4F3F0] rounded-xl p-3 text-center">
-              <div className="text-[24px] font-medium text-gray-900 tabular-nums">{careerRuns}</div>
-              <div className="text-[11px] text-gray-500 uppercase tracking-[0.05em] mt-0.5">Runs</div>
+            <div className="bg-white/[0.04] rounded-xl p-3 text-center">
+              <div className="text-[24px] font-medium text-gray-100 tabular-nums">{careerRuns}</div>
+              <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em] mt-0.5">Runs</div>
             </div>
-            <div className="bg-[#F4F3F0] rounded-xl p-3 text-center">
-              <div className="text-[24px] font-medium text-gray-900 tabular-nums">{careerWkts}</div>
-              <div className="text-[11px] text-gray-500 uppercase tracking-[0.05em] mt-0.5">Wickets</div>
+            <div className="bg-white/[0.04] rounded-xl p-3 text-center">
+              <div className="text-[24px] font-medium text-gray-100 tabular-nums">{careerWkts}</div>
+              <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em] mt-0.5">Wickets</div>
             </div>
-            <div className="bg-[#F4F3F0] rounded-xl p-3 text-center">
-              <div className="text-[24px] font-medium text-gray-900 tabular-nums">{perfs.length}</div>
-              <div className="text-[11px] text-gray-500 uppercase tracking-[0.05em] mt-0.5">Weeks</div>
+            <div className="bg-white/[0.04] rounded-xl p-3 text-center">
+              <div className="text-[24px] font-medium text-gray-100 tabular-nums">{perfs.length}</div>
+              <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em] mt-0.5">Weeks</div>
               {totalGames > perfs.length && (
                 <div className="text-[10px] text-gray-400 mt-0.5">{totalGames} matches</div>
               )}
@@ -324,23 +324,23 @@ export default function PlayerDetail() {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4 text-center">
             <div>
-              <div className="font-medium text-gray-800 text-sm tabular-nums">
+              <div className="font-medium text-gray-200 text-sm tabular-nums">
                 {careerBalls > 0 ? ((careerRuns / careerBalls) * 100).toFixed(1) : '—'}
               </div>
               <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Bat SR</div>
             </div>
             <div>
-              <div className="font-medium text-gray-800 text-sm tabular-nums">{careerHighScore}</div>
+              <div className="font-medium text-gray-200 text-sm tabular-nums">{careerHighScore}</div>
               <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">High score</div>
             </div>
             <div>
-              <div className="font-medium text-gray-800 text-sm tabular-nums">
+              <div className="font-medium text-gray-200 text-sm tabular-nums">
                 {careerBallsBowled > 0 ? ((careerRunsGiven / careerBallsBowled) * 6).toFixed(2) : '—'}
               </div>
               <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Economy</div>
             </div>
             <div>
-              <div className="font-medium text-gray-800 text-sm tabular-nums">{careerBestWkts}</div>
+              <div className="font-medium text-gray-200 text-sm tabular-nums">{careerBestWkts}</div>
               <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Best wkts</div>
             </div>
           </div>
@@ -348,15 +348,15 @@ export default function PlayerDetail() {
           {careerInnings > 0 && (
             <div className="grid grid-cols-3 gap-2 mb-4 text-center text-sm">
               <div>
-                <div className="font-medium text-gray-800 tabular-nums">{careerInnings}</div>
+                <div className="font-medium text-gray-200 tabular-nums">{careerInnings}</div>
                 <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Innings</div>
               </div>
               <div>
-                <div className="font-medium text-gray-800 tabular-nums">{careerAvg}</div>
+                <div className="font-medium text-gray-200 tabular-nums">{careerAvg}</div>
                 <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Avg</div>
               </div>
               <div>
-                <div className="font-medium text-gray-800 tabular-nums">{careerNotOuts}</div>
+                <div className="font-medium text-gray-200 tabular-nums">{careerNotOuts}</div>
                 <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Not outs</div>
               </div>
             </div>
@@ -374,7 +374,7 @@ export default function PlayerDetail() {
                       key={p.id}
                       title={`${p.runs}r ${p.wickets}w`}
                       className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium
-                        ${empty ? 'bg-gray-100 text-gray-400' : good ? 'bg-[#E1F5EE] text-[#1D9E75]' : 'bg-red-100 text-red-600'}`}
+                        ${empty ? 'bg-white/[0.06] text-gray-500' : good ? 'bg-[rgba(16,185,129,0.15)] text-[#10b981]' : 'bg-red-900/20 text-red-400'}`}
                     >
                       {empty ? '—' : good ? '↑' : '↓'}
                     </div>
@@ -399,10 +399,10 @@ export default function PlayerDetail() {
                       </p>
                       <div className="space-y-1">
                         {games.map(perf => (
-                          <div key={perf.id} className="flex items-center justify-between bg-[#F4F3F0] rounded-lg px-3 py-2">
+                          <div key={perf.id} className="flex items-center justify-between bg-white/[0.04] rounded-lg px-3 py-2">
                             <div className="flex gap-3 items-center text-sm">
                               <span>
-                                <span className="font-medium text-[#1D9E75] tabular-nums">{perf.runs}</span>
+                                <span className="font-medium text-[#10b981] tabular-nums">{perf.runs}</span>
                                 <span className="text-xs text-gray-400"> r</span>
                                 {perf.balls_faced > 0 && (
                                   <span className="text-xs text-gray-400"> ({perf.balls_faced}b)</span>
@@ -410,7 +410,7 @@ export default function PlayerDetail() {
                               </span>
                               {perf.wickets > 0 && (
                                 <span>
-                                  <span className="font-medium text-purple-700 tabular-nums">{perf.wickets}</span>
+                                  <span className="font-medium text-purple-400 tabular-nums">{perf.wickets}</span>
                                   <span className="text-xs text-gray-400"> w</span>
                                 </span>
                               )}
@@ -436,11 +436,11 @@ export default function PlayerDetail() {
 
       {/* Transaction list */}
       <div className="card">
-        <h3 className="font-medium text-gray-900 mb-1">Transaction history</h3>
+        <h3 className="font-medium text-gray-100 mb-1">Transaction history</h3>
         {txns.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-8">No transactions yet.</p>
         ) : (
-          <div className="divide-y divide-[rgba(0,0,0,0.04)] -mx-4 -mb-4 mt-2">
+          <div className="divide-y divide-white/[0.05] -mx-4 -mb-4 mt-2">
             {txns.map(t => {
               const week = weeks.find(w => w.week_id === t.week_id)
               return (
@@ -450,10 +450,10 @@ export default function PlayerDetail() {
                       {format(parseISO(t.date), 'MMM d, yyyy')}
                       {week ? ` · ${week.label}` : ''}
                     </div>
-                    <div className="text-sm text-gray-700 mt-0.5">{t.description}</div>
-                    <div className="text-xs text-gray-400 mt-0.5 capitalize">{(t.type ?? '').replace(/_/g, ' ')}</div>
+                    <div className="text-sm text-gray-300 mt-0.5">{t.description}</div>
+                    <div className="text-xs text-gray-500 mt-0.5 capitalize">{(t.type ?? '').replace(/_/g, ' ')}</div>
                   </div>
-                  <div className={`font-mono font-medium text-sm shrink-0 ${t.direction === 'credit' ? 'text-[#1D9E75]' : 'text-red-500'}`}>
+                  <div className={`font-mono font-medium text-sm shrink-0 ${t.direction === 'credit' ? 'text-[#10b981]' : 'text-red-400'}`}>
                     {t.direction === 'credit' ? '+' : '−'}₹{t.amount.toLocaleString('en-IN')}
                   </div>
                 </div>

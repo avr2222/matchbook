@@ -80,8 +80,8 @@ export function AdminMobileNav() {
             className={({ isActive }) =>
               `relative flex flex-col items-center gap-0.5 px-1 py-2 rounded-lg text-center transition-colors ${
                 isActive
-                  ? 'bg-[#1D9E75] text-white'
-                  : 'bg-gray-100 text-gray-600 active:bg-gray-200'
+                  ? 'bg-[#10b981] text-white'
+                  : 'bg-white/[0.04] text-gray-400 active:bg-white/[0.07]'
               }`
             }
           >
@@ -117,8 +117,8 @@ export default function AdminSidebar() {
                 className={({ isActive }) =>
                   `flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
                     isActive
-                      ? 'bg-[#E1F5EE] text-[#1D9E75] font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
+                      ? 'bg-[rgba(16,185,129,0.12)] text-[#10b981] font-medium'
+                      : 'text-gray-400 hover:bg-white/[0.04] hover:text-gray-200'
                   }`
                 }
               >

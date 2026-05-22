@@ -189,7 +189,7 @@ export default function Leaderboard() {
     else { setSortCol(col); setSortDir('desc') }
   }
   const sortArrow = col => sortCol === col ? (sortDir === 'desc' ? ' ↓' : ' ↑') : ''
-  const thClass = col => `cursor-pointer select-none hover:text-gray-600 whitespace-nowrap${sortCol === col ? ' text-[#1D9E75] font-medium' : ''}`
+  const thClass = col => `cursor-pointer select-none hover:text-gray-300 whitespace-nowrap${sortCol === col ? ' text-[#10b981] font-medium' : ''}`
 
   const displayBatters = (() => {
     const enriched = batters.map(s => ({
@@ -216,9 +216,9 @@ export default function Leaderboard() {
 
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <IconTrophy size={22} className="text-[#1D9E75]" />
+        <IconTrophy size={22} className="text-[#10b981]" />
         <div>
-          <h1 className="text-[22px] font-medium text-gray-900">Season stats</h1>
+          <h1 className="text-[22px] font-medium text-gray-100">Season stats</h1>
           <p className="text-xs text-gray-400">{cfg?.team_name ?? 'Cricket Team'}</p>
         </div>
       </div>
@@ -233,8 +233,8 @@ export default function Leaderboard() {
                 onClick={() => setSelectedTId(t.id === cfg?.active_tournament_id ? null : t.id)}
                 className={`shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                   tournamentId === t.id
-                    ? 'bg-[#1D9E75] text-white'
-                    : 'bg-[#F4F3F0] text-gray-500 hover:bg-gray-200'
+                    ? 'bg-[#10b981] text-white'
+                    : 'bg-white/[0.04] text-gray-400 hover:bg-white/[0.08]'
                 }`}
               >
                 {t.short_name ?? t.name}
@@ -246,13 +246,13 @@ export default function Leaderboard() {
 
       {/* Tab bar */}
       <div className="overflow-x-auto -mx-4 px-4 mb-6">
-        <div className="flex gap-1 bg-[#F4F3F0] p-1 rounded-xl w-max min-w-full">
+        <div className="flex gap-1 bg-white/[0.04] p-1 rounded-xl w-max min-w-full">
           {tabs.map(t => (
             <button
               key={t.id}
               onClick={() => { setTab(t.id); setSortCol(null); setSortDir('desc') }}
               className={`py-2 px-3 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
-                tab === t.id ? 'bg-white text-[#1D9E75]' : 'text-gray-400 hover:text-gray-600'
+                tab === t.id ? 'bg-white/[0.08] text-[#10b981]' : 'text-gray-500 hover:text-gray-200'
               }`}
             >
               {t.label}
@@ -265,7 +265,7 @@ export default function Leaderboard() {
 
       {!perfLoading && isEmpty && (
         <div className="card text-center py-12">
-          <p className="font-medium text-gray-700">No stats yet</p>
+          <p className="font-medium text-gray-300">No stats yet</p>
           <p className="text-sm text-gray-400 mt-1">Run the CricHeroes sync to populate player stats.</p>
         </div>
       )}
@@ -273,10 +273,10 @@ export default function Leaderboard() {
       {/* Batting */}
       {!perfLoading && !isEmpty && tab === 'batting' && (
         <div className="card overflow-x-auto">
-          <h2 className="font-medium text-gray-900 mb-3">Top batters</h2>
+          <h2 className="font-medium text-gray-100 mb-3">Top batters</h2>
           <table className="w-full text-sm min-w-[480px]">
             <thead>
-              <tr className="text-[11px] text-gray-400 uppercase tracking-[0.05em] border-b border-[rgba(0,0,0,0.06)]">
+              <tr className="text-[11px] text-gray-500 uppercase tracking-[0.05em] border-b border-white/[0.06]">
                 <th className="text-left pb-2 w-6">#</th>
                 <th className="text-left pb-2 pr-2">Player</th>
                 <th className={`text-right pb-2 pr-2 ${thClass('matches')}`}    onClick={() => toggleSort('matches')}>M{sortArrow('matches')}</th>
@@ -290,26 +290,26 @@ export default function Leaderboard() {
                 <th className="pb-2 w-6"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[rgba(0,0,0,0.04)]">
+            <tbody className="divide-y divide-white/[0.05]">
               {displayBatters.map((s, i) => (
                 <tr key={s.player_id} className={i === 0 && !sortCol ? 'font-medium' : ''}>
-                  <td className="py-2 text-gray-400 text-xs">{i + 1}</td>
+                  <td className="py-2 text-gray-500 text-xs">{i + 1}</td>
                   <td className="py-2 pr-2 max-w-[140px]">
-                    <Link to={`/player/${s.player_id}`} className="font-medium text-gray-900 hover:text-[#1D9E75] truncate block">
+                    <Link to={`/player/${s.player_id}`} className="font-medium text-gray-100 hover:text-[#10b981] truncate block">
                       {playerMap[s.player_id]?.display_name ?? s.player_id}
                     </Link>
                     {s.bba_count > 0 && (
-                      <span className="inline-flex items-center gap-0.5 text-[10px] text-[#1D9E75]">
+                      <span className="inline-flex items-center gap-0.5 text-[10px] text-[#10b981]">
                         <IconStar size={10} />{s.bba_count}
                       </span>
                     )}
                   </td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-500">{s.matches}</td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-500">{s.innings}</td>
-                  <td className="py-2 pr-2 text-right tabular-nums font-medium text-[#1D9E75]">{s.runs}</td>
-                  <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{s.avg != null ? s.avg.toFixed(1) : '—'}</td>
-                  <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{s.balls_faced > 0 ? s.sr.toFixed(1) : '—'}</td>
-                  <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{s.high_score}</td>
+                  <td className="py-2 pr-2 text-right tabular-nums font-medium text-[#10b981]">{s.runs}</td>
+                  <td className="py-2 pr-2 text-right tabular-nums text-gray-400">{s.avg != null ? s.avg.toFixed(1) : '—'}</td>
+                  <td className="py-2 pr-2 text-right tabular-nums text-gray-400">{s.balls_faced > 0 ? s.sr.toFixed(1) : '—'}</td>
+                  <td className="py-2 pr-2 text-right tabular-nums text-gray-400">{s.high_score}</td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-500">{s.fours}</td>
                   <td className="py-2 text-right tabular-nums text-gray-500">{s.sixes}</td>
                   <td className="py-2 pl-1">
@@ -329,10 +329,10 @@ export default function Leaderboard() {
       {/* Bowling */}
       {!perfLoading && !isEmpty && tab === 'bowling' && (
         <div className="card overflow-x-auto">
-          <h2 className="font-medium text-gray-900 mb-3">Top bowlers</h2>
+          <h2 className="font-medium text-gray-100 mb-3">Top bowlers</h2>
           <table className="w-full text-sm min-w-[420px]">
             <thead>
-              <tr className="text-[11px] text-gray-400 uppercase tracking-[0.05em] border-b border-[rgba(0,0,0,0.06)]">
+              <tr className="text-[11px] text-gray-500 uppercase tracking-[0.05em] border-b border-white/[0.06]">
                 <th className="text-left pb-2 w-6">#</th>
                 <th className="text-left pb-2 pr-2">Player</th>
                 <th className={`text-right pb-2 pr-2 ${thClass('matches')}`}      onClick={() => toggleSort('matches')}>M{sortArrow('matches')}</th>
@@ -344,25 +344,25 @@ export default function Leaderboard() {
                 <th className="pb-2 w-6"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[rgba(0,0,0,0.04)]">
+            <tbody className="divide-y divide-white/[0.05]">
               {displayBowlers.map((s, i) => (
                 <tr key={s.player_id} className={i === 0 && !sortCol ? 'font-medium' : ''}>
-                  <td className="py-2 text-gray-400 text-xs">{i + 1}</td>
+                  <td className="py-2 text-gray-500 text-xs">{i + 1}</td>
                   <td className="py-2 pr-2 max-w-[140px]">
-                    <Link to={`/player/${s.player_id}`} className="font-medium text-gray-900 hover:text-[#1D9E75] truncate block">
+                    <Link to={`/player/${s.player_id}`} className="font-medium text-gray-100 hover:text-[#10b981] truncate block">
                       {playerMap[s.player_id]?.display_name ?? s.player_id}
                     </Link>
                     {s.bbo_count > 0 && (
-                      <span className="inline-flex items-center gap-0.5 text-[10px] text-purple-600">
+                      <span className="inline-flex items-center gap-0.5 text-[10px] text-purple-400">
                         <IconBallBowling size={10} />{s.bbo_count}
                       </span>
                     )}
                   </td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-500">{s.matches}</td>
-                  <td className="py-2 pr-2 text-right tabular-nums font-medium text-purple-700">{s.wickets}</td>
-                  <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{overs(s.balls_bowled)}</td>
-                  <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{s.runs_given}</td>
-                  <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{s.balls_bowled > 0 ? s.econ.toFixed(2) : '—'}</td>
+                  <td className="py-2 pr-2 text-right tabular-nums font-medium text-purple-400">{s.wickets}</td>
+                  <td className="py-2 pr-2 text-right tabular-nums text-gray-400">{overs(s.balls_bowled)}</td>
+                  <td className="py-2 pr-2 text-right tabular-nums text-gray-400">{s.runs_given}</td>
+                  <td className="py-2 pr-2 text-right tabular-nums text-gray-400">{s.balls_bowled > 0 ? s.econ.toFixed(2) : '—'}</td>
                   <td className="py-2 text-right tabular-nums text-gray-500">{s.maidens}</td>
                   <td className="py-2 pl-1">
                     <button
@@ -381,10 +381,10 @@ export default function Leaderboard() {
       {/* Fielding */}
       {!perfLoading && !isEmpty && tab === 'fielding' && (
         <div className="card overflow-x-auto">
-          <h2 className="font-medium text-gray-900 mb-3">Top fielders</h2>
+          <h2 className="font-medium text-gray-100 mb-3">Top fielders</h2>
           <table className="w-full text-sm min-w-[360px]">
             <thead>
-              <tr className="text-[11px] text-gray-400 uppercase tracking-[0.05em] border-b border-[rgba(0,0,0,0.06)]">
+              <tr className="text-[11px] text-gray-500 uppercase tracking-[0.05em] border-b border-white/[0.06]">
                 <th className="text-left pb-2 w-6">#</th>
                 <th className="text-left pb-2 pr-2">Player</th>
                 <th className="text-right pb-2 pr-2">M</th>
@@ -394,20 +394,20 @@ export default function Leaderboard() {
                 <th className="text-right pb-2">Total</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[rgba(0,0,0,0.04)]">
+            <tbody className="divide-y divide-white/[0.05]">
               {fielders.map((s, i) => (
                 <tr key={s.player_id} className={i === 0 ? 'font-medium' : ''}>
-                  <td className="py-2 text-gray-400 text-xs">{i + 1}</td>
+                  <td className="py-2 text-gray-500 text-xs">{i + 1}</td>
                   <td className="py-2 pr-2 max-w-[140px]">
-                    <Link to={`/player/${s.player_id}`} className="font-medium text-gray-900 hover:text-[#1D9E75] truncate block">
+                    <Link to={`/player/${s.player_id}`} className="font-medium text-gray-100 hover:text-[#10b981] truncate block">
                       {playerMap[s.player_id]?.display_name ?? s.player_id}
                     </Link>
                   </td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-500">{s.matches}</td>
-                  <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{s.catches}</td>
-                  <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{s.run_outs}</td>
-                  <td className="py-2 pr-2 text-right tabular-nums text-gray-600">{s.stumpings}</td>
-                  <td className="py-2 text-right tabular-nums font-medium text-[#1D9E75]">
+                  <td className="py-2 pr-2 text-right tabular-nums text-gray-400">{s.catches}</td>
+                  <td className="py-2 pr-2 text-right tabular-nums text-gray-400">{s.run_outs}</td>
+                  <td className="py-2 pr-2 text-right tabular-nums text-gray-400">{s.stumpings}</td>
+                  <td className="py-2 text-right tabular-nums font-medium text-[#10b981]">
                     {s.catches + s.run_outs + s.stumpings}
                   </td>
                 </tr>
@@ -420,41 +420,41 @@ export default function Leaderboard() {
       {/* All-round */}
       {!perfLoading && !isEmpty && tab === 'allround' && (
         <div className="card">
-          <h2 className="font-medium text-gray-900 mb-1">All-round performers</h2>
+          <h2 className="font-medium text-gray-100 mb-1">All-round performers</h2>
           <p className="text-xs text-gray-400 mb-4">CricHeroes formula · min 2 matches · bat + bowl + field</p>
           <div className="space-y-2">
             {allrounders.map((s, i) => i < 3 ? (
               <div key={s.player_id} className={`flex items-center gap-4 p-4 rounded-xl border ${
-                i === 0 ? 'bg-amber-50 border-amber-200'
-                : i === 1 ? 'bg-slate-50 border-slate-200'
-                : 'bg-orange-50 border-orange-200'
+                i === 0 ? 'bg-amber-900/20 border-amber-500/30'
+                : i === 1 ? 'bg-slate-800/30 border-slate-600/30'
+                : 'bg-orange-900/20 border-orange-500/30'
               }`}>
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-base font-medium shrink-0 ${
-                  i === 0 ? 'bg-amber-400 text-white'
-                  : i === 1 ? 'bg-slate-400 text-white'
-                  : 'bg-orange-400 text-white'
+                  i === 0 ? 'bg-amber-500/80 text-white'
+                  : i === 1 ? 'bg-slate-500/80 text-white'
+                  : 'bg-orange-500/80 text-white'
                 }`}>{i + 1}</div>
                 <div className="flex-1 min-w-0">
-                  <Link to={`/player/${s.player_id}`} className="font-medium text-gray-900 hover:text-[#1D9E75] truncate block">
+                  <Link to={`/player/${s.player_id}`} className="font-medium text-gray-100 hover:text-[#10b981] truncate block">
                     {playerMap[s.player_id]?.display_name ?? s.player_id}
                   </Link>
-                  <div className="text-xs text-gray-500 mt-0.5">{s.runs}r · {s.wickets}w · {s.catches + s.run_outs + s.stumpings}dis</div>
+                  <div className="text-xs text-gray-400 mt-0.5">{s.runs}r · {s.wickets}w · {s.catches + s.run_outs + s.stumpings}dis</div>
                 </div>
                 <div className="text-right shrink-0">
                   <div className={`text-[24px] font-medium tabular-nums ${
-                    i === 0 ? 'text-amber-600' : i === 1 ? 'text-slate-500' : 'text-orange-500'
+                    i === 0 ? 'text-amber-400' : i === 1 ? 'text-slate-400' : 'text-orange-400'
                   }`}>{s.ar_score.toFixed(1)}</div>
                   <div className="text-xs text-gray-400">pts</div>
                 </div>
               </div>
             ) : (
-              <div key={s.player_id} className="flex items-center gap-3 py-2 px-3 rounded-xl bg-[#F4F3F0]">
-                <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-500 shrink-0">{i + 1}</div>
-                <Link to={`/player/${s.player_id}`} className="flex-1 font-medium text-sm text-gray-900 hover:text-[#1D9E75] truncate">
+              <div key={s.player_id} className="flex items-center gap-3 py-2 px-3 rounded-xl bg-white/[0.03]">
+                <div className="w-7 h-7 rounded-full bg-white/[0.08] flex items-center justify-center text-xs font-medium text-gray-400 shrink-0">{i + 1}</div>
+                <Link to={`/player/${s.player_id}`} className="flex-1 font-medium text-sm text-gray-100 hover:text-[#10b981] truncate">
                   {playerMap[s.player_id]?.display_name ?? s.player_id}
                 </Link>
-                <div className="text-xs text-gray-500 shrink-0">{s.runs}r · {s.wickets}w · {s.catches + s.run_outs + s.stumpings}dis</div>
-                <div className="text-sm font-medium tabular-nums text-gray-600 shrink-0">
+                <div className="text-xs text-gray-400 shrink-0">{s.runs}r · {s.wickets}w · {s.catches + s.run_outs + s.stumpings}dis</div>
+                <div className="text-sm font-medium tabular-nums text-gray-300 shrink-0">
                   {s.ar_score.toFixed(1)} <span className="text-xs text-gray-400 font-normal">pts</span>
                 </div>
               </div>
@@ -466,40 +466,40 @@ export default function Leaderboard() {
       {/* MVP */}
       {!perfLoading && !isEmpty && tab === 'mvp' && (
         <div className="card">
-          <h2 className="font-medium text-gray-900 mb-1">Season MVP</h2>
+          <h2 className="font-medium text-gray-100 mb-1">Season MVP</h2>
           <p className="text-xs text-gray-400 mb-4">CricHeroes formula · min 5 matches</p>
           <div className="space-y-2">
             {mvps.map((s, i) => i < 3 ? (
               <div key={s.player_id} className={`flex items-center gap-4 p-4 rounded-xl border ${
-                i === 0 ? 'bg-amber-50 border-amber-200'
-                : i === 1 ? 'bg-slate-50 border-slate-200'
-                : 'bg-orange-50 border-orange-200'
+                i === 0 ? 'bg-amber-900/20 border-amber-500/30'
+                : i === 1 ? 'bg-slate-800/30 border-slate-600/30'
+                : 'bg-orange-900/20 border-orange-500/30'
               }`}>
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-base font-medium shrink-0 ${
-                  i === 0 ? 'bg-amber-400 text-white'
-                  : i === 1 ? 'bg-slate-400 text-white'
-                  : 'bg-orange-400 text-white'
+                  i === 0 ? 'bg-amber-500/80 text-white'
+                  : i === 1 ? 'bg-slate-500/80 text-white'
+                  : 'bg-orange-500/80 text-white'
                 }`}>{i + 1}</div>
                 <div className="flex-1 min-w-0">
-                  <Link to={`/player/${s.player_id}`} className="font-medium text-gray-900 hover:text-[#1D9E75] truncate block">
+                  <Link to={`/player/${s.player_id}`} className="font-medium text-gray-100 hover:text-[#10b981] truncate block">
                     {playerMap[s.player_id]?.display_name ?? s.player_id}
                   </Link>
-                  <div className="text-xs text-gray-500 mt-0.5">{s.runs}r · {s.wickets}w · {s.catches}c</div>
+                  <div className="text-xs text-gray-400 mt-0.5">{s.runs}r · {s.wickets}w · {s.catches}c</div>
                 </div>
                 <div className="text-right shrink-0">
                   <div className={`text-[24px] font-medium tabular-nums ${
-                    i === 0 ? 'text-amber-600' : i === 1 ? 'text-slate-500' : 'text-orange-500'
+                    i === 0 ? 'text-amber-400' : i === 1 ? 'text-slate-400' : 'text-orange-400'
                   }`}>{s.mvp_score.toFixed(1)}</div>
                   <div className="text-xs text-gray-400">pts</div>
                 </div>
               </div>
             ) : (
-              <div key={s.player_id} className="flex items-center gap-3 py-2 px-3 rounded-xl bg-[#F4F3F0]">
-                <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-xs font-medium text-gray-500 shrink-0">{i + 1}</div>
-                <Link to={`/player/${s.player_id}`} className="flex-1 font-medium text-sm text-gray-900 hover:text-[#1D9E75] truncate">
+              <div key={s.player_id} className="flex items-center gap-3 py-2 px-3 rounded-xl bg-white/[0.03]">
+                <div className="w-7 h-7 rounded-full bg-white/[0.08] flex items-center justify-center text-xs font-medium text-gray-400 shrink-0">{i + 1}</div>
+                <Link to={`/player/${s.player_id}`} className="flex-1 font-medium text-sm text-gray-100 hover:text-[#10b981] truncate">
                   {playerMap[s.player_id]?.display_name ?? s.player_id}
                 </Link>
-                <div className="text-sm font-medium tabular-nums text-gray-600">
+                <div className="text-sm font-medium tabular-nums text-gray-300">
                   {s.mvp_score.toFixed(1)} <span className="text-xs text-gray-400 font-normal">pts</span>
                 </div>
               </div>
@@ -511,30 +511,30 @@ export default function Leaderboard() {
       {/* Awards */}
       {!perfLoading && !isEmpty && tab === 'awards' && (() => {
         function ACard({ Icon, title, group = [], stat, unit, sub, variant = 'default' }) {
-          const bg = variant === 'gold'  ? 'bg-amber-50 border-amber-200'
-                   : variant === 'spoon' ? 'bg-slate-50 border-slate-200'
-                   : 'bg-[#F4F3F0] border-[rgba(0,0,0,0.08)]'
-          const sc = variant === 'gold'  ? 'text-amber-600'
+          const bg = variant === 'gold'  ? 'bg-amber-900/20 border-amber-500/20'
+                   : variant === 'spoon' ? 'bg-slate-800/30 border-slate-500/20'
+                   : 'bg-white/[0.03] border-white/[0.06]'
+          const sc = variant === 'gold'  ? 'text-amber-400'
                    : variant === 'spoon' ? 'text-slate-400'
-                   : 'text-[#1D9E75]'
+                   : 'text-[#10b981]'
           if (!group.length) return (
             <div className={`rounded-xl border p-3 opacity-40 ${bg}`}>
-              {Icon && <Icon size={16} className="text-gray-400 mb-1" />}
-              <div className="text-xs text-gray-400 font-medium mb-0.5">{title}</div>
-              <div className="font-medium text-gray-400 text-sm">—</div>
-              <div className="text-[24px] font-medium text-gray-300 leading-none mt-1">—</div>
-              <div className="text-xs text-gray-300 mt-0.5">{unit}</div>
+              {Icon && <Icon size={16} className="text-gray-500 mb-1" />}
+              <div className="text-xs text-gray-500 font-medium mb-0.5">{title}</div>
+              <div className="font-medium text-gray-500 text-sm">—</div>
+              <div className="text-[24px] font-medium text-gray-600 leading-none mt-1">—</div>
+              <div className="text-xs text-gray-600 mt-0.5">{unit}</div>
             </div>
           )
           const names = group.map(s => playerMap[s.player_id]?.display_name ?? '—').join(', ')
           const inner = (
             <>
               {Icon && <Icon size={16} className={`mb-1 ${sc}`} />}
-              <div className="text-xs text-gray-500 font-medium mb-0.5">{title}</div>
-              <div className="font-medium text-gray-900 text-sm leading-snug" title={names}>{names}</div>
+              <div className="text-xs text-gray-400 font-medium mb-0.5">{title}</div>
+              <div className="font-medium text-gray-100 text-sm leading-snug" title={names}>{names}</div>
               <div className={`text-[24px] font-medium tabular-nums leading-none mt-1 ${sc}`}>{stat}</div>
               <div className="text-xs text-gray-400 mt-0.5">{unit}</div>
-              {sub && <div className="text-[10px] text-gray-400 mt-1 truncate" title={sub}>{sub}</div>}
+              {sub && <div className="text-[10px] text-gray-500 mt-1 truncate" title={sub}>{sub}</div>}
             </>
           )
           return group.length === 1
@@ -553,15 +553,15 @@ export default function Leaderboard() {
                 const mvpGroup = mvps.filter(s => s.mvp_score === mvps[0]?.mvp_score)
                 const names = mvpGroup.map(s => playerMap[s.player_id]?.display_name ?? '—').join(', ')
                 const inner = (
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-4">
+                  <div className="bg-amber-900/20 border border-amber-500/30 rounded-xl p-4 flex items-center gap-4">
                     <IconStar size={28} className="text-amber-400 shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <div className="text-[10px] text-gray-500 font-medium uppercase tracking-[0.05em]">Season MVP</div>
-                      <div className="font-medium text-gray-900 text-sm leading-snug truncate">{names}</div>
-                      {mvpRU && <div className="text-[10px] text-gray-400 mt-0.5 truncate">{mvpRU}</div>}
+                      <div className="text-[10px] text-gray-400 font-medium uppercase tracking-[0.05em]">Season MVP</div>
+                      <div className="font-medium text-gray-100 text-sm leading-snug truncate">{names}</div>
+                      {mvpRU && <div className="text-[10px] text-gray-500 mt-0.5 truncate">{mvpRU}</div>}
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="text-[24px] font-medium tabular-nums text-amber-600 leading-none">{mvps[0].mvp_score.toFixed(1)}</div>
+                      <div className="text-[24px] font-medium tabular-nums text-amber-400 leading-none">{mvps[0].mvp_score.toFixed(1)}</div>
                       <div className="text-xs text-gray-400 mt-0.5">pts</div>
                     </div>
                   </div>
@@ -587,7 +587,7 @@ export default function Leaderboard() {
 
             {/* Skill Awards */}
             <div className="card overflow-hidden p-0">
-              <div className="bg-[#1D9E75] px-5 py-3 flex items-center gap-2">
+              <div className="bg-[#10b981] px-5 py-3 flex items-center gap-2">
                 <IconBolt size={15} className="text-white" />
                 <h2 className="font-medium text-white text-sm uppercase tracking-[0.05em]">Skill Awards</h2>
               </div>
