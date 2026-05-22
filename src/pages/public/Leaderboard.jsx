@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { usePlayers, useConfig, useLeaderboard, useWeeks, useTournaments } from '../../hooks/useData'
 import { PageSpinner } from '../../components/ui/Spinner'
-import { IconTrophy, IconMedal, IconStar, IconTarget, IconBolt, IconBallBowling, IconCricket } from '@tabler/icons-react'
+import { IconTrophy, IconMedal, IconStar, IconTarget, IconBolt, IconBallBowling, IconCricket, IconSearch } from '@tabler/icons-react'
 
 const NOT_OUT_KEYS = new Set(['not out','dnb','did not bat','absent','retired hurt','absent hurt','retired not out',''])
 const isInnings   = p => (p.balls_faced || 0) > 0
@@ -23,11 +23,52 @@ function strikeRate(runs, balls) {
   return ((runs / balls) * 100).toFixed(1)
 }
 
+function Sparkline({ vals }) {
+  if (!vals || vals.length === 0) return null
+  const max = Math.max(...vals, 1)
+  return (
+    <svg viewBox="0 0 32 14" width="32" height="14">
+      {vals.map((v, i) => {
+        const pct = v / max
+        const h = Math.max(pct * 12, v > 0 ? 1.5 : 0)
+        const fill = pct > 0.6 ? '#10b981' : pct > 0.3 ? '#6ECBAD' : '#D1EDE4'
+        return <rect key={i} x={i * 6.5} y={14 - h} width={5} height={h} rx={1} fill={fill} />
+      })}
+    </svg>
+  )
+}
+
+function PodiumCard({ rank, playerName, playerLink, heroValue, heroLabel, subValue, subLabel }) {
+  const styles = [
+    { bg: 'bg-amber-900/20', border: 'border-amber-500/30', num: 'text-amber-400', badge: 'bg-amber-500', pt: 'pt-6' },
+    { bg: 'bg-slate-800/40',  border: 'border-slate-500/30',  num: 'text-slate-300',  badge: 'bg-slate-500',  pt: 'pt-4' },
+    { bg: 'bg-orange-900/20', border: 'border-orange-500/30', num: 'text-orange-400', badge: 'bg-orange-500', pt: 'pt-2' },
+  ][rank - 1]
+  return (
+    <div className={`flex-1 rounded-xl border ${styles.bg} ${styles.border} ${styles.pt} px-3 pb-4 min-w-0`}>
+      <div className={`w-7 h-7 rounded-lg ${styles.badge} text-white text-xs font-medium flex items-center justify-center mb-2`}>
+        {rank}
+      </div>
+      <Link to={playerLink} className="font-medium text-gray-100 hover:text-[#10b981] truncate block text-sm leading-snug">
+        {playerName}
+      </Link>
+      <div className={`text-[26px] font-medium tabular-nums leading-none mt-1 ${styles.num}`}>{heroValue}</div>
+      <div className="text-[10px] text-gray-400 uppercase tracking-[0.05em]">{heroLabel}</div>
+      {subValue != null && (
+        <div className="text-xs text-gray-500 mt-1.5">
+          {subValue} <span className="text-gray-400">{subLabel}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Leaderboard() {
   const [tab, setTab] = useState('batting')
   const [selectedTId, setSelectedTId] = useState(null)
   const [sortCol, setSortCol] = useState(null)
   const [sortDir, setSortDir] = useState('desc')
+  const [search, setSearch] = useState('')
   const navigate = useNavigate()
   const { data: cfg, isLoading: cfgLoading } = useConfig()
   const { data: pData, isLoading: playersLoading } = usePlayers()
@@ -42,6 +83,17 @@ export default function Leaderboard() {
 
   const playerMap   = Object.fromEntries((pData?.players ?? []).map(p => [p.id, p]))
   const perfs       = perfData?.performances ?? []
+
+  // Pre-compute last 5 perfs per player sorted oldest→newest
+  const last5Map = {}
+  for (const perf of [...perfs].sort((a, b) => a.week_id.localeCompare(b.week_id))) {
+    if (!last5Map[perf.player_id]) last5Map[perf.player_id] = []
+    last5Map[perf.player_id].push(perf)
+  }
+  Object.keys(last5Map).forEach(pid => { last5Map[pid] = last5Map[pid].slice(-5) })
+
+  const searchLower = search.toLowerCase()
+  const matchesSearch = pid => !searchLower || (playerMap[pid]?.display_name ?? '').toLowerCase().includes(searchLower)
 
   const seenWeekPlayer = new Set()
   const statsMap = {}
@@ -192,24 +244,47 @@ export default function Leaderboard() {
   const thClass = col => `cursor-pointer select-none hover:text-gray-300 whitespace-nowrap${sortCol === col ? ' text-[#10b981] font-medium' : ''}`
 
   const displayBatters = (() => {
-    const enriched = batters.map(s => ({
-      ...s,
-      avg: s.dismissals > 0 ? s.runs / s.dismissals : null,
-      sr:  s.balls_faced > 0 ? (s.runs / s.balls_faced) * 100 : 0,
-    }))
+    const enriched = batters
+      .filter(s => matchesSearch(s.player_id))
+      .map(s => ({
+        ...s,
+        avg: s.dismissals > 0 ? s.runs / s.dismissals : null,
+        sr:  s.balls_faced > 0 ? (s.runs / s.balls_faced) * 100 : 0,
+      }))
     if (!sortCol) return enriched
     return [...enriched].sort((a, b) => sortDir === 'desc' ? (b[sortCol] ?? 0) - (a[sortCol] ?? 0) : (a[sortCol] ?? 0) - (b[sortCol] ?? 0))
   })()
 
   const displayBowlers = (() => {
-    const enriched = bowlers.map(s => ({
-      ...s,
-      econ: s.balls_bowled > 0 ? (s.runs_given / s.balls_bowled) * 6 : Infinity,
-    }))
+    const enriched = bowlers
+      .filter(s => matchesSearch(s.player_id))
+      .map(s => ({
+        ...s,
+        econ: s.balls_bowled > 0 ? (s.runs_given / s.balls_bowled) * 6 : Infinity,
+      }))
     if (!sortCol) return enriched
     const dir = sortCol === 'econ' ? (sortDir === 'desc' ? 1 : -1) : (sortDir === 'desc' ? -1 : 1)
     return [...enriched].sort((a, b) => dir * ((a[sortCol] ?? 0) - (b[sortCol] ?? 0)))
   })()
+
+  // Medians for color-coded cells (computed from full unfiltered display lists)
+  const _median = arr => arr.length ? arr.sort((a,b) => a-b)[Math.floor(arr.length / 2)] : 0
+  const medRuns = _median(displayBatters.map(s => s.runs))
+  const medAvg  = _median(displayBatters.map(s => s.avg ?? 0))
+  const medSr   = _median(displayBatters.map(s => s.sr ?? 0))
+  const medWkts = _median(displayBowlers.map(s => s.wickets))
+  const medEcon = _median(displayBowlers.filter(s => isFinite(s.econ)).map(s => s.econ))
+
+  const runsColor = v => v > medRuns * 1.2 && medRuns > 0 ? 'bg-emerald-900/20 text-emerald-400' : v < medRuns * 0.6 && medRuns > 0 ? 'bg-red-900/20 text-red-400' : 'text-[#10b981]'
+  const avgColor  = v => v != null && medAvg > 0 ? (v > medAvg * 1.2 ? 'bg-emerald-900/20 text-emerald-400' : v < medAvg * 0.6 ? 'bg-red-900/20 text-red-400' : 'text-gray-400') : 'text-gray-400'
+  const srColor   = v => medSr > 0 ? (v > medSr * 1.2 ? 'bg-emerald-900/20 text-emerald-400' : v < medSr * 0.6 ? 'bg-red-900/20 text-red-400' : 'text-gray-400') : 'text-gray-400'
+  const wktsColor = v => v > medWkts * 1.2 && medWkts > 0 ? 'bg-emerald-900/20 text-emerald-400' : v < medWkts * 0.6 && medWkts > 0 ? 'bg-red-900/20 text-red-400' : 'text-purple-400'
+  // Economy: lower = better, so green for low
+  const econColor = v => isFinite(v) && medEcon > 0 ? (v < medEcon * 0.8 ? 'bg-emerald-900/20 text-emerald-400' : v > medEcon * 1.2 ? 'bg-red-900/20 text-red-400' : 'text-gray-400') : 'text-gray-400'
+
+  // Show podium only when using default sort and no search active
+  const showBatPodium = !sortCol && !search && displayBatters.length >= 3
+  const showBowlPodium = !sortCol && !search && displayBowlers.length >= 3
 
   return (
     <div className="max-w-3xl mx-auto px-4 pb-12 pt-6">
@@ -244,13 +319,24 @@ export default function Leaderboard() {
         </div>
       )}
 
+      {/* Search bar */}
+      <div className="relative mb-4">
+        <IconSearch size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+        <input
+          className="input text-sm pl-8"
+          placeholder="Filter players…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+      </div>
+
       {/* Tab bar */}
       <div className="overflow-x-auto -mx-4 px-4 mb-6">
         <div className="flex gap-1 bg-white/[0.04] p-1 rounded-xl w-max min-w-full">
           {tabs.map(t => (
             <button
               key={t.id}
-              onClick={() => { setTab(t.id); setSortCol(null); setSortDir('desc') }}
+              onClick={() => { setTab(t.id); setSortCol(null); setSortDir('desc'); setSearch('') }}
               className={`py-2 px-3 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
                 tab === t.id ? 'bg-white/[0.08] text-[#10b981]' : 'text-gray-500 hover:text-gray-200'
               }`}
@@ -274,7 +360,41 @@ export default function Leaderboard() {
       {!perfLoading && !isEmpty && tab === 'batting' && (
         <div className="card overflow-x-auto">
           <h2 className="font-medium text-gray-100 mb-3">Top batters</h2>
-          <table className="w-full text-sm min-w-[480px]">
+
+          {/* Podium top 3 — default sort only */}
+          {showBatPodium && (
+            <div className="flex gap-2 items-end mb-5">
+              <PodiumCard
+                rank={2}
+                playerName={playerMap[displayBatters[1].player_id]?.display_name ?? displayBatters[1].player_id}
+                playerLink={`/player/${displayBatters[1].player_id}`}
+                heroValue={displayBatters[1].runs}
+                heroLabel="runs"
+                subValue={displayBatters[1].avg != null ? displayBatters[1].avg.toFixed(1) : null}
+                subLabel="avg"
+              />
+              <PodiumCard
+                rank={1}
+                playerName={playerMap[displayBatters[0].player_id]?.display_name ?? displayBatters[0].player_id}
+                playerLink={`/player/${displayBatters[0].player_id}`}
+                heroValue={displayBatters[0].runs}
+                heroLabel="runs"
+                subValue={displayBatters[0].avg != null ? displayBatters[0].avg.toFixed(1) : null}
+                subLabel="avg"
+              />
+              <PodiumCard
+                rank={3}
+                playerName={playerMap[displayBatters[2].player_id]?.display_name ?? displayBatters[2].player_id}
+                playerLink={`/player/${displayBatters[2].player_id}`}
+                heroValue={displayBatters[2].runs}
+                heroLabel="runs"
+                subValue={displayBatters[2].avg != null ? displayBatters[2].avg.toFixed(1) : null}
+                subLabel="avg"
+              />
+            </div>
+          )}
+
+          <table className="w-full text-sm min-w-[500px]">
             <thead>
               <tr className="text-[11px] text-gray-500 uppercase tracking-[0.05em] border-b border-white/[0.06]">
                 <th className="text-left pb-2 w-6">#</th>
@@ -287,6 +407,7 @@ export default function Leaderboard() {
                 <th className={`text-right pb-2 pr-2 ${thClass('high_score')}`} onClick={() => toggleSort('high_score')}>HS{sortArrow('high_score')}</th>
                 <th className={`text-right pb-2 pr-2 ${thClass('fours')}`}      onClick={() => toggleSort('fours')}>4s{sortArrow('fours')}</th>
                 <th className={`text-right pb-2 ${thClass('sixes')}`}           onClick={() => toggleSort('sixes')}>6s{sortArrow('sixes')}</th>
+                <th className="pb-2 hidden sm:table-cell w-10"></th>
                 <th className="pb-2 w-6"></th>
               </tr>
             </thead>
@@ -306,17 +427,26 @@ export default function Leaderboard() {
                   </td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-500">{s.matches}</td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-500">{s.innings}</td>
-                  <td className="py-2 pr-2 text-right tabular-nums font-medium text-[#10b981]">{s.runs}</td>
-                  <td className="py-2 pr-2 text-right tabular-nums text-gray-400">{s.avg != null ? s.avg.toFixed(1) : '—'}</td>
-                  <td className="py-2 pr-2 text-right tabular-nums text-gray-400">{s.balls_faced > 0 ? s.sr.toFixed(1) : '—'}</td>
+                  <td className="py-2 pr-2 text-right tabular-nums">
+                    <span className={`rounded-sm px-1 font-medium text-sm ${runsColor(s.runs)}`}>{s.runs}</span>
+                  </td>
+                  <td className="py-2 pr-2 text-right tabular-nums">
+                    <span className={`rounded-sm px-1 text-sm ${avgColor(s.avg)}`}>{s.avg != null ? s.avg.toFixed(1) : '—'}</span>
+                  </td>
+                  <td className="py-2 pr-2 text-right tabular-nums">
+                    <span className={`rounded-sm px-1 text-sm ${srColor(s.sr)}`}>{s.balls_faced > 0 ? s.sr.toFixed(1) : '—'}</span>
+                  </td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-400">{s.high_score}</td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-500">{s.fours}</td>
                   <td className="py-2 text-right tabular-nums text-gray-500">{s.sixes}</td>
+                  <td className="py-2 pl-2 hidden sm:table-cell">
+                    <Sparkline vals={(last5Map[s.player_id] ?? []).map(p => p.runs || 0)} />
+                  </td>
                   <td className="py-2 pl-1">
                     <button
                       title="Compare"
                       onClick={() => navigate(`/compare?a=${s.player_id}`)}
-                      className="text-gray-300 hover:text-[#1D9E75] transition-colors text-xs font-medium"
+                      className="text-gray-300 hover:text-[#10b981] transition-colors text-xs font-medium"
                     >vs</button>
                   </td>
                 </tr>
@@ -330,6 +460,40 @@ export default function Leaderboard() {
       {!perfLoading && !isEmpty && tab === 'bowling' && (
         <div className="card overflow-x-auto">
           <h2 className="font-medium text-gray-100 mb-3">Top bowlers</h2>
+
+          {/* Podium top 3 — default sort only */}
+          {showBowlPodium && (
+            <div className="flex gap-2 items-end mb-5">
+              <PodiumCard
+                rank={2}
+                playerName={playerMap[displayBowlers[1].player_id]?.display_name ?? displayBowlers[1].player_id}
+                playerLink={`/player/${displayBowlers[1].player_id}`}
+                heroValue={displayBowlers[1].wickets}
+                heroLabel="wickets"
+                subValue={displayBowlers[1].balls_bowled > 0 ? displayBowlers[1].econ.toFixed(2) : null}
+                subLabel="econ"
+              />
+              <PodiumCard
+                rank={1}
+                playerName={playerMap[displayBowlers[0].player_id]?.display_name ?? displayBowlers[0].player_id}
+                playerLink={`/player/${displayBowlers[0].player_id}`}
+                heroValue={displayBowlers[0].wickets}
+                heroLabel="wickets"
+                subValue={displayBowlers[0].balls_bowled > 0 ? displayBowlers[0].econ.toFixed(2) : null}
+                subLabel="econ"
+              />
+              <PodiumCard
+                rank={3}
+                playerName={playerMap[displayBowlers[2].player_id]?.display_name ?? displayBowlers[2].player_id}
+                playerLink={`/player/${displayBowlers[2].player_id}`}
+                heroValue={displayBowlers[2].wickets}
+                heroLabel="wickets"
+                subValue={displayBowlers[2].balls_bowled > 0 ? displayBowlers[2].econ.toFixed(2) : null}
+                subLabel="econ"
+              />
+            </div>
+          )}
+
           <table className="w-full text-sm min-w-[420px]">
             <thead>
               <tr className="text-[11px] text-gray-500 uppercase tracking-[0.05em] border-b border-white/[0.06]">
@@ -341,6 +505,7 @@ export default function Leaderboard() {
                 <th className={`text-right pb-2 pr-2 ${thClass('runs_given')}`}   onClick={() => toggleSort('runs_given')}>Runs{sortArrow('runs_given')}</th>
                 <th className={`text-right pb-2 pr-2 ${thClass('econ')}`}         onClick={() => toggleSort('econ')}>Econ{sortArrow('econ')}</th>
                 <th className={`text-right pb-2 ${thClass('maidens')}`}           onClick={() => toggleSort('maidens')}>Mdns{sortArrow('maidens')}</th>
+                <th className="pb-2 hidden sm:table-cell w-10"></th>
                 <th className="pb-2 w-6"></th>
               </tr>
             </thead>
@@ -359,16 +524,23 @@ export default function Leaderboard() {
                     )}
                   </td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-500">{s.matches}</td>
-                  <td className="py-2 pr-2 text-right tabular-nums font-medium text-purple-400">{s.wickets}</td>
+                  <td className="py-2 pr-2 text-right tabular-nums">
+                    <span className={`rounded-sm px-1 font-medium text-sm ${wktsColor(s.wickets)}`}>{s.wickets}</span>
+                  </td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-400">{overs(s.balls_bowled)}</td>
                   <td className="py-2 pr-2 text-right tabular-nums text-gray-400">{s.runs_given}</td>
-                  <td className="py-2 pr-2 text-right tabular-nums text-gray-400">{s.balls_bowled > 0 ? s.econ.toFixed(2) : '—'}</td>
+                  <td className="py-2 pr-2 text-right tabular-nums">
+                    <span className={`rounded-sm px-1 text-sm ${econColor(s.econ)}`}>{s.balls_bowled > 0 ? s.econ.toFixed(2) : '—'}</span>
+                  </td>
                   <td className="py-2 text-right tabular-nums text-gray-500">{s.maidens}</td>
+                  <td className="py-2 pl-2 hidden sm:table-cell">
+                    <Sparkline vals={(last5Map[s.player_id] ?? []).map(p => p.wickets || 0)} />
+                  </td>
                   <td className="py-2 pl-1">
                     <button
                       title="Compare"
                       onClick={() => navigate(`/compare?a=${s.player_id}`)}
-                      className="text-gray-300 hover:text-[#1D9E75] transition-colors text-xs font-medium"
+                      className="text-gray-300 hover:text-[#10b981] transition-colors text-xs font-medium"
                     >vs</button>
                   </td>
                 </tr>
@@ -395,7 +567,7 @@ export default function Leaderboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.05]">
-              {fielders.map((s, i) => (
+              {fielders.filter(s => matchesSearch(s.player_id)).map((s, i) => (
                 <tr key={s.player_id} className={i === 0 ? 'font-medium' : ''}>
                   <td className="py-2 text-gray-500 text-xs">{i + 1}</td>
                   <td className="py-2 pr-2 max-w-[140px]">
@@ -423,7 +595,7 @@ export default function Leaderboard() {
           <h2 className="font-medium text-gray-100 mb-1">All-round performers</h2>
           <p className="text-xs text-gray-400 mb-4">CricHeroes formula · min 2 matches · bat + bowl + field</p>
           <div className="space-y-2">
-            {allrounders.map((s, i) => i < 3 ? (
+            {allrounders.filter(s => matchesSearch(s.player_id)).map((s, i) => i < 3 ? (
               <div key={s.player_id} className={`flex items-center gap-4 p-4 rounded-xl border ${
                 i === 0 ? 'bg-amber-900/20 border-amber-500/30'
                 : i === 1 ? 'bg-slate-800/30 border-slate-600/30'
@@ -469,7 +641,7 @@ export default function Leaderboard() {
           <h2 className="font-medium text-gray-100 mb-1">Season MVP</h2>
           <p className="text-xs text-gray-400 mb-4">CricHeroes formula · min 5 matches</p>
           <div className="space-y-2">
-            {mvps.map((s, i) => i < 3 ? (
+            {mvps.filter(s => matchesSearch(s.player_id)).map((s, i) => i < 3 ? (
               <div key={s.player_id} className={`flex items-center gap-4 p-4 rounded-xl border ${
                 i === 0 ? 'bg-amber-900/20 border-amber-500/30'
                 : i === 1 ? 'bg-slate-800/30 border-slate-600/30'
@@ -522,8 +694,8 @@ export default function Leaderboard() {
               {Icon && <Icon size={16} className="text-gray-500 mb-1" />}
               <div className="text-xs text-gray-500 font-medium mb-0.5">{title}</div>
               <div className="font-medium text-gray-500 text-sm">—</div>
-              <div className="text-[24px] font-medium text-gray-600 leading-none mt-1">—</div>
-              <div className="text-xs text-gray-600 mt-0.5">{unit}</div>
+              <div className="text-[24px] font-medium text-gray-400 leading-none mt-1">—</div>
+              <div className="text-xs text-gray-400 mt-0.5">{unit}</div>
             </div>
           )
           const names = group.map(s => playerMap[s.player_id]?.display_name ?? '—').join(', ')

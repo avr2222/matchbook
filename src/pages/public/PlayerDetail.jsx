@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { usePlayers, useWeeks, useTransactions, useMatchPerformances, useConfig } from '../../hooks/useData'
+import { usePlayers, useWeeks, useTransactions, useMatchPerformances, useConfig, useLeaderboard } from '../../hooks/useData'
+import { buildStatsMap } from '../../utils/statsBuilder'
 import { format, parseISO } from 'date-fns'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { IconArrowLeft, IconCreditCard, IconFlame, IconMedal, IconStar, IconTarget, IconBallBowling, IconCricket, IconMapPin, IconCircleCheck } from '@tabler/icons-react'
@@ -59,11 +60,70 @@ function PerformanceChart({ perfs, weeks }) {
   )
 }
 
+function RadarChart({ scores, labels }) {
+  const cx = 80, cy = 80, r = 58
+  const n = scores.length
+  const pts = scores.map((v, i) => {
+    const angle = (i / n) * 2 * Math.PI - Math.PI / 2
+    const pct = Math.min(v, 100) / 100
+    return [cx + pct * r * Math.cos(angle), cy + pct * r * Math.sin(angle)]
+  })
+  const gridPts = Array.from({ length: n }, (_, i) => {
+    const angle = (i / n) * 2 * Math.PI - Math.PI / 2
+    return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)]
+  })
+  const toPath = p => p.map((pt, i) => `${i === 0 ? 'M' : 'L'}${pt[0].toFixed(1)},${pt[1].toFixed(1)}`).join(' ') + 'Z'
+
+  return (
+    <div className="relative w-[160px] mx-auto">
+      <svg viewBox="0 0 160 160" width="160" height="160">
+        {[0.25, 0.5, 0.75, 1].map(scale => (
+          <polygon key={scale}
+            points={gridPts.map(([x, y]) => `${(cx + (x - cx) * scale).toFixed(1)},${(cy + (y - cy) * scale).toFixed(1)}`).join(' ')}
+            fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth={1} />
+        ))}
+        {gridPts.map(([x, y], i) => (
+          <line key={i} x1={cx} y1={cy} x2={x.toFixed(1)} y2={y.toFixed(1)} stroke="rgba(255,255,255,0.07)" strokeWidth={1} />
+        ))}
+        <path d={toPath(pts)} fill="rgba(16,185,129,0.15)" stroke="#10b981" strokeWidth={1.5} />
+        {pts.map(([x, y], i) => (
+          <circle key={i} cx={x.toFixed(1)} cy={y.toFixed(1)} r={2.5} fill="#10b981" opacity={0.9} />
+        ))}
+      </svg>
+      {/* Axis labels placed around the SVG */}
+      {gridPts.map(([gx, gy], i) => {
+        const lx = cx + (gx - cx) * 1.32
+        const ly = cy + (gy - cy) * 1.32
+        const pctX = (lx / 160) * 100
+        const pctY = (ly / 160) * 100
+        return (
+          <div
+            key={i}
+            className="absolute text-[8px] font-medium text-gray-400 uppercase tracking-wide whitespace-nowrap"
+            style={{ left: `${pctX}%`, top: `${pctY}%`, transform: 'translate(-50%, -50%)' }}
+          >
+            {labels[i]}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 const STATUS_COLOR = {
   good:         'bg-emerald-900/30 text-emerald-300',
   collect_soon: 'bg-amber-900/30 text-amber-300',
   urgent:       'bg-orange-900/30 text-orange-300',
   overdue:      'bg-red-900/30 text-red-300',
+}
+
+function PctBar({ pct }) {
+  if (pct == null) return null
+  return (
+    <div className="h-[3px] bg-white/[0.1] rounded-full mt-1.5 overflow-hidden">
+      <div className="bg-[#10b981] h-full rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+    </div>
+  )
 }
 
 export default function PlayerDetail() {
@@ -77,6 +137,7 @@ export default function PlayerDetail() {
   const { data: txnData } = useTransactions()
   const { data: perfData } = useMatchPerformances(id)
   const { data: cfg }      = useConfig()
+  const { data: lbData }   = useLeaderboard(cfg?.active_tournament_id)
 
   if (isLoading) return <PageSpinner />
 
@@ -85,7 +146,7 @@ export default function PlayerDetail() {
   if (!player) return (
     <div className="max-w-3xl mx-auto px-4 py-12 text-center">
       <p className="text-gray-400 mb-4">Player not found.</p>
-      <Link to="/" className="text-[#1D9E75] font-medium">← Back to dashboard</Link>
+      <Link to="/" className="text-[#10b981] font-medium">← Back to dashboard</Link>
     </div>
   )
 
@@ -161,6 +222,35 @@ export default function PlayerDetail() {
   const avgWkts  = perfs.length > 0 ? careerWkts / perfs.length : 0
   const needsTopUp = player.balance_status !== 'good' && player.type !== 'ppm'
 
+  // Team-wide stats for percentile bars and radar chart
+  const teamStats = Object.values(buildStatsMap(lbData?.performances ?? []))
+  function pctRank(val, arr) {
+    if (arr.length < 2) return 50
+    const below = arr.filter(v => v < val).length
+    return Math.round((below / (arr.length - 1)) * 100)
+  }
+  const runsPct  = teamStats.length > 1 ? pctRank(careerRuns, teamStats.map(s => s.runs)) : null
+  const wktsPct  = teamStats.length > 1 ? pctRank(careerWkts, teamStats.map(s => s.wickets)) : null
+  const weeksPct = teamStats.length > 1 ? pctRank(perfs.length, teamStats.map(s => s.matches)) : null
+
+  // Radar chart scores (0-100 per axis)
+  const careerFielding = perfs.reduce((s, p) => s + (p.catches||0) + (p.run_outs||0) + (p.stumpings||0), 0)
+  const teamEcons = teamStats.filter(s => s.balls_bowled > 0).map(s => s.runs_given / s.balls_bowled * 6).sort((a,b) => a-b)
+  const playerEcon = careerBallsBowled > 0 ? careerRunsGiven / careerBallsBowled * 6 : null
+  const econPct = playerEcon != null && teamEcons.length > 1
+    ? 100 - Math.round((teamEcons.filter(v => v < playerEcon).length / (teamEcons.length - 1)) * 100)
+    : (teamStats.length > 1 ? 50 : null)
+  const radarScores = teamStats.length > 1 ? [
+    runsPct ?? 50,
+    wktsPct ?? 50,
+    econPct ?? 50,
+    pctRank(careerFielding, teamStats.map(s => s.catches + s.run_outs + s.stumpings)),
+    attendRate,
+  ] : null
+
+  // Heat strip — last 20 completed sessions oldest→newest
+  const heatWeeks = completedWeeks.slice(0, 20).reverse()
+
   return (
     <div className="max-w-3xl mx-auto px-4 pb-12">
 
@@ -203,13 +293,13 @@ export default function PlayerDetail() {
               <UpiPaySection player={player} config={cfg} />
             ) : (
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm text-[#1D9E75]">
+                <div className="flex items-center gap-2 text-sm text-[#10b981]">
                   <IconCircleCheck size={16} className="shrink-0" />
                   <span className="font-medium">Balance is healthy</span>
                 </div>
                 <button
                   onClick={() => setShowTopUp(true)}
-                  className="text-sm text-[#1D9E75] font-medium hover:underline flex items-center gap-1"
+                  className="text-sm text-[#10b981] font-medium hover:underline flex items-center gap-1"
                 >
                   <IconCreditCard size={14} /> Top up
                 </button>
@@ -239,10 +329,32 @@ export default function PlayerDetail() {
       {/* Attendance + streak + matches left */}
       {completedWeeks.length > 0 && (
         <div className="grid grid-cols-3 gap-3 mb-4">
+          {/* Attendance card with heat strip */}
           <div className="card text-center py-3 px-2">
-            <div className="text-[24px] font-medium text-[#1D9E75] tabular-nums">{attendRate}%</div>
-            <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em] mt-0.5">Attendance</div>
-            <div className="text-xs text-gray-300 mt-0.5">{attendedWeeks}/{completedWeeks.length}</div>
+            {heatWeeks.length > 0 ? (
+              <>
+                <svg viewBox={`0 0 ${heatWeeks.length * 10} 10`} width="100%" className="mt-0.5 mb-1">
+                  {heatWeeks.map((w, i) => {
+                    const weekPerf = perfs.filter(p => p.week_id === w.week_id)
+                    const attended = weekPerf.length > 0
+                    const runs = weekPerf.reduce((s, p) => s + (p.runs || 0), 0)
+                    const fill = !attended ? 'rgba(255,255,255,0.08)'
+                      : runs >= 30 ? '#10b981'
+                      : runs >= 10 ? '#6ECBAD'
+                      : '#B8E4D6'
+                    return <rect key={w.week_id} x={i * 10} y={0} width={8} height={8} rx={1.5} fill={fill} />
+                  })}
+                </svg>
+                <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Attendance</div>
+                <div className="text-xs text-gray-300 mt-0.5">{attendedWeeks}/{completedWeeks.length} · {attendRate}%</div>
+              </>
+            ) : (
+              <>
+                <div className="text-[24px] font-medium text-[#10b981] tabular-nums">{attendRate}%</div>
+                <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em] mt-0.5">Attendance</div>
+                <div className="text-xs text-gray-300 mt-0.5">{attendedWeeks}/{completedWeeks.length}</div>
+              </>
+            )}
           </div>
           <div className="card text-center py-3 px-2">
             <div className="flex items-center justify-center gap-1 text-[24px] font-medium text-amber-500 tabular-nums">
@@ -253,7 +365,7 @@ export default function PlayerDetail() {
           </div>
           {player.type !== 'ppm' ? (
             <div className="card text-center py-3 px-2">
-              <div className={`text-[24px] font-medium tabular-nums ${matchesLeft <= 2 ? 'text-red-500' : matchesLeft <= 5 ? 'text-amber-500' : 'text-[#1D9E75]'}`}>
+              <div className={`text-[24px] font-medium tabular-nums ${matchesLeft <= 2 ? 'text-red-400' : matchesLeft <= 5 ? 'text-amber-400' : 'text-[#10b981]'}`}>
                 ~{matchesLeft}
               </div>
               <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em] mt-0.5">Matches left</div>
@@ -304,14 +416,17 @@ export default function PlayerDetail() {
         <div className="card mb-4">
           <h3 className="font-medium text-gray-100 mb-3">Cricket stats</h3>
 
+          {/* Hero 3 stats with percentile bars */}
           <div className="grid grid-cols-3 gap-3 mb-4">
             <div className="bg-white/[0.04] rounded-xl p-3 text-center">
               <div className="text-[24px] font-medium text-gray-100 tabular-nums">{careerRuns}</div>
               <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em] mt-0.5">Runs</div>
+              <PctBar pct={runsPct} />
             </div>
             <div className="bg-white/[0.04] rounded-xl p-3 text-center">
               <div className="text-[24px] font-medium text-gray-100 tabular-nums">{careerWkts}</div>
               <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em] mt-0.5">Wickets</div>
+              <PctBar pct={wktsPct} />
             </div>
             <div className="bg-white/[0.04] rounded-xl p-3 text-center">
               <div className="text-[24px] font-medium text-gray-100 tabular-nums">{perfs.length}</div>
@@ -319,8 +434,17 @@ export default function PlayerDetail() {
               {totalGames > perfs.length && (
                 <div className="text-[10px] text-gray-400 mt-0.5">{totalGames} matches</div>
               )}
+              <PctBar pct={weeksPct} />
             </div>
           </div>
+
+          {/* Radar chart */}
+          {radarScores && (
+            <div className="mb-4 pt-2 pb-3 border-t border-white/[0.05]">
+              <p className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] mb-3 text-center">All-round profile</p>
+              <RadarChart scores={radarScores} labels={['Bat', 'Bowl', 'Econ', 'Field', 'Att']} />
+            </div>
+          )}
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4 text-center">
             <div>

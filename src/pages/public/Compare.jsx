@@ -92,7 +92,7 @@ export default function Compare() {
     <div className="max-w-4xl mx-auto px-4 pb-12 pt-6">
       <div className="flex items-center gap-3 mb-6">
         <Link to="/leaderboard" className="text-gray-400 hover:text-gray-200 text-sm">← Leaderboard</Link>
-        <span className="text-gray-600">|</span>
+        <span className="text-gray-400">|</span>
         <h1 className="text-[22px] font-medium text-gray-100">Compare players</h1>
       </div>
 
@@ -132,15 +132,41 @@ export default function Compare() {
             {rows.map(({ label, a, b, higher, fmt }) => {
               const aWins = higher ? a > b : (a > 0 && (b === 0 || a < b))
               const bWins = higher ? b > a : (b > 0 && (a === 0 || b < a))
+              const total = a + b
+              const aPct = total > 0 ? Math.round((a / total) * 100) : 50
+              const bPct = total > 0 ? 100 - aPct : 50
               return (
-                <div key={label} className="grid grid-cols-3 items-center">
-                  <div className="px-4 py-2.5 text-xs text-gray-500 font-medium">{label}</div>
-                  <div className={`px-4 py-2.5 text-center text-sm font-medium tabular-nums ${aWins ? 'text-[#10b981] bg-[rgba(16,185,129,0.08)]' : 'text-gray-400'}`}>
-                    {fmt(a)}
+                <div key={label}>
+                  <div className="grid grid-cols-3 items-center">
+                    <div className="px-4 py-2.5 text-xs text-gray-500 font-medium">{label}</div>
+                    <div className={`px-4 py-2.5 text-center text-sm font-medium tabular-nums ${aWins ? 'text-[#10b981] bg-[rgba(16,185,129,0.08)]' : 'text-gray-400'}`}>
+                      {fmt(a)}
+                    </div>
+                    <div className={`px-4 py-2.5 text-center text-sm font-medium tabular-nums ${bWins ? 'text-[#10b981] bg-[rgba(16,185,129,0.08)]' : 'text-gray-400'}`}>
+                      {fmt(b)}
+                    </div>
                   </div>
-                  <div className={`px-4 py-2.5 text-center text-sm font-medium tabular-nums ${bWins ? 'text-[#10b981] bg-[rgba(16,185,129,0.08)]' : 'text-gray-400'}`}>
-                    {fmt(b)}
-                  </div>
+                  {/* Visual comparison bar */}
+                  {total > 0 && (
+                    <div className="px-4 pb-2 grid grid-cols-3">
+                      <div />
+                      <div className="col-span-2 flex h-1.5 rounded-full overflow-hidden bg-white/[0.08]">
+                        <div className="flex flex-1 justify-end">
+                          <div
+                            className="bg-[#10b981] h-full rounded-l-full transition-all duration-500"
+                            style={{ width: `${aWins ? aPct : 50}%` }}
+                          />
+                        </div>
+                        <div className="w-px bg-gray-300 shrink-0" />
+                        <div className="flex flex-1">
+                          <div
+                            className="bg-sky-400 h-full rounded-r-full transition-all duration-500"
+                            style={{ width: `${bWins ? bPct : 50}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )
             })}
