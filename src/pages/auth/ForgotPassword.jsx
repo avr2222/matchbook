@@ -80,11 +80,11 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-transparent px-4">
       <div className="card max-w-sm w-full">
         <div className="text-center mb-6">
           <div className="text-4xl mb-2">🔑</div>
-          <h1 className="text-xl font-bold text-gray-900">Reset Password</h1>
+          <h1 className="text-xl font-bold text-white">Reset Password</h1>
           <p className="text-sm text-gray-500 mt-1">
             {step === 1 ? 'Enter your mobile number' : 'Answer your security questions'}
           </p>
@@ -104,7 +104,7 @@ export default function ForgotPassword() {
                 required
               />
             </div>
-            {error && <p className="text-sm text-red-600 bg-red-900/10 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
+            {error && <p className="text-sm text-red-300 bg-red-900/20 border border-red-700/30 rounded-lg px-3 py-2">{error}</p>}
             <button type="submit" disabled={loading} className="btn-primary w-full">
               {loading ? 'Looking up…' : 'Find Account →'}
             </button>
@@ -155,7 +155,7 @@ export default function ForgotPassword() {
                 autoComplete="new-password"
               />
             </div>
-            {error && <p className="text-sm text-red-600 bg-red-900/10 border border-red-200 rounded-lg px-3 py-2">{error}</p>}
+            {error && <p className="text-sm text-red-300 bg-red-900/20 border border-red-700/30 rounded-lg px-3 py-2">{error}</p>}
             <button type="submit" disabled={loading} className="btn-primary w-full">
               {loading ? 'Resetting…' : 'Reset Password'}
             </button>

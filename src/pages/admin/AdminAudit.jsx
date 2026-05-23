@@ -56,13 +56,13 @@ export default function AdminAudit() {
                     <summary className="text-xs text-blue-500 cursor-pointer">View changes</summary>
                     <div className="mt-1 grid grid-cols-2 gap-2 text-xs">
                       {e.before && (
-                        <div className="bg-red-900/10 rounded p-2 font-mono text-red-700 overflow-auto max-h-20">
+                        <div className="bg-red-900/20 rounded p-2 font-mono text-red-300 overflow-auto max-h-20">
                           <div className="font-medium mb-1">Before</div>
                           {JSON.stringify(e.before, null, 2)}
                         </div>
                       )}
                       {e.after && (
-                        <div className="bg-green-50 rounded p-2 font-mono text-green-700 overflow-auto max-h-20">
+                        <div className="bg-green-900/20 rounded p-2 font-mono text-green-300 overflow-auto max-h-20">
                           <div className="font-medium mb-1">After</div>
                           {JSON.stringify(e.after, null, 2)}
                         </div>

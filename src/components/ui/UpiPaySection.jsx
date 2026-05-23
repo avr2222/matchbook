@@ -94,7 +94,7 @@ export default function UpiPaySection({ player, config }) {
             className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
               chosen === a && !customAmt
                 ? 'bg-[#10b981] text-white border-[#10b981]'
-                : 'border-gray-200 text-gray-600 hover:border-[#10b981]/40'
+                : 'border-white/[0.15] text-gray-300 hover:border-[#10b981]/40'
             }`}
           >
             ₹{a.toLocaleString('en-IN')}
@@ -161,9 +161,9 @@ export default function UpiPaySection({ player, config }) {
       )}
 
       {pendingReqId && !refSaved && (
-        <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 space-y-2">
+        <div className="bg-blue-900/20 border border-blue-700/30 rounded-xl p-4 space-y-2">
           <p className="text-[11px] font-medium text-blue-700 uppercase tracking-[0.05em]">After paying</p>
-          <p className="text-sm text-blue-800">Enter your UPI Transaction ID so admin can verify:</p>
+          <p className="text-sm text-blue-300">Enter your UPI Transaction ID so admin can verify:</p>
           <div className="flex gap-2">
             <input
               className="input flex-1 text-sm font-mono"

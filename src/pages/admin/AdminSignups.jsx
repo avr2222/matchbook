@@ -25,7 +25,7 @@ function useSignups() {
 const STATUS_BADGE = {
   pending:  'bg-amber-900/20 text-amber-300',
   approved: 'bg-[rgba(16,185,129,0.08)] text-[#10b981]',
-  rejected: 'bg-red-100 text-red-600',
+  rejected: 'bg-red-900/20 text-red-300',
 }
 
 export default function AdminSignups() {

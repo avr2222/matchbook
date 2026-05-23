@@ -522,8 +522,8 @@ export default function AdminTransactions() {
       {/* Single payment form — admin only */}
       {showForm && isAdmin && (
         <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-md">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
+          <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] w-full max-w-md">
+            <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between">
               <h2 className="font-medium">Record Payment</h2>
               <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
@@ -567,7 +567,7 @@ export default function AdminTransactions() {
                 </div>
               )}
             </div>
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
+            <div className="px-6 py-4 border-t border-white/[0.06] flex justify-end gap-2">
               <button onClick={() => setShowForm(false)} className="btn-secondary">Cancel</button>
               <button onClick={save} disabled={saving} className="btn-primary">{saving ? 'Saving…' : 'Save & Commit'}</button>
             </div>
@@ -579,8 +579,8 @@ export default function AdminTransactions() {
 
       {editTxn && editTxnForm && isAdmin && (
         <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-md">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
+          <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] w-full max-w-md">
+            <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between">
               <h2 className="font-medium">Edit Transaction</h2>
               <button onClick={() => setEditTxn(null)} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
@@ -627,7 +627,7 @@ export default function AdminTransactions() {
                 </select>
               </div>
             </div>
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
+            <div className="px-6 py-4 border-t border-white/[0.06] flex justify-end gap-2">
               <button onClick={() => setEditTxn(null)} className="btn-secondary">Cancel</button>
               <button onClick={saveEditTxn} disabled={saving} className="btn-primary">{saving ? 'Saving…' : 'Save'}</button>
             </div>
@@ -638,8 +638,8 @@ export default function AdminTransactions() {
       {/* Bulk payment form — admin only */}
       {showBulk && isAdmin && (
         <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
+          <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between">
               <h2 className="font-medium">Bulk Record Payments</h2>
               <button onClick={() => setShowBulk(false)} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
@@ -681,7 +681,7 @@ export default function AdminTransactions() {
                 + Add row
               </button>
             </div>
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
+            <div className="px-6 py-4 border-t border-white/[0.06] flex justify-end gap-2">
               <button onClick={() => setShowBulk(false)} className="btn-secondary">Cancel</button>
               <button onClick={saveBulk} disabled={saving} className="btn-primary">{saving ? 'Saving…' : `Save ${bulkRows.filter(r => r.player_id && r.amount).length} Payments`}</button>
             </div>

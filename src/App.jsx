@@ -52,7 +52,7 @@ function AdminLayout({ children }) {
   return (
     <div className="max-w-screen-2xl mx-auto px-4 py-6 space-y-3">
       {!canWrite && (
-        <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 text-sm text-amber-800">
+        <div className="flex items-center justify-between bg-amber-900/20 border border-amber-700/30 rounded-lg px-4 py-2 text-sm text-amber-300">
           <span>👁️ View-only — you can browse but not make changes.</span>
           <Link to="/login" className="font-medium underline">Log in as admin →</Link>
         </div>

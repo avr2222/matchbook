@@ -378,7 +378,7 @@ export default function AdminExpenses() {
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">Not applied</span>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-amber-900/20 text-amber-300 font-medium">Not applied</span>
                       <a href="#/admin/weeks" className="text-xs text-blue-500 hover:underline">Go to Weeks →</a>
                     </div>
                   )}

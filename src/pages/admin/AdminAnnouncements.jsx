@@ -149,8 +149,8 @@ export default function AdminAnnouncements() {
 
       {editing && isAdmin && (
         <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-md">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
+          <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] w-full max-w-md">
+            <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between">
               <h2 className="font-medium">
                 {announcements.find(a => a.id === editing.id) ? 'Edit Announcement' : 'New Announcement'}
               </h2>
@@ -183,7 +183,7 @@ export default function AdminAnnouncements() {
                 <span className="text-sm text-gray-200">Pin to top</span>
               </label>
             </div>
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
+            <div className="px-6 py-4 border-t border-white/[0.06] flex justify-end gap-2">
               <button onClick={() => setEditing(null)} className="btn-secondary">Cancel</button>
               <button onClick={save} disabled={saving} className="btn-primary">{saving ? 'Saving…' : 'Post'}</button>
             </div>

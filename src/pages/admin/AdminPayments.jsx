@@ -25,7 +25,7 @@ function usePaymentRequestsFull() {
 const STATUS_BADGE = {
   pending:   'bg-amber-900/20 text-amber-300',
   confirmed: 'bg-[rgba(16,185,129,0.08)] text-[#10b981]',
-  rejected:  'bg-red-100 text-red-600',
+  rejected:  'bg-red-900/20 text-red-300',
 }
 
 export default function AdminPayments() {
@@ -133,7 +133,7 @@ export default function AdminPayments() {
                 <th className="px-4 py-3 text-right text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em]">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.05] bg-white">
+            <tbody className="divide-y divide-white/[0.05]">
               {visible.map(req => {
                 const player = playerMap[req.player_id]
                 const isBusy = busy === req.id

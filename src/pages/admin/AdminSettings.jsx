@@ -226,8 +226,8 @@ export default function AdminSettings() {
 
       {showMigrate && isAdmin && (
         <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-sm">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
+          <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] w-full max-w-sm">
+            <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between">
               <h2 className="font-medium text-red-700">Close Tournament</h2>
               <button onClick={() => { setShowMigrate(false); setNewTournamentName(''); setNewTournamentUrl('') }} className="text-gray-400">✕</button>
             </div>
@@ -245,7 +245,7 @@ export default function AdminSettings() {
                 <p className="text-xs text-gray-400 mt-1">Needed for CricHeroes sync to work on the new season.</p>
               </div>
             </div>
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
+            <div className="px-6 py-4 border-t border-white/[0.06] flex justify-end gap-2">
               <button onClick={() => { setShowMigrate(false); setNewTournamentName(''); setNewTournamentUrl('') }} className="btn-secondary">Cancel</button>
               <button onClick={closeTournamentAndMigrate} disabled={saving} className="btn-danger">
                 {saving ? 'Migrating…' : 'Close & Migrate'}

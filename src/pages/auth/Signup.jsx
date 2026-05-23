@@ -113,15 +113,15 @@ export default function Signup() {
 
   if (step === 'success') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-transparent px-4">
         <div className="card max-w-sm w-full text-center space-y-4">
           <div className="text-5xl">🎉</div>
-          <h1 className="text-xl font-bold text-gray-900">Account Created!</h1>
+          <h1 className="text-xl font-bold text-white">Account Created!</h1>
           <p className="text-sm text-gray-600">
             Your account is pending admin approval. You'll be able to sign in once approved.
           </p>
           <p className="text-xs text-gray-400">
-            Claimed player: <span className="font-medium text-gray-700">
+            Claimed player: <span className="font-medium text-gray-200">
               {players.find(p => p.id === claimedId)?.display_name ?? 'None'}
             </span>
           </p>
@@ -134,11 +134,11 @@ export default function Signup() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-10">
+    <div className="min-h-screen flex items-center justify-center bg-transparent px-4 py-10">
       <div className="card max-w-sm w-full">
         <div className="text-center mb-6">
           <div className="text-4xl mb-2">🏏</div>
-          <h1 className="text-xl font-bold text-gray-900">Create Account</h1>
+          <h1 className="text-xl font-bold text-white">Create Account</h1>
           <p className="text-sm text-gray-500 mt-1">Join MatchBook</p>
         </div>
 
@@ -249,7 +249,7 @@ export default function Signup() {
           </div>
 
           {error && (
-            <div className="p-3 bg-red-900/10 border border-red-200 rounded-lg text-sm text-red-700">
+            <div className="p-3 bg-red-900/10 border border-red-700/30 rounded-lg text-sm text-red-300">
               {error}
             </div>
           )}

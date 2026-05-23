@@ -417,7 +417,7 @@ export default function AdminWeeks() {
                     <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
                       w.status === 'completed'
                         ? 'bg-[rgba(16,185,129,0.08)] text-[#10b981]'
-                        : 'bg-amber-100 text-amber-700'
+                        : 'bg-amber-900/20 text-amber-300'
                     }`}>{w.status}</span>
                   </td>
                   <td className="px-4 py-3 text-center text-xs text-gray-400">
@@ -456,7 +456,7 @@ export default function AdminWeeks() {
       {/* Result editor */}
       {editResult && isAdmin && (
         <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-sm">
+          <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] w-full max-w-sm">
             <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between">
               <h2 className="font-medium">Match Result</h2>
               <button onClick={() => setEditResult(null)} className="text-gray-400 hover:text-gray-600">✕</button>
@@ -486,7 +486,7 @@ export default function AdminWeeks() {
       {/* Attendance editor */}
       {selected && selectedWeek && canWrite && (
         <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between">
               <div>
                 <h2 className="font-medium">Attendance — {format(parseISO(selectedWeek.match_date), 'MMM d, yyyy')}</h2>
@@ -551,7 +551,7 @@ export default function AdminWeeks() {
               <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-[0.05em] mb-3">
                 💸 Reimburse player (paid out of pocket)
               </p>
-              <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.08)] p-4 space-y-3">
+              <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] p-4 space-y-3">
                 <div>
                   <label className="label text-xs">Player who paid</label>
                   <select
@@ -651,7 +651,7 @@ export default function AdminWeeks() {
       {/* Add match modal */}
       {showNew && isAdmin && (
         <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-sm">
+          <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] w-full max-w-sm">
             <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between">
               <h2 className="font-medium">Add Match Week</h2>
               <button onClick={() => setShowNew(false)} className="text-gray-400 hover:text-gray-600">✕</button>
@@ -738,7 +738,7 @@ function AttendanceList({ players, attendanceMap, onToggle, corpusPlayers, deduc
             onClick={() => onToggle(p.id)}
             className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
               status === 'played'
-                ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                ? 'bg-green-900/30 text-green-300 hover:bg-green-900/50'
                 : 'bg-white/[0.06] text-gray-300 hover:bg-white/[0.08]'
             }`}
           >
@@ -753,7 +753,7 @@ function AttendanceList({ players, attendanceMap, onToggle, corpusPlayers, deduc
               onClick={() => onTogglePpmPaid(p.id)}
               className={`px-2.5 py-0.5 rounded text-xs font-semibold transition-colors ${
                 ppmPaidIds?.has(p.id)
-                  ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                  ? 'bg-green-900/30 text-green-300 hover:bg-green-900/50'
                   : 'bg-white/[0.06] text-gray-300 hover:bg-white/[0.08]'
               }`}
             >
@@ -770,7 +770,7 @@ function AttendanceList({ players, attendanceMap, onToggle, corpusPlayers, deduc
                 onClick={() => onToggleFree(p.id)}
                 className={`px-2 py-0.5 rounded text-xs font-semibold transition-colors ${
                   freePlayerIds?.has(p.id)
-                    ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                    ? 'bg-amber-900/20 text-amber-300 hover:bg-amber-900/40'
                     : 'bg-white/[0.06] text-gray-300 hover:bg-white/[0.08]'
                 }`}
               >

@@ -197,8 +197,8 @@ export default function AdminGuests() {
 
       {showForm && isAdmin && (
         <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-md">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
+          <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] w-full max-w-md">
+            <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between">
               <h2 className="font-medium">Add Guest Visit</h2>
               <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600">✕</button>
             </div>
@@ -245,7 +245,7 @@ export default function AdminGuests() {
                 <input className="input" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
               </div>
             </div>
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
+            <div className="px-6 py-4 border-t border-white/[0.06] flex justify-end gap-2">
               <button onClick={() => setShowForm(false)} className="btn-secondary">Cancel</button>
               <button onClick={save} disabled={saving} className="btn-primary">{saving ? 'Saving…' : 'Save'}</button>
             </div>

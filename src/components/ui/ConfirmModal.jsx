@@ -11,7 +11,7 @@ export default function ConfirmModal({ title, message, confirmLabel = 'Confirm',
   return (
     <div className="fixed inset-0 bg-black/25 flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div
-        className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] max-w-sm w-full p-6 space-y-3"
+        className="bg-[#0c1e18] rounded-xl border border-white/[0.1] max-w-sm w-full p-6 space-y-3"
         onClick={e => e.stopPropagation()}
       >
         {title && (

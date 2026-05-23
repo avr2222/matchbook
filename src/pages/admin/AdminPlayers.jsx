@@ -59,7 +59,7 @@ function PlayerHistoryModal({ player, allTxns, attendance, weeks, expenses, onCl
 
   return (
     <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-lg max-h-[90vh] flex flex-col">
+      <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] w-full max-w-lg max-h-[90vh] flex flex-col">
         <div className="px-6 py-4 border-b border-white/[0.06] flex items-start justify-between shrink-0">
           <div>
             <h2 className="font-medium text-white text-lg">{player.display_name}</h2>
@@ -102,7 +102,7 @@ function PlayerHistoryModal({ player, allTxns, attendance, weeks, expenses, onCl
           ))}
         </div>
 
-        <div className="px-6 py-3 border-t border-gray-200 shrink-0 text-right">
+        <div className="px-6 py-3 border-t border-white/[0.06] shrink-0 text-right">
           <button onClick={onClose} className="btn-secondary text-sm">Close</button>
         </div>
       </div>
@@ -334,7 +334,7 @@ export default function AdminPlayers() {
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
               typeTab === tab
                 ? 'bg-[#10b981] text-white'
-                : 'bg-white/[0.04] text-gray-600 hover:bg-white/[0.08]'
+                : 'bg-white/[0.04] text-gray-300 hover:bg-white/[0.08]'
             }`}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -350,8 +350,8 @@ export default function AdminPlayers() {
       </div>
 
       {isAdmin && selected.size > 0 && (
-        <div className="flex items-center gap-3 bg-red-900/10 border border-red-200 rounded-xl px-4 py-2.5">
-          <span className="text-sm text-red-700 font-medium flex-1">{selected.size} player{selected.size > 1 ? 's' : ''} selected</span>
+        <div className="flex items-center gap-3 bg-red-900/10 border border-red-700/30 rounded-xl px-4 py-2.5">
+          <span className="text-sm text-red-300 font-medium flex-1">{selected.size} player{selected.size > 1 ? 's' : ''} selected</span>
           <button onClick={() => setSelected(new Set())} className="text-xs text-gray-400 hover:text-gray-600">Clear</button>
           <button onClick={bulkDeactivate} className="btn-danger text-sm py-1 px-3">
             Deactivate Selected ({selected.size})
@@ -440,7 +440,7 @@ export default function AdminPlayers() {
                 <td className="px-4 py-3 text-center">
                   {p.type === 'ppm'
                     ? (p.corpus_balance < 0
-                        ? <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700">₹{fmt(Math.abs(p.corpus_balance))} pending</span>
+                        ? <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-900/20 text-red-300">₹{fmt(Math.abs(p.corpus_balance))} pending</span>
                         : <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[rgba(16,185,129,0.08)] text-[#10b981]">✓ Paid</span>)
                     : <BalanceBadge status={p.balance_status} />}
                 </td>
@@ -486,7 +486,7 @@ export default function AdminPlayers() {
       {/* Cash payment modal for PPM/Guest players */}
       {cashModal && (
         <div className="fixed inset-0 bg-black/25 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] max-w-sm w-full p-6">
+          <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] max-w-sm w-full p-6">
             <h3 className="font-medium text-white mb-4">Record cash payment — {cashModal.player.display_name}</h3>
             <div className="space-y-3">
               <div>
@@ -528,7 +528,7 @@ export default function AdminPlayers() {
       {/* Edit / Add modal — admin only */}
       {editing && isAdmin && (
         <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between items-center">
               <h2 className="font-medium text-white">
                 {players.find(p => p.id === editing.id) ? 'Edit player' : 'Add player'}
@@ -609,7 +609,7 @@ export default function AdminPlayers() {
                 </>
               )}
             </div>
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
+            <div className="px-6 py-4 border-t border-white/[0.06] flex justify-end gap-2">
               <button onClick={() => setEditing(null)} className="btn-secondary">Cancel</button>
               <button onClick={save} disabled={saving} className="btn-primary">
                 {saving ? 'Saving…' : 'Save'}

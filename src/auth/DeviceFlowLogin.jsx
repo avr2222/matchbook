@@ -53,7 +53,7 @@ export default function Login() {
       {/* Form panel */}
       <div className="flex-1 flex items-center justify-center bg-slate-50 px-6 py-12">
         <div className="w-full max-w-sm">
-          <h2 className="text-2xl font-black text-gray-900 mb-1">Welcome back</h2>
+          <h2 className="text-2xl font-black text-white mb-1">Welcome back</h2>
           <p className="text-sm text-gray-400 mb-8">Sign in to continue to your team</p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -84,7 +84,7 @@ export default function Login() {
             </div>
 
             {error && (
-              <div className="p-3 bg-red-900/10 border border-red-200 rounded-xl text-sm text-red-700 flex items-start gap-2">
+              <div className="p-3 bg-red-900/10 border border-red-700/30 rounded-xl text-sm text-red-300 flex items-start gap-2">
                 <span>⚠️</span>
                 <span>{error}</span>
               </div>
