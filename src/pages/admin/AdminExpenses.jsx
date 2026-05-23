@@ -463,16 +463,16 @@ export default function AdminExpenses() {
 
       {editExpense && editForm && isAdmin && (
         <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-md">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
-              <h2 className="font-medium">Edit Expense</h2>
-              <button onClick={() => { setEditExpense(null); setEditForm(null) }} className="text-gray-400 hover:text-gray-600">✕</button>
+          <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] w-full max-w-md max-h-[90vh] flex flex-col">
+            <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between items-center shrink-0">
+              <h2 className="font-medium text-gray-100">Edit Expense</h2>
+              <button onClick={() => { setEditExpense(null); setEditForm(null) }} className="text-gray-400 hover:text-gray-200">✕</button>
             </div>
-            <div className="px-6 py-4 space-y-3">
+            <div className="px-6 py-4 space-y-3 overflow-y-auto flex-1">
               <div>
                 <label className="label">Category</label>
                 <select className="input" value={editForm.category} onChange={e => setEditForm(f => ({ ...f, category: e.target.value }))}>
-                  {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                  {CATEGORIES.map(c => <option key={c.value} value={c.value} style={{ background: '#0b1512' }}>{c.label}</option>)}
                 </select>
               </div>
               <div>
@@ -486,14 +486,14 @@ export default function AdminExpenses() {
               <div>
                 <label className="label">Match (optional)</label>
                 <select className="input" value={editForm.week_id} onChange={e => setEditForm(f => ({ ...f, week_id: e.target.value }))}>
-                  <option value="">— not tied to a match —</option>
-                  {weeks.map(w => <option key={w.week_id} value={w.week_id}>{w.label} · {w.match_date}</option>)}
+                  <option value="" style={{ background: '#0b1512' }}>— not tied to a match —</option>
+                  {weeks.map(w => <option key={w.week_id} value={w.week_id} style={{ background: '#0b1512' }}>{w.label} · {w.match_date}</option>)}
                 </select>
               </div>
               <div>
                 <label className="label">Split Among</label>
                 <select className="input" value={editForm.split_among} onChange={e => setEditForm(f => ({ ...f, split_among: e.target.value }))}>
-                  {SPLIT_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                  {SPLIT_OPTIONS.map(s => <option key={s.value} value={s.value} style={{ background: '#0b1512' }}>{s.label}</option>)}
                 </select>
               </div>
               <div>
@@ -503,12 +503,12 @@ export default function AdminExpenses() {
               <div>
                 <label className="label">Who paid? (optional)</label>
                 <select className="input" value={editForm.paid_by_player_id} onChange={e => setEditForm(f => ({ ...f, paid_by_player_id: e.target.value }))}>
-                  <option value="">— nobody / unknown —</option>
-                  {players.map(p => <option key={p.id} value={p.id}>{p.display_name}</option>)}
+                  <option value="" style={{ background: '#0b1512' }}>— nobody / unknown —</option>
+                  {players.map(p => <option key={p.id} value={p.id} style={{ background: '#0b1512' }}>{p.display_name}</option>)}
                 </select>
               </div>
             </div>
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
+            <div className="px-6 py-4 border-t border-white/[0.06] flex justify-end gap-2 shrink-0">
               <button onClick={() => { setEditExpense(null); setEditForm(null) }} className="btn-secondary">Cancel</button>
               <button onClick={saveEdit} disabled={saving} className="btn-primary">{saving ? 'Saving…' : 'Save'}</button>
             </div>
@@ -518,16 +518,16 @@ export default function AdminExpenses() {
 
       {showForm && canWrite && (
         <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-md">
-            <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
-              <h2 className="font-medium">Add Expense</h2>
-              <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+          <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] w-full max-w-md max-h-[90vh] flex flex-col">
+            <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between items-center shrink-0">
+              <h2 className="font-medium text-gray-100">Add Expense</h2>
+              <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-200">✕</button>
             </div>
-            <div className="px-6 py-4 space-y-3">
+            <div className="px-6 py-4 space-y-3 overflow-y-auto flex-1">
               <div>
                 <label className="label">Category</label>
                 <select className="input" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
-                  {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                  {CATEGORIES.map(c => <option key={c.value} value={c.value} style={{ background: '#0b1512' }}>{c.label}</option>)}
                 </select>
               </div>
               <div>
@@ -541,14 +541,14 @@ export default function AdminExpenses() {
               <div>
                 <label className="label">Match (optional)</label>
                 <select className="input" value={form.week_id} onChange={e => setForm(f => ({ ...f, week_id: e.target.value }))}>
-                  <option value="">— not tied to a match —</option>
-                  {weeks.map(w => <option key={w.week_id} value={w.week_id}>{w.label} · {w.match_date}</option>)}
+                  <option value="" style={{ background: '#0b1512' }}>— not tied to a match —</option>
+                  {weeks.map(w => <option key={w.week_id} value={w.week_id} style={{ background: '#0b1512' }}>{w.label} · {w.match_date}</option>)}
                 </select>
               </div>
               <div>
                 <label className="label">Split Among</label>
                 <select className="input" value={form.split_among} onChange={e => setForm(f => ({ ...f, split_among: e.target.value }))}>
-                  {SPLIT_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                  {SPLIT_OPTIONS.map(s => <option key={s.value} value={s.value} style={{ background: '#0b1512' }}>{s.label}</option>)}
                 </select>
                 {preview && (
                   <p className="text-xs text-[#10b981] mt-1">≈ {preview}</p>
@@ -562,8 +562,8 @@ export default function AdminExpenses() {
                 <label className="label">Who paid? (optional)</label>
                 <select className="input" value={form.paid_by_player_id}
                   onChange={e => setForm(f => ({ ...f, paid_by_player_id: e.target.value, reimburse_corpus: false }))}>
-                  <option value="">— nobody / unknown —</option>
-                  {players.map(p => <option key={p.id} value={p.id}>{p.display_name}</option>)}
+                  <option value="" style={{ background: '#0b1512' }}>— nobody / unknown —</option>
+                  {players.map(p => <option key={p.id} value={p.id} style={{ background: '#0b1512' }}>{p.display_name}</option>)}
                 </select>
               </div>
               {form.paid_by_player_id && parseFloat(form.amount) > 0 && (() => {
@@ -585,7 +585,7 @@ export default function AdminExpenses() {
                 )
               })()}
             </div>
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">
+            <div className="px-6 py-4 border-t border-white/[0.06] flex justify-end gap-2 shrink-0">
               <button onClick={() => setShowForm(false)} className="btn-secondary">Cancel</button>
               <button onClick={save} disabled={saving} className="btn-primary">{saving ? 'Saving…' : 'Save'}</button>
             </div>
