@@ -33,7 +33,6 @@ const SPLIT_LABEL = {
 const SPLIT_OPTIONS = [
   { value: 'all_played',  label: 'Split among all who played' },
   { value: 'all_active',  label: 'Split among all active players' },
-  { value: 'corpus_pool', label: 'Deduct from corpus pool only' },
 ]
 
 export default function AdminExpenses() {
