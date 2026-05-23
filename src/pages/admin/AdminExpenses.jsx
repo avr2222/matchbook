@@ -108,7 +108,7 @@ export default function AdminExpenses() {
         amount: parseFloat(form.amount),
         description: form.description || CATEGORIES.find(c => c.value === form.category)?.label,
         split_among: form.split_among,
-        per_player_amount: null,
+        share_per_player: null,
         paid_by: payer?.display_name ?? '',
         paid_by_player_id: form.paid_by_player_id || null,
         recorded_by: 'admin',
@@ -337,7 +337,7 @@ export default function AdminExpenses() {
       {confirmData && <ConfirmModal {...confirmData} onClose={() => setConfirmData(null)} />}
 
       {editExpense && editForm && isAdmin && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-md">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
               <h2 className="font-medium">Edit Expense</h2>
@@ -392,7 +392,7 @@ export default function AdminExpenses() {
       )}
 
       {showForm && canWrite && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-md">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
               <h2 className="font-medium">Add Expense</h2>

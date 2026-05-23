@@ -521,7 +521,7 @@ export default function AdminTransactions() {
 
       {/* Single payment form — admin only */}
       {showForm && isAdmin && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-md">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
               <h2 className="font-medium">Record Payment</h2>
@@ -578,7 +578,7 @@ export default function AdminTransactions() {
       {confirmData && <ConfirmModal {...confirmData} onClose={() => setConfirmData(null)} />}
 
       {editTxn && editTxnForm && isAdmin && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-md">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
               <h2 className="font-medium">Edit Transaction</h2>
@@ -637,7 +637,7 @@ export default function AdminTransactions() {
 
       {/* Bulk payment form — admin only */}
       {showBulk && isAdmin && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
               <h2 className="font-medium">Bulk Record Payments</h2>
