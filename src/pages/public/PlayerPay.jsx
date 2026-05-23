@@ -421,23 +421,23 @@ export default function PlayerPay() {
             </div>
             <div className="grid grid-cols-4 gap-2 text-center mb-4">
               <div>
-                <div className="font-medium text-gray-800 text-sm tabular-nums">
+                <div className="font-medium text-gray-100 text-sm tabular-nums">
                   {careerBalls > 0 ? ((careerRuns / careerBalls) * 100).toFixed(1) : '—'}
                 </div>
                 <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Bat SR</div>
               </div>
               <div>
-                <div className="font-medium text-gray-800 text-sm tabular-nums">{careerHighScore}</div>
+                <div className="font-medium text-gray-100 text-sm tabular-nums">{careerHighScore}</div>
                 <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">High score</div>
               </div>
               <div>
-                <div className="font-medium text-gray-800 text-sm tabular-nums">
+                <div className="font-medium text-gray-100 text-sm tabular-nums">
                   {careerBallsBowled > 0 ? ((careerRunsGiven / careerBallsBowled) * 6).toFixed(2) : '—'}
                 </div>
                 <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Economy</div>
               </div>
               <div>
-                <div className="font-medium text-gray-800 text-sm tabular-nums">{careerBestWkts}</div>
+                <div className="font-medium text-gray-100 text-sm tabular-nums">{careerBestWkts}</div>
                 <div className="text-[11px] text-gray-400 uppercase tracking-[0.05em]">Best wkts</div>
               </div>
             </div>

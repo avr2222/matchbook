@@ -313,9 +313,9 @@ export default function Dashboard() {
                   if (!teamName) {
                     return (
                       <div key={i} className="bg-white/[0.02] border border-white/[0.05] rounded-xl px-3 py-3 text-center">
-                        <p className="text-xs text-gray-500 font-medium">Opponent</p>
+                        <p className="text-xs text-gray-300 font-medium">Opponent</p>
                         <div className="text-[28px] font-extrabold text-white/20 leading-none mt-1">0</div>
-                        <p className="text-[10px] text-gray-600 uppercase tracking-wide mt-1">wins</p>
+                        <p className="text-[10px] text-gray-400 uppercase tracking-wide mt-1">wins</p>
                       </div>
                     )
                   }
@@ -357,7 +357,7 @@ export default function Dashboard() {
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-gray-500 my-4">No series data yet.</p>
+              <p className="text-sm text-gray-300 my-4">No series data yet.</p>
             )}
 
             {/* Timeline pills (wraps on mobile) */}
@@ -452,7 +452,7 @@ export default function Dashboard() {
                     </button>
                   )}
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-gray-300 mt-2">
                   Balance: ₹{(selectedP.corpus_balance ?? 0).toLocaleString('en-IN')} · Suggested: ₹{paySuggested.toLocaleString('en-IN')}
                   {!isMobile && <span className="ml-1">· {upiId}</span>}
                 </p>
@@ -501,14 +501,14 @@ export default function Dashboard() {
                   const names = ss.map(s => perfPlayerMap[s.player_id]?.display_name ?? '—').join(', ')
                   const inner = (
                     <>
-                      <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center justify-center gap-1">
+                      <div className="text-[11px] font-bold text-gray-300 uppercase tracking-wider mb-2 flex items-center justify-center gap-1">
                         <span>{def.emoji}</span> {def.label}
                       </div>
                       <div className="font-bold text-white text-sm leading-snug truncate px-1" title={names}>{names}</div>
                       <div className="text-[22px] font-extrabold mt-1 tabular-nums" style={{ color: def.color }}>
                         {typeof val === 'number' ? (Number.isInteger(val) ? val : val.toFixed(1)) : '—'}
                       </div>
-                      <div className="text-[10px] text-gray-500 mt-0.5 uppercase tracking-wide">{def.unit}</div>
+                      <div className="text-[10px] text-gray-300 mt-0.5 uppercase tracking-wide">{def.unit}</div>
                     </>
                   )
                   const cardCls = 'bg-white/[0.01] border border-white/[0.04] rounded-xl p-4 text-center hover:border-[#10b981]/40 hover:bg-[rgba(16,185,129,0.02)] hover:-translate-y-0.5 transition-all duration-200'
@@ -530,7 +530,7 @@ export default function Dashboard() {
               <Link to="/timeline" className="text-xs font-semibold text-[#10b981] hover:underline">See all →</Link>
             </div>
             {recentWeeks.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-6">No matches recorded yet.</p>
+              <p className="text-sm text-gray-300 text-center py-6">No matches recorded yet.</p>
             ) : (
               <div className="space-y-2.5">
                 {recentWeeks.map(w => {
@@ -554,7 +554,7 @@ export default function Dashboard() {
                           <div className="text-sm font-semibold text-gray-100 truncate max-w-[160px] sm:max-w-none">
                             {w.venue ? w.venue.split(',')[0] : format(parseISO(w.match_date), 'MMM d, yyyy')}
                           </div>
-                          <div className="text-xs text-gray-500 mt-0.5">
+                          <div className="text-xs text-gray-300 mt-0.5">
                             {w.venue ? format(parseISO(w.match_date), 'MMM d, yyyy') : ''}
                           </div>
                         </div>
@@ -566,7 +566,7 @@ export default function Dashboard() {
                             {w.result}
                           </span>
                         )}
-                        <span className="text-xs text-gray-500 font-medium flex items-center gap-1">
+                        <span className="text-xs text-gray-300 font-medium flex items-center gap-1">
                           <IconUsers size={11} />{played}
                         </span>
                       </div>
@@ -614,7 +614,7 @@ export default function Dashboard() {
                         </div>
                         <div className="min-w-0">
                           <div className="text-sm font-semibold text-gray-100 truncate max-w-[160px] sm:max-w-none">{e.description}</div>
-                          <div className="text-xs text-gray-500 mt-0.5">
+                          <div className="text-xs text-gray-300 mt-0.5">
                             {format(parseISO(e.date), 'MMM d, yyyy')}
                             {isDeduction
                               ? <span> · {e.count} players</span>

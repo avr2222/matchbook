@@ -370,7 +370,7 @@ export default function AdminTransactions() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-[22px] font-medium text-gray-900">
+        <h1 className="text-[22px] font-medium text-white">
           Payments & Transactions
           {pendingReqs.length > 0 && (
             <span className="ml-2 bg-red-900/100 text-white text-xs font-medium rounded-full px-2 py-0.5">{pendingReqs.length}</span>
@@ -391,14 +391,14 @@ export default function AdminTransactions() {
       {/* Pending payment requests */}
       {isAdmin && pendingReqs.length > 0 && (
         <div className="card border-l-4 border-amber-400 space-y-2">
-          <h2 className="font-medium text-gray-800 text-sm">Pending Payment References ({pendingReqs.length})</h2>
+          <h2 className="font-medium text-gray-100 text-sm">Pending Payment References ({pendingReqs.length})</h2>
           <div className="divide-y divide-white/[0.05]">
             {pendingReqs.map(req => {
               const payer = players.find(p => p.id === req.player_id)
               return (
                 <div key={req.id} className="py-2 flex items-center justify-between gap-4 text-sm">
                   <div>
-                    <span className="font-medium text-gray-800">{payer?.display_name ?? req.player_id}</span>
+                    <span className="font-medium text-gray-100">{payer?.display_name ?? req.player_id}</span>
                     <span className="mx-2 text-gray-300">·</span>
                     <span className="font-mono text-[#10b981]">₹{req.amount.toLocaleString('en-IN')}</span>
                     <span className="mx-2 text-gray-300">·</span>
@@ -491,7 +491,7 @@ export default function AdminTransactions() {
                     </td>
                   )}
                   <td className="px-4 py-3 text-gray-500">{format(parseISO(t.date), 'MMM d, yyyy')}</td>
-                  <td className="px-4 py-3 font-medium text-gray-800">{player?.display_name ?? t.player_id}</td>
+                  <td className="px-4 py-3 font-medium text-gray-100">{player?.display_name ?? t.player_id}</td>
                   <td className="px-4 py-3 text-gray-500">{TYPES.find(x => x.value === t.type)?.label ?? t.type}</td>
                   <td className={`px-4 py-3 text-right font-mono font-medium ${t.direction === 'credit' ? 'text-[#10b981]' : 'text-red-500'}`}>
                     {t.direction === 'credit' ? '+' : '-'}₹{t.amount.toLocaleString('en-IN')}
@@ -558,7 +558,7 @@ export default function AdminTransactions() {
                 <input className="input" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
               </div>
               {newBalance !== null && (
-                <div className="bg-white/[0.04] rounded-lg p-3 text-sm text-gray-700">
+                <div className="bg-white/[0.04] rounded-lg p-3 text-sm text-gray-200">
                   Preview: <strong>{selectedPlayer?.display_name}</strong>{' '}
                   <span className={typeInfo?.dir === 'credit' ? 'text-[#10b981]' : 'text-red-500'}>
                     {typeInfo?.dir === 'credit' ? '+' : '-'}₹{parseFloat(form.amount || 0).toLocaleString('en-IN')}

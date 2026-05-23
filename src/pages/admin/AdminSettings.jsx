@@ -111,12 +111,12 @@ export default function AdminSettings() {
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <h1 className="text-[22px] font-medium text-gray-900">Settings</h1>
+      <h1 className="text-[22px] font-medium text-white">Settings</h1>
 
       {/* Team Settings */}
       {form && (
         <div className="card">
-          <h2 className="font-medium text-gray-800 mb-4">Team Settings</h2>
+          <h2 className="font-medium text-gray-100 mb-4">Team Settings</h2>
           <div className="space-y-3">
             <div>
               <label className="label">Team Name</label>
@@ -167,7 +167,7 @@ export default function AdminSettings() {
             </div>
             <div className="flex items-start justify-between gap-4 py-1">
               <div>
-                <label className="text-sm font-medium text-gray-800">Auto-deduct on Sunday sync</label>
+                <label className="text-sm font-medium text-gray-100">Auto-deduct on Sunday sync</label>
                 <p className="text-xs text-gray-400 mt-0.5">CricHeroes sync will automatically create match deductions for corpus players who attended.</p>
               </div>
               <input
@@ -194,8 +194,8 @@ export default function AdminSettings() {
 
       {/* Current tournament */}
       <div className="card">
-        <h2 className="font-medium text-gray-800 mb-3">Current Tournament</h2>
-        <div className="space-y-2 text-sm text-gray-700">
+        <h2 className="font-medium text-gray-100 mb-3">Current Tournament</h2>
+        <div className="space-y-2 text-sm text-gray-200">
           <div><span className="text-gray-500">Name:</span> {activeTournament?.name}</div>
           <div><span className="text-gray-500">CricHeroes ID:</span> {activeTournament?.cricheroes_tournament_id ?? '—'}</div>
           <div><span className="text-gray-500">Start Date:</span> {activeTournament?.start_date ?? '—'}</div>
@@ -210,12 +210,12 @@ export default function AdminSettings() {
 
       {/* All tournaments */}
       <div className="card">
-        <h2 className="font-medium text-gray-800 mb-3">Tournament History</h2>
+        <h2 className="font-medium text-gray-100 mb-3">Tournament History</h2>
         <div className="divide-y divide-white/[0.05]">
           {(tData?.tournaments ?? []).map(t => (
             <div key={t.id} className="py-2.5 flex items-center justify-between text-sm">
               <div>
-                <span className="font-medium text-gray-800">{t.name}</span>
+                <span className="font-medium text-gray-100">{t.name}</span>
                 {t.id === activeTId && <span className="ml-2 text-xs bg-[rgba(16,185,129,0.08)] text-[#10b981] px-1.5 py-0.5 rounded">Active</span>}
               </div>
               <span className="text-xs text-gray-400">{t.start_date ?? '?'} → {t.end_date ?? 'ongoing'}</span>
@@ -232,7 +232,7 @@ export default function AdminSettings() {
               <button onClick={() => { setShowMigrate(false); setNewTournamentName(''); setNewTournamentUrl('') }} className="text-gray-400">✕</button>
             </div>
             <div className="px-6 py-4 space-y-3">
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-gray-200">
                 This will <strong>close "{activeTournament?.name}"</strong> and carry all corpus balances forward to the new tournament.
               </p>
               <div>

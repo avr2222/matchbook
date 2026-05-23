@@ -18,7 +18,7 @@ function AnnRow({ ann, todayStr, onEdit, onDelete, deletingId, isAdmin }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           {ann.pinned && <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-medium">Pinned</span>}
-          <span className="font-medium text-gray-900 text-sm">{ann.title}</span>
+          <span className="font-medium text-white text-sm">{ann.title}</span>
         </div>
         <p className="text-sm text-gray-600 mt-0.5 truncate">{ann.body}</p>
         <p className="text-xs text-gray-400 mt-1">
@@ -117,12 +117,12 @@ export default function AdminAnnouncements() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-[22px] font-medium text-gray-900">Announcements</h1>
+        <h1 className="text-[22px] font-medium text-white">Announcements</h1>
         {isAdmin && <button onClick={openNew} className="btn-primary text-sm">+ New Announcement</button>}
       </div>
 
       <div className="card">
-        <h2 className="font-medium text-gray-800 mb-2 text-sm">Active ({active.length})</h2>
+        <h2 className="font-medium text-gray-100 mb-2 text-sm">Active ({active.length})</h2>
         {active.length === 0 ? (
           <p className="text-sm text-gray-400 py-4 text-center">No active announcements.</p>
         ) : (
@@ -180,7 +180,7 @@ export default function AdminAnnouncements() {
                   checked={editing.pinned ?? false}
                   onChange={e => setEditing(p => ({ ...p, pinned: e.target.checked }))}
                 />
-                <span className="text-sm text-gray-700">Pin to top</span>
+                <span className="text-sm text-gray-200">Pin to top</span>
               </label>
             </div>
             <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-2">

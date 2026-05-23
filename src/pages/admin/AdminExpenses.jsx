@@ -227,7 +227,7 @@ export default function AdminExpenses() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[22px] font-medium text-gray-900">Expenses</h1>
+          <h1 className="text-[22px] font-medium text-white">Expenses</h1>
           <p className="text-sm text-gray-500 mt-0.5">Total: ₹{total.toLocaleString('en-IN')}</p>
         </div>
         {canWrite && <button onClick={() => setShowForm(true)} className="btn-primary text-sm">+ Add Expense</button>}
@@ -235,20 +235,20 @@ export default function AdminExpenses() {
 
       {completedWeeks.length > 0 && (
         <div className="card">
-          <h2 className="font-medium text-gray-800 mb-3">Match Fee Collections</h2>
+          <h2 className="font-medium text-gray-100 mb-3">Match Fee Collections</h2>
           <div className="divide-y divide-white/[0.05] -mx-4 -mb-4">
             {completedWeeks.map(w => {
               const d = deductByWeek[w.week_id]
               return (
                 <div key={w.week_id} className="px-4 py-2.5 flex items-center justify-between text-sm">
                   <div>
-                    <span className="font-medium text-gray-800">{format(parseISO(w.match_date), 'MMM d')}</span>
+                    <span className="font-medium text-gray-100">{format(parseISO(w.match_date), 'MMM d')}</span>
                     <span className="ml-2 text-xs text-gray-400">{format(parseISO(w.match_date), 'MMM d, yyyy')}</span>
                   </div>
                   {d ? (
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-gray-500">{d.count} players</span>
-                      <span className="font-mono text-gray-700">₹{Math.round(d.total).toLocaleString('en-IN')}</span>
+                      <span className="font-mono text-gray-200">₹{Math.round(d.total).toLocaleString('en-IN')}</span>
                       <span className="text-xs px-2 py-0.5 rounded bg-[rgba(16,185,129,0.08)] text-[#10b981] font-medium">Applied</span>
                     </div>
                   ) : (
@@ -282,7 +282,7 @@ export default function AdminExpenses() {
             ) : expenses.map(e => (
                 <tr key={e.id} className="hover:bg-white/[0.03]">
                   <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{format(parseISO(e.date), 'MMM d, yyyy')}</td>
-                  <td className="px-4 py-3 text-gray-700 whitespace-nowrap">{CATEGORIES.find(c => c.value === e.category)?.label ?? e.category}</td>
+                  <td className="px-4 py-3 text-gray-200 whitespace-nowrap">{CATEGORIES.find(c => c.value === e.category)?.label ?? e.category}</td>
                   <td className="px-4 py-3 text-gray-600">
                     <div>{e.description}</div>
                     {(e.paid_by || e.paid_by_player_id) && (
@@ -325,8 +325,8 @@ export default function AdminExpenses() {
           {expenses.length > 0 && (
             <tfoot className="bg-white/[0.03] border-t border-white/[0.06]">
               <tr>
-                <td colSpan={4} className="px-4 py-2 text-right text-sm font-medium text-gray-700">Total</td>
-                <td className="px-4 py-2 text-right font-mono font-medium text-gray-900">₹{total.toLocaleString('en-IN')}</td>
+                <td colSpan={4} className="px-4 py-2 text-right text-sm font-medium text-gray-200">Total</td>
+                <td className="px-4 py-2 text-right font-mono font-medium text-white">₹{total.toLocaleString('en-IN')}</td>
                 <td />
               </tr>
             </tfoot>
@@ -448,7 +448,7 @@ export default function AdminExpenses() {
                   return <p className="text-xs text-gray-400">{payer.display_name} is PPM — no corpus balance to credit.</p>
                 }
                 return (
-                  <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                  <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={form.reimburse_corpus}

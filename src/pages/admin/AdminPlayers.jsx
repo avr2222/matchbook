@@ -62,7 +62,7 @@ function PlayerHistoryModal({ player, allTxns, attendance, weeks, expenses, onCl
       <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-lg max-h-[90vh] flex flex-col">
         <div className="px-6 py-4 border-b border-white/[0.06] flex items-start justify-between shrink-0">
           <div>
-            <h2 className="font-medium text-gray-900 text-lg">{player.display_name}</h2>
+            <h2 className="font-medium text-white text-lg">{player.display_name}</h2>
             <div className="flex items-center gap-2 mt-1">
               <BalanceBadge status={player.balance_status} />
               <span className="text-xs text-gray-500">{typeLabel(player.type)}</span>
@@ -74,7 +74,7 @@ function PlayerHistoryModal({ player, allTxns, attendance, weeks, expenses, onCl
         <div className="px-6 py-3 bg-white/[0.04] grid grid-cols-3 gap-3 border-b border-white/[0.06] shrink-0">
           <div className="text-center">
             <div className="text-xs text-gray-500 mb-0.5">Balance</div>
-            <div className={`font-medium text-sm ${(player.corpus_balance ?? 0) < 0 ? 'text-red-600' : 'text-gray-900'}`}>₹{fmt(player.corpus_balance)}</div>
+            <div className={`font-medium text-sm ${(player.corpus_balance ?? 0) < 0 ? 'text-red-600' : 'text-white'}`}>₹{fmt(player.corpus_balance)}</div>
           </div>
           <div className="text-center">
             <div className="text-xs text-gray-500 mb-0.5">Total paid in</div>
@@ -82,7 +82,7 @@ function PlayerHistoryModal({ player, allTxns, attendance, weeks, expenses, onCl
           </div>
           <div className="text-center">
             <div className="text-xs text-gray-500 mb-0.5">Matches played</div>
-            <div className="font-medium text-sm text-gray-700">{matchesPlayed}</div>
+            <div className="font-medium text-sm text-gray-200">{matchesPlayed}</div>
           </div>
         </div>
 
@@ -92,7 +92,7 @@ function PlayerHistoryModal({ player, allTxns, attendance, weeks, expenses, onCl
           ) : timeline.map((entry, i) => (
             <div key={i} className="px-6 py-3 flex items-center justify-between text-sm">
               <div>
-                <div className="text-gray-800">{entry.label}</div>
+                <div className="text-gray-100">{entry.label}</div>
                 <div className="text-xs text-gray-400 mt-0.5">{format(parseISO(entry.date), 'MMM d, yyyy')}</div>
               </div>
               <div className={`font-mono font-medium shrink-0 ml-4 ${entry.kind === 'credit' ? 'text-[#10b981]' : 'text-red-500'}`}>
@@ -321,7 +321,7 @@ export default function AdminPlayers() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-[22px] font-medium text-gray-900">Players</h1>
+        <h1 className="text-[22px] font-medium text-white">Players</h1>
         {isAdmin && <button onClick={openNew} className="btn-primary text-sm">+ Add Player</button>}
       </div>
 
@@ -410,10 +410,10 @@ export default function AdminPlayers() {
                     )}
                   </td>
                 )}
-                <td className="px-4 py-3 font-medium text-gray-900">
+                <td className="px-4 py-3 font-medium text-white">
                   <button
                     onClick={() => setDetail(p)}
-                    className="font-medium text-gray-900 hover:text-[#10b981] hover:underline text-left"
+                    className="font-medium text-white hover:text-[#10b981] hover:underline text-left"
                   >
                     {p.display_name}
                   </button>
@@ -487,7 +487,7 @@ export default function AdminPlayers() {
       {cashModal && (
         <div className="fixed inset-0 bg-black/25 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] max-w-sm w-full p-6">
-            <h3 className="font-medium text-gray-900 mb-4">Record cash payment — {cashModal.player.display_name}</h3>
+            <h3 className="font-medium text-white mb-4">Record cash payment — {cashModal.player.display_name}</h3>
             <div className="space-y-3">
               <div>
                 <label className="label">Amount (₹)</label>
@@ -530,7 +530,7 @@ export default function AdminPlayers() {
         <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between items-center">
-              <h2 className="font-medium text-gray-900">
+              <h2 className="font-medium text-white">
                 {players.find(p => p.id === editing.id) ? 'Edit player' : 'Add player'}
               </h2>
               <button onClick={() => setEditing(null)} className="text-gray-400 hover:text-gray-600">✕</button>

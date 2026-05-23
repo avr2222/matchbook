@@ -126,7 +126,7 @@ export default function AdminGuests() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-[22px] font-medium text-gray-900">Guest Visits</h1>
+        <h1 className="text-[22px] font-medium text-white">Guest Visits</h1>
         {isAdmin && <button onClick={() => setShowForm(true)} className="btn-primary text-sm">+ Add Guest Visit</button>}
       </div>
 
@@ -153,10 +153,10 @@ export default function AdminGuests() {
               const alreadyConverted = !!v.converted_to_player_id
               return (
                 <tr key={v.id} className="hover:bg-white/[0.03]">
-                  <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
+                  <td className="px-4 py-3 text-gray-200 whitespace-nowrap">
                     {week ? format(parseISO(week.match_date), 'MMM d') : v.week_id}
                   </td>
-                  <td className="px-4 py-3 font-medium text-gray-900">
+                  <td className="px-4 py-3 font-medium text-white">
                     <div>{v.guest_name}</div>
                     {frequent && (
                       <div className="text-xs text-purple-600 mt-0.5">Frequent Guest</div>
@@ -168,12 +168,12 @@ export default function AdminGuests() {
                   <td className="px-4 py-3 text-gray-500 hidden sm:table-cell">{invite?.display_name ?? '—'}</td>
                   <td className="px-4 py-3 text-center hidden sm:table-cell">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                      v.fee_mode === 'sponsored' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
+                      v.fee_mode === 'sponsored' ? 'bg-blue-900/20 text-blue-300' : 'bg-white/[0.06] text-gray-300'
                     }`}>
                       {v.fee_mode === 'sponsored' ? 'Sponsored' : 'Direct'}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right font-mono text-gray-700">₹{(v.guest_fee ?? 0).toLocaleString('en-IN')}</td>
+                  <td className="px-4 py-3 text-right font-mono text-gray-200">₹{(v.guest_fee ?? 0).toLocaleString('en-IN')}</td>
                   <td className="px-4 py-3 text-center text-xs font-medium">{v.fee_paid ? <span className="text-[#10b981]">Paid</span> : <span className="text-red-500">Unpaid</span>}</td>
                   <td className="px-4 py-3 text-center">
                     {isAdmin && !alreadyConverted && (

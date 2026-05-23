@@ -119,7 +119,7 @@ export default function AdminMapping() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <h1 className="text-[22px] font-medium text-gray-900">CricHeroes Player Mapping</h1>
+        <h1 className="text-[22px] font-medium text-white">CricHeroes Player Mapping</h1>
         <div className="flex gap-2">
           {isAdmin && (
             <button onClick={syncAllNames} className="btn-secondary text-sm">
@@ -136,12 +136,12 @@ export default function AdminMapping() {
 
       {unmatched.length > 0 && (
         <div className="card border-l-4 border-yellow-400">
-          <h2 className="font-medium text-gray-800 mb-3">Unmatched Players ({unmatched.length})</h2>
+          <h2 className="font-medium text-gray-100 mb-3">Unmatched Players ({unmatched.length})</h2>
           <div className="divide-y divide-white/[0.05]">
             {unmatched.map(u => (
               <div key={u.cricheroes_player_id} className="py-3 flex items-center justify-between gap-4 text-sm">
                 <div>
-                  <div className="font-medium text-gray-800">{u.cricheroes_name}</div>
+                  <div className="font-medium text-gray-100">{u.cricheroes_name}</div>
                   <div className="text-xs text-gray-400">ID: {u.cricheroes_player_id}</div>
                 </div>
                 <select
@@ -176,10 +176,10 @@ export default function AdminMapping() {
               return (
                 <tr key={m.cricheroes_player_id} className={`hover:bg-white/[0.03] ${!m.confirmed ? 'bg-yellow-900/10' : ''}`}>
                   <td className="px-4 py-3">
-                    <div className="font-medium text-gray-800">{m.cricheroes_name}</div>
+                    <div className="font-medium text-gray-100">{m.cricheroes_name}</div>
                     <div className="text-xs text-gray-400">ID: {m.cricheroes_player_id}</div>
                   </td>
-                  <td className="px-4 py-3 text-gray-700">{player?.display_name ?? <span className="text-gray-400">—</span>}</td>
+                  <td className="px-4 py-3 text-gray-200">{player?.display_name ?? <span className="text-gray-400">—</span>}</td>
                   <td className={`px-4 py-3 text-center text-xs font-medium ${CONFIDENCE_CLASS(m.match_confidence)}`}>
                     {CONFIDENCE_LABEL(m.match_confidence)} ({Math.round(m.match_confidence * 100)}%)
                   </td>

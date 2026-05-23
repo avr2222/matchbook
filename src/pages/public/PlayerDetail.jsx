@@ -155,7 +155,7 @@ export default function PlayerDetail() {
     .sort((a, b) => b.date.localeCompare(a.date))
 
   const weeks = wData?.weeks ?? []
-  const sc = STATUS_COLOR[player.balance_status] ?? 'bg-gray-100 text-gray-600'
+  const sc = STATUS_COLOR[player.balance_status] ?? 'bg-white/[0.06] text-gray-300'
 
   const totalCredits = txns.filter(t => t.direction === 'credit').reduce((s, t) => s + t.amount, 0)
   const totalDebits  = txns.filter(t => t.direction === 'debit').reduce((s, t)  => s + t.amount, 0)
@@ -400,7 +400,7 @@ export default function PlayerDetail() {
       {/* Achievements */}
       {badges.length > 0 && (
         <div className="card mb-4">
-          <h3 className="text-[11px] font-medium text-gray-900 uppercase tracking-[0.05em] mb-2">Achievements</h3>
+          <h3 className="text-[11px] font-medium text-white uppercase tracking-[0.05em] mb-2">Achievements</h3>
           <div className="flex flex-wrap gap-2">
             {badges.map(({ Icon, label }) => (
               <span key={label} className="flex items-center gap-1 bg-amber-900/20 text-amber-400 border border-amber-700/30 text-xs font-medium px-2.5 py-1 rounded-full">

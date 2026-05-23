@@ -77,7 +77,7 @@ export default function UpiPaySection({ player, config }) {
     <div className="space-y-4">
       <div className="text-center">
         <p className="text-[11px] font-medium text-gray-400 uppercase tracking-[0.05em] mb-1">Top-up amount</p>
-        <div className="text-[36px] font-medium text-gray-900 tabular-nums">
+        <div className="text-[36px] font-medium text-white tabular-nums">
           ₹{chosen.toLocaleString('en-IN')}
         </div>
         <p className="text-xs text-gray-400 mt-1">
@@ -132,7 +132,7 @@ export default function UpiPaySection({ player, config }) {
         <div className="bg-[rgba(16,185,129,0.08)] border border-[#10b981]/20 rounded-xl p-4 space-y-2">
           <p className="text-[11px] font-medium text-[#10b981] uppercase tracking-[0.05em]">Pay to UPI ID</p>
           <div className="flex items-center gap-2">
-            <span className="font-mono text-base font-medium text-gray-900 flex-1 break-all">{upiId}</span>
+            <span className="font-mono text-base font-medium text-white flex-1 break-all">{upiId}</span>
             <button
               onClick={copy}
               className={`shrink-0 text-sm font-medium px-3 py-1.5 rounded-lg border transition-colors ${
@@ -145,7 +145,7 @@ export default function UpiPaySection({ player, config }) {
             </button>
           </div>
           <p className="text-xs text-gray-500 font-medium">
-            Use note: <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded">{note}</span>
+            Use note: <span className="font-mono bg-white/[0.06] px-1.5 py-0.5 rounded">{note}</span>
           </p>
           <p className="text-xs text-gray-400">Open any UPI app and pay, or open this page on your phone to pay in one tap.</p>
           {!pendingReqId && (

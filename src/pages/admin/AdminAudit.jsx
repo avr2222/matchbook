@@ -31,7 +31,7 @@ export default function AdminAudit() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-[22px] font-medium text-gray-900">Audit Log</h1>
+        <h1 className="text-[22px] font-medium text-white">Audit Log</h1>
         <input className="input w-48 text-sm" placeholder="Search…" value={search} onChange={e => { setSearch(e.target.value); setPage(1) }} />
       </div>
 
@@ -44,8 +44,8 @@ export default function AdminAudit() {
               <span className="text-[10px] font-medium text-gray-400 mt-1 w-10 shrink-0 text-center">{ACTION_ICON[e.action] ?? 'LOG'}</span>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-medium text-gray-800 text-sm">{e.summary}</span>
-                  <span className="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">{e.action}</span>
+                  <span className="font-medium text-gray-100 text-sm">{e.summary}</span>
+                  <span className="text-xs bg-white/[0.06] text-gray-300 px-1.5 py-0.5 rounded">{e.action}</span>
                 </div>
                 <div className="text-xs text-gray-400 mt-0.5">
                   by <strong className="text-gray-500">@{e.actor}</strong>

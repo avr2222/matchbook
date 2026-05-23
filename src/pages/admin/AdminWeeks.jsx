@@ -361,7 +361,7 @@ export default function AdminWeeks() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-[22px] font-medium text-gray-900">Matches</h1>
+        <h1 className="text-[22px] font-medium text-white">Matches</h1>
         {isAdmin && <button onClick={() => setShowNew(true)} className="btn-primary text-sm">+ Add Match</button>}
       </div>
 
@@ -391,7 +391,7 @@ export default function AdminWeeks() {
                   className={`hover:bg-white/[0.03] transition-colors ${w.status === 'completed' ? 'cursor-pointer' : 'cursor-default'}`}
                   onClick={() => w.status === 'completed' && setDetail(w.week_id)}
                 >
-                  <td className="px-4 py-3 font-medium text-gray-800">
+                  <td className="px-4 py-3 font-medium text-gray-100">
                     {format(parseISO(w.match_date), 'MMM d, yyyy')}
                     {w.result && <div className="text-xs text-[#10b981] font-medium mt-0.5">{w.result}</div>}
                   </td>
@@ -622,7 +622,7 @@ export default function AdminWeeks() {
                       </p>
                     )}
                     {alreadyDeducted && (
-                      <label className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 rounded px-3 py-2 mb-3 cursor-pointer select-none">
+                      <label className="flex items-center gap-2 text-xs text-amber-300 bg-amber-900/20 rounded px-3 py-2 mb-3 cursor-pointer select-none">
                         <input
                           type="checkbox"
                           checked={reapplyDeductions}
@@ -733,13 +733,13 @@ function AttendanceList({ players, attendanceMap, onToggle, corpusPlayers, deduc
     return (
       <div key={p.id} className={`py-2.5 ${isGuest ? 'bg-purple-50/50' : ''}`}>
         <div className="flex items-center justify-between text-sm">
-          <span className="font-medium text-gray-800">{typeEmoji(p.type)} {p.display_name}</span>
+          <span className="font-medium text-gray-100">{typeEmoji(p.type)} {p.display_name}</span>
           <button
             onClick={() => onToggle(p.id)}
             className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
               status === 'played'
                 ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                : 'bg-gray-100 text-gray-400 hover:bg-white/[0.08]'
+                : 'bg-white/[0.06] text-gray-300 hover:bg-white/[0.08]'
             }`}
           >
             {status === 'played' ? '✅ Played' : 'Absent'}
@@ -754,7 +754,7 @@ function AttendanceList({ players, attendanceMap, onToggle, corpusPlayers, deduc
               className={`px-2.5 py-0.5 rounded text-xs font-semibold transition-colors ${
                 ppmPaidIds?.has(p.id)
                   ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                  : 'bg-gray-100 text-gray-400 hover:bg-white/[0.08]'
+                  : 'bg-white/[0.06] text-gray-300 hover:bg-white/[0.08]'
               }`}
             >
               {ppmPaidIds?.has(p.id) ? '💵 Paid (cash)' : '💵 Mark as Paid?'}
@@ -771,7 +771,7 @@ function AttendanceList({ players, attendanceMap, onToggle, corpusPlayers, deduc
                 className={`px-2 py-0.5 rounded text-xs font-semibold transition-colors ${
                   freePlayerIds?.has(p.id)
                     ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                    : 'bg-gray-100 text-gray-400 hover:bg-white/[0.08]'
+                    : 'bg-white/[0.06] text-gray-300 hover:bg-white/[0.08]'
                 }`}
               >
                 {freePlayerIds?.has(p.id) ? 'Free' : 'Free?'}

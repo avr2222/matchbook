@@ -23,7 +23,7 @@ function useSignups() {
 }
 
 const STATUS_BADGE = {
-  pending:  'bg-amber-100 text-amber-800',
+  pending:  'bg-amber-900/20 text-amber-300',
   approved: 'bg-[rgba(16,185,129,0.08)] text-[#10b981]',
   rejected: 'bg-red-100 text-red-600',
 }
@@ -97,7 +97,7 @@ export default function AdminSignups() {
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h1 className="text-[22px] font-medium text-gray-900">Signup Requests</h1>
+          <h1 className="text-[22px] font-medium text-white">Signup Requests</h1>
           {pending > 0 && (
             <p className="text-sm text-amber-600 font-medium">{pending} pending approval</p>
           )}
@@ -110,7 +110,7 @@ export default function AdminSignups() {
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                 filter === f
                   ? 'bg-[#10b981] text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-white/[0.08]'
+                  : 'bg-white/[0.06] text-gray-300 hover:bg-white/[0.08]'
               }`}
             >
               {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -141,8 +141,8 @@ export default function AdminSignups() {
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium text-gray-900">{s.display_name}</span>
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded ${STATUS_BADGE[s.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                      <span className="font-medium text-white">{s.display_name}</span>
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded ${STATUS_BADGE[s.status] ?? 'bg-white/[0.06] text-gray-300'}`}>
                         {s.status}
                       </span>
                       {s.requested_role === 'host' && (
@@ -183,7 +183,7 @@ export default function AdminSignups() {
                           </span>
                         ) : (
                           <span className="flex items-center gap-1.5">
-                            <span className="font-medium text-gray-700">
+                            <span className="font-medium text-gray-200">
                               {claimedPlayer?.display_name ?? '—'}
                             </span>
                             <button
@@ -229,7 +229,7 @@ export default function AdminSignups() {
 
                   {s.status !== 'pending' && (
                     <span className="text-xs text-gray-400 shrink-0">
-                      Role: <span className="font-medium text-gray-700">{s.requested_role}</span>
+                      Role: <span className="font-medium text-gray-200">{s.requested_role}</span>
                     </span>
                   )}
                 </div>

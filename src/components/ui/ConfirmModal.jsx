@@ -20,7 +20,7 @@ export default function ConfirmModal({ title, message, confirmLabel = 'Confirm',
               ? <IconAlertTriangle size={18} className="text-red-500 shrink-0" />
               : <IconCircleCheck size={18} className="text-[#10b981] shrink-0" />
             }
-            <h3 className="font-medium text-gray-900">{title}</h3>
+            <h3 className="font-medium text-white">{title}</h3>
           </div>
         )}
         <p className="text-gray-600 text-sm leading-relaxed">{message}</p>

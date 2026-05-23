@@ -23,7 +23,7 @@ function usePaymentRequestsFull() {
 }
 
 const STATUS_BADGE = {
-  pending:   'bg-amber-100 text-amber-800',
+  pending:   'bg-amber-900/20 text-amber-300',
   confirmed: 'bg-[rgba(16,185,129,0.08)] text-[#10b981]',
   rejected:  'bg-red-100 text-red-600',
 }
@@ -91,7 +91,7 @@ export default function AdminPayments() {
     <div className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h1 className="text-[22px] font-medium text-gray-900">Payment Requests</h1>
+          <h1 className="text-[22px] font-medium text-white">Payment Requests</h1>
           {pending > 0 && (
             <p className="text-sm text-amber-600 font-medium">{pending} pending confirmation</p>
           )}
@@ -104,7 +104,7 @@ export default function AdminPayments() {
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                 filter === f
                   ? 'bg-[#10b981] text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-white/[0.08]'
+                  : 'bg-white/[0.06] text-gray-300 hover:bg-white/[0.08]'
               }`}
             >
               {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -138,8 +138,8 @@ export default function AdminPayments() {
                 const player = playerMap[req.player_id]
                 const isBusy = busy === req.id
                 return (
-                  <tr key={req.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-900">
+                  <tr key={req.id} className="hover:bg-white/[0.02]">
+                    <td className="px-4 py-3 font-medium text-white">
                       {player?.display_name ?? req.player_id}
                       {req.notes && (
                         <div className="text-xs text-gray-400 font-normal">{req.notes}</div>
@@ -155,7 +155,7 @@ export default function AdminPayments() {
                       {req.created_at ? format(parseISO(req.created_at), 'MMM d, h:mm a') : '—'}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded ${STATUS_BADGE[req.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded ${STATUS_BADGE[req.status] ?? 'bg-white/[0.06] text-gray-300'}`}>
                         {req.status}
                       </span>
                     </td>

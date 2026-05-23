@@ -108,7 +108,7 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-[22px] font-medium text-gray-900">Admin dashboard</h1>
+        <h1 className="text-[22px] font-medium text-white">Admin dashboard</h1>
         {isAdmin && (
           <a
             href={`https://github.com/${import.meta.env.VITE_GITHUB_REPO ?? ''}/actions/workflows/sync-cricheroes.yml`}
@@ -122,13 +122,13 @@ export default function AdminDashboard() {
 
       {/* Warning banners */}
       {unmatched.length > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800 flex items-center justify-between gap-3">
+        <div className="bg-amber-900/20 border border-amber-700/30 rounded-xl px-4 py-3 text-sm text-amber-300 flex items-center justify-between gap-3">
           <span className="flex items-center gap-2"><IconAlertTriangle size={15} />{unmatched.length} player(s) from last CricHeroes sync could not be matched.</span>
           <Link to="/admin/mapping" className="underline font-medium shrink-0">Fix →</Link>
         </div>
       )}
       {staleMaps > 0 && (
-        <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 text-sm text-orange-800 flex items-center justify-between gap-3">
+        <div className="bg-orange-900/20 border border-orange-700/30 rounded-xl px-4 py-3 text-sm text-orange-300 flex items-center justify-between gap-3">
           <span>{staleMaps} CricHeroes mapping(s) flagged for manual review.</span>
           <Link to="/admin/mapping" className="underline font-medium shrink-0">Review →</Link>
         </div>
@@ -143,8 +143,8 @@ export default function AdminDashboard() {
             className="card hover:border-[rgba(0,0,0,0.18)] transition-colors"
           >
             <Icon size={18} className={`mb-2 ${warn ? 'text-red-500' : 'text-[#10b981]'}`} />
-            <div className="text-[24px] font-medium text-gray-900 tabular-nums leading-tight">{value}</div>
-            <div className="text-xs text-gray-400 mt-0.5">{label}</div>
+            <div className="text-[24px] font-medium text-white tabular-nums leading-tight">{value}</div>
+            <div className="text-xs text-gray-300 mt-0.5">{label}</div>
           </Link>
         ))}
       </div>
@@ -152,7 +152,7 @@ export default function AdminDashboard() {
       {/* Collect Cash */}
       {canWrite && (
         <div className="card space-y-3">
-          <h2 className="font-medium text-gray-800 flex items-center gap-2">
+          <h2 className="font-medium text-gray-100 flex items-center gap-2">
             <IconCurrencyRupee size={16} className="text-[#10b981]" />
             Collect cash payment
           </h2>
@@ -213,9 +213,9 @@ export default function AdminDashboard() {
                 return (
                   <div key={req.id} className="flex items-center justify-between text-sm">
                     <div>
-                      <span className="font-medium text-gray-800">{p?.display_name ?? req.player_id}</span>
+                      <span className="font-medium text-gray-100">{p?.display_name ?? req.player_id}</span>
                       {req.notes && (
-                        <span className="ml-2 text-xs text-gray-400">{req.notes.replace('[HOST] ', '')}</span>
+                        <span className="ml-2 text-xs text-gray-300">{req.notes.replace('[HOST] ', '')}</span>
                       )}
                     </div>
                     <span className="font-mono font-medium text-[#10b981]">
@@ -224,7 +224,7 @@ export default function AdminDashboard() {
                   </div>
                 )
               })}
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-300">
                 Total: ₹{hostCollections.reduce((s, r) => s + (r.amount ?? 0), 0).toLocaleString('en-IN')} — admin confirms after receiving cash transfer
               </p>
             </div>
@@ -235,15 +235,15 @@ export default function AdminDashboard() {
       {/* Corpus health + season budget */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="card">
-          <h2 className="font-medium text-gray-800 mb-2">Corpus health</h2>
-          <p className="text-[24px] font-medium text-gray-900 tabular-nums">
+          <h2 className="font-medium text-gray-100 mb-2">Corpus health</h2>
+          <p className="text-[24px] font-medium text-white tabular-nums">
             {matchesCovered.toFixed(1)}
-            <span className="text-sm font-normal text-gray-500 ml-1">matches covered</span>
+            <span className="text-sm font-normal text-gray-300 ml-1">matches covered</span>
           </p>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-300 mt-1">
             ₹{totalPool.toLocaleString('en-IN')} pool ÷ ₹{defaultFee} fee ÷ {corpusPlayers.length} players
           </p>
-          <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div className="mt-3 h-2 bg-white/[0.08] rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all ${matchesCovered >= 3 ? 'bg-[#10b981]' : matchesCovered >= 1 ? 'bg-amber-400' : 'bg-red-900/100'}`}
               style={{ width: `${Math.min(100, (matchesCovered / 5) * 100)}%` }}
@@ -252,26 +252,26 @@ export default function AdminDashboard() {
         </div>
 
         <div className="card">
-          <h2 className="font-medium text-gray-800 mb-2">Season budget</h2>
+          <h2 className="font-medium text-gray-100 mb-2">Season budget</h2>
           {budget > 0 ? (
             <>
-              <p className="text-[24px] font-medium text-gray-900 tabular-nums">
+              <p className="text-[24px] font-medium text-white tabular-nums">
                 ₹{totalSpent.toLocaleString('en-IN')}
-                <span className="text-sm font-normal text-gray-500 ml-1">of ₹{budget.toLocaleString('en-IN')}</span>
+                <span className="text-sm font-normal text-gray-300 ml-1">of ₹{budget.toLocaleString('en-IN')}</span>
               </p>
-              <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div className="mt-3 h-2 bg-white/[0.08] rounded-full overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all ${budgetPct < 70 ? 'bg-[#10b981]' : budgetPct < 90 ? 'bg-amber-400' : 'bg-red-900/100'}`}
+                  className={`h-full rounded-full transition-all ${budgetPct < 70 ? 'bg-[#10b981]' : budgetPct < 90 ? 'bg-amber-400' : 'bg-red-500'}`}
                   style={{ width: `${budgetPct}%` }}
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-300 mt-1">
                 {budgetPct}% spent · ₹{(budget - totalSpent).toLocaleString('en-IN')} remaining
               </p>
             </>
           ) : (
-            <p className="text-sm text-gray-400">
-              Set <code className="bg-gray-100 px-1 rounded text-xs">season_budget</code> in the config table to enable tracking.
+            <p className="text-sm text-gray-300">
+              Set <code className="bg-white/[0.06] px-1 rounded text-xs">season_budget</code> in the config table to enable tracking.
             </p>
           )}
         </div>
@@ -281,15 +281,15 @@ export default function AdminDashboard() {
       {atRisk.length > 0 && (
         <div className="card">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-medium text-gray-800">Needs attention</h2>
+            <h2 className="font-medium text-gray-100">Needs attention</h2>
             <Link to="/admin/players" className="text-sm text-[#10b981] hover:underline">All players →</Link>
           </div>
           <div className="divide-y divide-white/[0.05]">
             {atRisk.map(p => (
               <div key={p.id} className="py-2.5 flex items-center justify-between text-sm">
-                <span className="font-medium text-gray-800">{p.display_name}</span>
+                <span className="font-medium text-gray-100">{p.display_name}</span>
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-gray-700">₹{(p.corpus_balance ?? 0).toLocaleString('en-IN')}</span>
+                  <span className="font-mono text-gray-200">₹{(p.corpus_balance ?? 0).toLocaleString('en-IN')}</span>
                   <BalanceBadge status={p.balance_status} />
                 </div>
               </div>
@@ -300,7 +300,7 @@ export default function AdminDashboard() {
 
       {/* Quick actions */}
       <div className="card">
-        <h2 className="font-medium text-gray-800 mb-3">Quick actions</h2>
+        <h2 className="font-medium text-gray-100 mb-3">Quick actions</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             { to: '/admin/transactions?new=1', label: '+ Record payment', Icon: IconCreditCard },
@@ -318,7 +318,7 @@ export default function AdminDashboard() {
       {/* Recent matches */}
       <div className="card">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-medium text-gray-800">Recent matches</h2>
+          <h2 className="font-medium text-gray-100">Recent matches</h2>
           <Link to="/admin/weeks" className="text-sm text-[#10b981] hover:underline">Manage →</Link>
         </div>
         {recentWeeks.length === 0 ? (
@@ -330,17 +330,17 @@ export default function AdminDashboard() {
               return (
                 <div key={w.week_id} className="py-3 flex items-center justify-between text-sm">
                   <div>
-                    <span className="font-medium text-gray-800">{format(parseISO(w.match_date), 'MMM d, yyyy')}</span>
+                    <span className="font-medium text-gray-100">{format(parseISO(w.match_date), 'MMM d, yyyy')}</span>
                     {w.team_a && w.team_b && (
-                      <span className="ml-2 text-xs text-gray-400">{w.team_a} vs {w.team_b}</span>
+                      <span className="ml-2 text-xs text-gray-300">{w.team_a} vs {w.team_b}</span>
                     )}
                     {w.cricheroes_match_id && (
-                      <span className="ml-1 inline-flex items-center gap-0.5 text-xs bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">
+                      <span className="ml-1 inline-flex items-center gap-0.5 text-xs bg-blue-900/20 text-blue-300 px-1.5 py-0.5 rounded">
                         <IconLink size={10} /> CricHeroes
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 text-gray-500">
+                  <div className="flex items-center gap-3 text-gray-300">
                     {w.result && <span className="text-xs font-medium text-[#10b981]">{w.result}</span>}
                     <span className="flex items-center gap-1"><IconUsers size={13} />{played}</span>
                   </div>
