@@ -559,14 +559,14 @@ export default function Dashboard() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0 ml-2">
+                      <div className="flex flex-col items-end gap-1 ml-2 min-w-0 max-w-[45%]">
                         {w.result && (
-                          <span className="text-xs font-bold px-2 py-0.5 rounded"
+                          <span className="text-xs font-bold px-2 py-0.5 rounded w-full truncate text-center"
                             style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', color: '#10b981' }}>
                             {w.result}
                           </span>
                         )}
-                        <span className="text-xs text-gray-300 font-medium flex items-center gap-1">
+                        <span className="text-xs text-gray-300 font-medium flex items-center gap-1 shrink-0">
                           <IconUsers size={11} />{played}
                         </span>
                       </div>
