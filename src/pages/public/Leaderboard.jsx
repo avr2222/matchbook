@@ -40,12 +40,13 @@ function Sparkline({ vals }) {
 
 function PodiumCard({ rank, playerName, playerLink, heroValue, heroLabel, subValue, subLabel }) {
   const styles = [
-    { bg: 'bg-amber-900/20', border: 'border-amber-500/30', num: 'text-amber-400', badge: 'bg-amber-500', pt: 'pt-6' },
-    { bg: 'bg-slate-800/40',  border: 'border-slate-500/30',  num: 'text-slate-300',  badge: 'bg-slate-500',  pt: 'pt-4' },
-    { bg: 'bg-orange-900/20', border: 'border-orange-500/30', num: 'text-orange-400', badge: 'bg-orange-500', pt: 'pt-2' },
+    { bg: 'bg-amber-900/20', border: 'border-amber-500/30', num: 'text-amber-400', badge: 'bg-amber-500' },
+    { bg: 'bg-slate-800/40',  border: 'border-slate-500/30',  num: 'text-slate-300',  badge: 'bg-slate-500' },
+    { bg: 'bg-orange-900/20', border: 'border-orange-500/30', num: 'text-orange-400', badge: 'bg-orange-500' },
   ][rank - 1]
+  const topPad = rank === 1 ? '3rem' : rank === 2 ? '1.5rem' : '0.25rem'
   return (
-    <div className={`flex-1 rounded-xl border ${styles.bg} ${styles.border} ${styles.pt} px-3 pb-4 min-w-0`}>
+    <div className={`flex-1 rounded-xl border ${styles.bg} ${styles.border} px-3 pb-4 min-w-0`} style={{ paddingTop: topPad }}>
       <div className={`w-7 h-7 rounded-lg ${styles.badge} text-white text-xs font-medium flex items-center justify-center mb-2`}>
         {rank}
       </div>
@@ -412,9 +413,14 @@ export default function Leaderboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.05]">
-              {displayBatters.map((s, i) => (
-                <tr key={s.player_id} className={i === 0 && !sortCol ? 'font-medium' : ''}>
-                  <td className="py-2 text-gray-500 text-xs">{i + 1}</td>
+              {(() => {
+                const tableRows = showBatPodium ? displayBatters.slice(3) : displayBatters
+                const startRank = showBatPodium ? 4 : 1
+                if (tableRows.length === 0)
+                  return <tr><td colSpan={12} className="py-4 text-center text-sm text-gray-400">Top 3 shown above</td></tr>
+                return tableRows.map((s, i) => (
+                <tr key={s.player_id}>
+                  <td className="py-2 text-gray-500 text-xs">{startRank + i}</td>
                   <td className="py-2 pr-2 max-w-[140px]">
                     <Link to={`/player/${s.player_id}`} className="font-medium text-gray-100 hover:text-[#10b981] truncate block">
                       {playerMap[s.player_id]?.display_name ?? s.player_id}
@@ -450,7 +456,8 @@ export default function Leaderboard() {
                     >vs</button>
                   </td>
                 </tr>
-              ))}
+                ))
+              })()}
             </tbody>
           </table>
         </div>
@@ -510,9 +517,14 @@ export default function Leaderboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.05]">
-              {displayBowlers.map((s, i) => (
-                <tr key={s.player_id} className={i === 0 && !sortCol ? 'font-medium' : ''}>
-                  <td className="py-2 text-gray-500 text-xs">{i + 1}</td>
+              {(() => {
+                const tableRows = showBowlPodium ? displayBowlers.slice(3) : displayBowlers
+                const startRank = showBowlPodium ? 4 : 1
+                if (tableRows.length === 0)
+                  return <tr><td colSpan={10} className="py-4 text-center text-sm text-gray-400">Top 3 shown above</td></tr>
+                return tableRows.map((s, i) => (
+                <tr key={s.player_id}>
+                  <td className="py-2 text-gray-500 text-xs">{startRank + i}</td>
                   <td className="py-2 pr-2 max-w-[140px]">
                     <Link to={`/player/${s.player_id}`} className="font-medium text-gray-100 hover:text-[#10b981] truncate block">
                       {playerMap[s.player_id]?.display_name ?? s.player_id}
@@ -544,7 +556,8 @@ export default function Leaderboard() {
                     >vs</button>
                   </td>
                 </tr>
-              ))}
+                ))
+              })()}
             </tbody>
           </table>
         </div>

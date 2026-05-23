@@ -455,7 +455,7 @@ export default function AdminWeeks() {
 
       {/* Result editor */}
       {editResult && isAdmin && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-sm">
             <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between">
               <h2 className="font-medium">Match Result</h2>
@@ -485,7 +485,7 @@ export default function AdminWeeks() {
 
       {/* Attendance editor */}
       {selected && selectedWeek && canWrite && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between">
               <div>
@@ -650,7 +650,7 @@ export default function AdminWeeks() {
 
       {/* Add match modal */}
       {showNew && isAdmin && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-sm">
             <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between">
               <h2 className="font-medium">Add Match Week</h2>

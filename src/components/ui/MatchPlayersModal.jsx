@@ -52,7 +52,7 @@ export default function MatchPlayersModal({ week, players, records, expenses, pe
   const payingCount = played.length - guestsCount
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] w-full max-w-md max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
 
         {/* Header */}

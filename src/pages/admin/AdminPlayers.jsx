@@ -58,7 +58,7 @@ function PlayerHistoryModal({ player, allTxns, attendance, weeks, expenses, onCl
   const matchesPlayed = attendance.filter(r => r.player_id === player.id && r.status === 'played').length
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-lg max-h-[90vh] flex flex-col">
         <div className="px-6 py-4 border-b border-white/[0.06] flex items-start justify-between shrink-0">
           <div>
@@ -485,7 +485,7 @@ export default function AdminPlayers() {
 
       {/* Cash payment modal for PPM/Guest players */}
       {cashModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/25 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] max-w-sm w-full p-6">
             <h3 className="font-medium text-gray-900 mb-4">Record cash payment — {cashModal.player.display_name}</h3>
             <div className="space-y-3">
@@ -527,7 +527,7 @@ export default function AdminPlayers() {
 
       {/* Edit / Add modal — admin only */}
       {editing && isAdmin && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between items-center">
               <h2 className="font-medium text-gray-900">

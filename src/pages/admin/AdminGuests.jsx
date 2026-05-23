@@ -196,7 +196,7 @@ export default function AdminGuests() {
       {confirmData && <ConfirmModal {...confirmData} onClose={() => setConfirmData(null)} />}
 
       {showForm && isAdmin && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl border border-[rgba(0,0,0,0.12)] w-full max-w-md">
             <div className="px-6 py-4 border-b border-gray-200 flex justify-between">
               <h2 className="font-medium">Add Guest Visit</h2>
