@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useExpenses, useWeeks, useConfig, usePlayers, useAttendance, useTransactions } from '../../hooks/useData'
-import { writeExpenses, writeTransactions, writePlayers } from '../../api/dataWriter'
+import { writeExpenses, writeTransactions, writePlayers, softDeleteTransactions } from '../../api/dataWriter'
 import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { generateId, calcBalanceStatus } from '../../utils/balanceCalculator'
@@ -78,17 +78,19 @@ export default function AdminExpenses() {
   const players   = (pData?.players ?? []).filter(p => p.status === 'active' && p.type !== 'ppm')
   const records   = aData?.records ?? []
 
-  // Per-player impact preview for the form
+  // Per-player impact preview — only corpus+new players are ever charged
   function perPlayerPreview() {
     const amt = parseFloat(form.amount)
     if (!amt || amt <= 0) return null
     if (form.split_among === 'corpus_pool') return null
+    const allPlayers = pData?.players ?? []
     let count = 0
     if (form.split_among === 'all_active') {
-      count = players.length
+      count = allPlayers.filter(p => p.status === 'active' && (p.type === 'corpus' || p.type === 'new')).length
     } else if (form.split_among === 'all_played') {
       if (!form.week_id) return null
-      count = records.filter(r => r.week_id === form.week_id && r.status === 'played').length
+      const playedIds = new Set(records.filter(r => r.week_id === form.week_id && r.status === 'played').map(r => r.player_id))
+      count = allPlayers.filter(p => (p.type === 'corpus' || p.type === 'new') && playedIds.has(p.id)).length
     }
     if (count === 0) return null
     return `₹${Math.round(amt / count).toLocaleString('en-IN')} per player (${count} players)`
@@ -115,6 +117,48 @@ export default function AdminExpenses() {
       }
       await writeExpenses([...expenses, newExp], 'add_expense', `Added expense: ${newExp.description} ₹${form.amount}`)
       qc.invalidateQueries({ queryKey: ['expenses'] })
+
+      // Auto-deduct from corpus/new players
+      if (form.split_among !== 'corpus_pool') {
+        const allPlayers = pData?.players ?? []
+        const allTxns    = tData?.transactions ?? []
+        let deductPlayers = []
+        if (form.split_among === 'all_active') {
+          deductPlayers = allPlayers.filter(p => p.status === 'active' && (p.type === 'corpus' || p.type === 'new'))
+        } else if (form.split_among === 'all_played' && form.week_id) {
+          const playedIds = new Set(records.filter(r => r.week_id === form.week_id && r.status === 'played').map(r => r.player_id))
+          deductPlayers = allPlayers.filter(p => (p.type === 'corpus' || p.type === 'new') && playedIds.has(p.id))
+        }
+        if (deductPlayers.length > 0) {
+          const share = Math.round((parseFloat(form.amount) / deductPlayers.length) * 100) / 100
+          const withShare = [...expenses.filter(e => e.id !== id), { ...newExp, share_per_player: share }]
+          await writeExpenses(withShare, 'add_expense', `Expense split: ₹${share}/player × ${deductPlayers.length}`)
+          const deductTxns = deductPlayers.map(p => ({
+            id: `TXN_EXP_${id}_${p.id}`,
+            player_id: p.id,
+            tournament_id: cfg?.active_tournament_id ?? null,
+            type: 'expense_deduction',
+            amount: share,
+            direction: 'debit',
+            date: form.date,
+            week_id: form.week_id || null,
+            description: `Expense: ${newExp.description}`,
+            recorded_by: 'admin',
+            receipt_ref: '',
+          }))
+          await writeTransactions([...allTxns, ...deductTxns], 'add_expense_deduction', id,
+            `Expense deduction: ${newExp.description} ₹${share}/player × ${deductPlayers.length}`, null, null)
+          const updatedPlayers = allPlayers.map(p => {
+            if (!deductPlayers.some(dp => dp.id === p.id)) return p
+            const newBal = Math.round(((p.corpus_balance ?? 0) - share) * 100) / 100
+            return { ...p, corpus_balance: newBal, balance_status: calcBalanceStatus(newBal, cfg ?? {}) }
+          })
+          await writePlayers(updatedPlayers, 'expense_deduction', id,
+            `Balances updated for expense: ${newExp.description}`, null, null)
+          qc.invalidateQueries({ queryKey: ['transactions'] })
+          qc.invalidateQueries({ queryKey: ['players'] })
+        }
+      }
 
       if (form.reimburse_corpus && payer && (payer.type === 'corpus' || payer.type === 'new')) {
         const allTxns = tData?.transactions ?? []
@@ -165,6 +209,23 @@ export default function AdminExpenses() {
       onConfirm: async () => {
         setDeletingId(exp.id)
         try {
+          const allTxns    = tData?.transactions ?? []
+          const allPlayers = pData?.players ?? []
+          const deductTxns = allTxns.filter(t => t.id.startsWith(`TXN_EXP_${exp.id}_`))
+          if (deductTxns.length > 0) {
+            await softDeleteTransactions(deductTxns.map(t => t.id),
+              `Deleting deductions for expense: ${exp.description}`)
+            const revertedPlayers = allPlayers.map(p => {
+              const txn = deductTxns.find(t => t.player_id === p.id)
+              if (!txn) return p
+              const newBal = Math.round(((p.corpus_balance ?? 0) + txn.amount) * 100) / 100
+              return { ...p, corpus_balance: newBal, balance_status: calcBalanceStatus(newBal, cfg ?? {}) }
+            })
+            await writePlayers(revertedPlayers, 'expense_deduction_reversal', exp.id,
+              `Reverted balances for deleted expense: ${exp.description}`, null, null)
+            qc.invalidateQueries({ queryKey: ['players'] })
+            qc.invalidateQueries({ queryKey: ['transactions'] })
+          }
           const updated = expenses.filter(e => e.id !== exp.id)
           await writeExpenses(updated, 'delete_expense', `Deleted expense: ${exp.description} ₹${exp.amount}`)
           qc.invalidateQueries({ queryKey: ['expenses'] })
@@ -182,8 +243,30 @@ export default function AdminExpenses() {
     if (!editForm.amount || parseFloat(editForm.amount) <= 0) { showToast('Valid amount required', 'error'); return }
     setSaving(true)
     try {
+      const allPlayers     = pData?.players ?? []
+      const allTxns        = tData?.transactions ?? []
+      const oldDeductTxns  = allTxns.filter(t => t.id.startsWith(`TXN_EXP_${editExpense.id}_`))
+
+      // Reverse existing deductions
+      let revertedPlayers = allPlayers
+      if (oldDeductTxns.length > 0) {
+        await softDeleteTransactions(oldDeductTxns.map(t => t.id),
+          `Reversing deductions for expense edit: ${editExpense.description}`)
+        revertedPlayers = allPlayers.map(p => {
+          const oldTxn = oldDeductTxns.find(t => t.player_id === p.id)
+          if (!oldTxn) return p
+          const newBal = Math.round(((p.corpus_balance ?? 0) + oldTxn.amount) * 100) / 100
+          return { ...p, corpus_balance: newBal, balance_status: calcBalanceStatus(newBal, cfg ?? {}) }
+        })
+        await writePlayers(revertedPlayers, 'expense_deduction_reversal', editExpense.id,
+          `Reverted balances for expense edit: ${editExpense.description}`, null, null)
+        qc.invalidateQueries({ queryKey: ['players'] })
+        qc.invalidateQueries({ queryKey: ['transactions'] })
+      }
+
+      // Save updated expense
       const payer = players.find(p => p.id === editForm.paid_by_player_id) ?? null
-      const updated = {
+      const updatedExp = {
         ...editExpense,
         date: editForm.date,
         week_id: editForm.week_id || null,
@@ -191,12 +274,55 @@ export default function AdminExpenses() {
         amount: parseFloat(editForm.amount),
         description: editForm.description || CATEGORIES.find(c => c.value === editForm.category)?.label,
         split_among: editForm.split_among,
+        share_per_player: null,
         paid_by: payer?.display_name ?? '',
         paid_by_player_id: editForm.paid_by_player_id || null,
       }
-      const updatedList = expenses.map(e => e.id === editExpense.id ? updated : e)
-      await writeExpenses(updatedList, 'edit_expense', `Edited expense: ${updated.description} ₹${editForm.amount}`)
+      let updatedList = expenses.map(e => e.id === editExpense.id ? updatedExp : e)
+      await writeExpenses(updatedList, 'edit_expense', `Edited expense: ${updatedExp.description} ₹${editForm.amount}`)
       qc.invalidateQueries({ queryKey: ['expenses'] })
+
+      // Re-apply new deductions
+      if (editForm.split_among !== 'corpus_pool') {
+        let deductPlayers = []
+        if (editForm.split_among === 'all_active') {
+          deductPlayers = revertedPlayers.filter(p => p.status === 'active' && (p.type === 'corpus' || p.type === 'new'))
+        } else if (editForm.split_among === 'all_played' && editForm.week_id) {
+          const playedIds = new Set(records.filter(r => r.week_id === editForm.week_id && r.status === 'played').map(r => r.player_id))
+          deductPlayers = revertedPlayers.filter(p => (p.type === 'corpus' || p.type === 'new') && playedIds.has(p.id))
+        }
+        if (deductPlayers.length > 0) {
+          const share = Math.round((parseFloat(editForm.amount) / deductPlayers.length) * 100) / 100
+          updatedList = updatedList.map(e => e.id === editExpense.id ? { ...updatedExp, share_per_player: share } : e)
+          await writeExpenses(updatedList, 'edit_expense', `Expense split: ₹${share}/player × ${deductPlayers.length}`)
+          const freshTxns = allTxns.filter(t => !t.id.startsWith(`TXN_EXP_${editExpense.id}_`))
+          const newDeductTxns = deductPlayers.map(p => ({
+            id: `TXN_EXP_${editExpense.id}_${p.id}`,
+            player_id: p.id,
+            tournament_id: cfg?.active_tournament_id ?? null,
+            type: 'expense_deduction',
+            amount: share,
+            direction: 'debit',
+            date: editForm.date,
+            week_id: editForm.week_id || null,
+            description: `Expense: ${updatedExp.description}`,
+            recorded_by: 'admin',
+            receipt_ref: '',
+          }))
+          await writeTransactions([...freshTxns, ...newDeductTxns], 'edit_expense_deduction', editExpense.id,
+            `Re-applied deductions: ₹${share}/player × ${deductPlayers.length}`, null, null)
+          const finalPlayers = revertedPlayers.map(p => {
+            if (!deductPlayers.some(dp => dp.id === p.id)) return p
+            const newBal = Math.round(((p.corpus_balance ?? 0) - share) * 100) / 100
+            return { ...p, corpus_balance: newBal, balance_status: calcBalanceStatus(newBal, cfg ?? {}) }
+          })
+          await writePlayers(finalPlayers, 'expense_deduction', editExpense.id,
+            `Balances re-applied for expense: ${updatedExp.description}`, null, null)
+          qc.invalidateQueries({ queryKey: ['transactions'] })
+          qc.invalidateQueries({ queryKey: ['players'] })
+        }
+      }
+
       setEditExpense(null)
       setEditForm(null)
       showToast('Expense updated')
