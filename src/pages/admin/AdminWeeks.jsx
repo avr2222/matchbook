@@ -42,7 +42,7 @@ export default function AdminWeeks() {
   const [saving, setSaving]   = useState(false)
   const [editResult, setEditResult] = useState(null)
   const [confirmData, setConfirmData] = useState(null)
-  const [resultForm, setResultForm] = useState({ result: '', team_a: '', team_b: '' })
+  const [resultForm, setResultForm] = useState({ result: '', team_a: '', team_b: '', winning_team: '' })
 
   if (isLoading) return <PageSpinner />
 
@@ -114,7 +114,7 @@ export default function AdminWeeks() {
   }
 
   function openResultEditor(w) {
-    setResultForm({ result: w.result ?? '', team_a: w.team_a ?? '', team_b: w.team_b ?? '' })
+    setResultForm({ result: w.result ?? '', team_a: w.team_a ?? '', team_b: w.team_b ?? '', winning_team: w.winning_team ?? '' })
     setEditResult(w.week_id)
   }
 
@@ -472,7 +472,20 @@ export default function AdminWeeks() {
               </div>
               <div>
                 <label className="label">Result</label>
-                <input className="input" value={resultForm.result} onChange={e => setResultForm(f => ({ ...f, result: e.target.value }))} placeholder="e.g. Team Alpha won by 15 runs" />
+                <input className="input" value={resultForm.result} onChange={e => setResultForm(f => ({ ...f, result: e.target.value }))} placeholder="e.g. RCB 85-72" />
+              </div>
+              <div>
+                <label className="label">Winner (used for win count)</label>
+                <select
+                  className="input"
+                  value={resultForm.winning_team}
+                  onChange={e => setResultForm(f => ({ ...f, winning_team: e.target.value }))}
+                >
+                  <option value="">— Draw / No result —</option>
+                  {[resultForm.team_a, resultForm.team_b].filter(Boolean).map(t => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
               </div>
             </div>
             <div className="px-6 py-4 border-t border-white/[0.06] flex justify-end gap-2">
