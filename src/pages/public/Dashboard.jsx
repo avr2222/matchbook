@@ -73,9 +73,10 @@ export default function Dashboard() {
   completed.forEach(w => {
     const rm = (w.result ?? '').match(/^(.+?)\s+(\d+)-(\d+)$/)
     if (!rm) return
-    const wName  = rm[1].trim()
     const wScore = parseInt(rm[2])
     const lScore = parseInt(rm[3])
+    if (wScore === lScore) return
+    const wName  = rm[1].trim()
     matchWinMap[wName] = (matchWinMap[wName] || 0) + wScore
     const loser = wName === _t0 ? _t1 : wName === _t1 ? _t0 : null
     if (loser) matchWinMap[loser] = (matchWinMap[loser] || 0) + lScore
