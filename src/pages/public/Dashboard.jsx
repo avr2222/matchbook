@@ -63,7 +63,7 @@ export default function Dashboard() {
   }
   const seriesWins = {}
   completed.forEach(w => {
-    const winner = w.winning_team || _parseWinner(w.result)
+    const winner = _parseWinner(w.result) || w.winning_team
     if (winner) seriesWins[winner] = (seriesWins[winner] || 0) + 1
   })
   const seriesTeams  = Object.entries(seriesWins).sort((a, b) => b[1] - a[1])
@@ -73,19 +73,19 @@ export default function Dashboard() {
   completed.forEach(w => {
     const rm = (w.result ?? '').match(/^(.+?)\s+(\d+)-(\d+)$/)
     if (!rm) return
-    const wName  = (w.winning_team || rm[1]).trim()
+    const wName  = rm[1].trim()
     const wScore = parseInt(rm[2])
     const lScore = parseInt(rm[3])
     matchWinMap[wName] = (matchWinMap[wName] || 0) + wScore
     const loser = wName === _t0 ? _t1 : wName === _t1 ? _t0 : null
     if (loser) matchWinMap[loser] = (matchWinMap[loser] || 0) + lScore
   })
-  const seriesDraws   = completed.filter(w => !(w.winning_team || _parseWinner(w.result))).length
+  const seriesDraws   = completed.filter(w => !(_parseWinner(w.result) || w.winning_team)).length
   const sortedCompleted = [...completed].sort((a, b) => b.match_date.localeCompare(a.match_date))
   let winStreak = 0
   if (seriesLeader) {
     for (const w of sortedCompleted) {
-      if ((w.winning_team || _parseWinner(w.result)) === seriesLeader[0]) winStreak++
+      if ((_parseWinner(w.result) || w.winning_team) === seriesLeader[0]) winStreak++
       else break
     }
   }
@@ -365,7 +365,7 @@ export default function Dashboard() {
               <div className="border-t border-white/[0.05] pt-3 flex flex-col items-center gap-2">
                 <div className="flex gap-1 flex-wrap justify-center">
                   {_chronoWeeks.map(w => {
-                    const winner = w.winning_team || _parseWinner(w.result)
+                    const winner = _parseWinner(w.result) || w.winning_team
                     const pillCls = winner
                       ? (teamColors[winner]?.pill ?? 'bg-white/10 border border-white/20 text-white/60')
                       : 'bg-white/5 border border-white/10 text-white/25'
