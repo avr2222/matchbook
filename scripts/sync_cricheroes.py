@@ -131,7 +131,14 @@ def fetch_commentary(match_id, team_id, inning_num):
     path = f"scorecard/v2/get-commentary/{match_id}?inning={inning_num}&teamId={team_id}"
     try:
         data = api_get(path)
-        return data.get("data", {}).get("commentary", [])
+        commentary = data.get("data", {}).get("commentary", [])
+        if not commentary:
+            # Show response structure to help diagnose API changes
+            keys = list(data.keys()) if isinstance(data, dict) else type(data).__name__
+            data_val = data.get("data") if isinstance(data, dict) else None
+            data_keys = list(data_val.keys()) if isinstance(data_val, dict) else repr(data_val)[:120]
+            print(f"  [commentary] match={match_id} inn={inning_num} teamId={team_id} → top_keys={keys} data_keys={data_keys}")
+        return commentary
     except Exception as e:
         print(f"  Commentary fetch failed for match {match_id} inning {inning_num}: {e}")
         return []
