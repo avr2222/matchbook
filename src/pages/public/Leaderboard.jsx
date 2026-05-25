@@ -259,6 +259,10 @@ export default function Leaderboard() {
       const fielder = m ? m[1].trim() : null
       if (fielder) runOutEffectors[fielder] = (runOutEffectors[fielder] || 0) + 1
       if (b.batsman_name) runOutVictims[b.batsman_name] = (runOutVictims[b.batsman_name] || 0) + 1
+      if (b.batsman_id) {
+        if (!batsmanBallMap[b.batsman_id]) batsmanBallMap[b.batsman_id] = { run_out_victim: 0 }
+        batsmanBallMap[b.batsman_id].run_out_victim = (batsmanBallMap[b.batsman_id].run_out_victim || 0) + 1
+      }
     }
   })
   const bowlerBallStats = Object.entries(bowlerBallMap)
@@ -269,8 +273,16 @@ export default function Leaderboard() {
   const runOutEffectorsList = Object.entries(runOutEffectors).sort((a, b) => b[1] - a[1])
   const runOutVictimsList   = Object.entries(runOutVictims).sort((a, b) => b[1] - a[1])
 
+  // Run-out victim award: prefer ball_deliveries data (has batsman_id), fall back to match_performances
+  const _roVictimFromBalls = Object.entries(batsmanBallMap)
+    .filter(([, s]) => (s.run_out_victim || 0) > 0)
+    .map(([pid, s]) => ({ player_id: pid, times_run_out: s.run_out_victim }))
+    .sort((a, b) => b.times_run_out - a.times_run_out)
+  const mostRunOut = _roVictimFromBalls.length > 0
+    ? (() => { const best = _roVictimFromBalls[0].times_run_out; return _roVictimFromBalls.filter(s => s.times_run_out === best) })()
+    : _tg([...allStats].filter(s => s.times_run_out > 0).sort((a,b) => b.times_run_out - a.times_run_out), s => s.times_run_out)
+
   const runOutSpecialist = _tg([...allStats].filter(s => s.run_outs > 0).sort((a,b) => b.run_outs - a.run_outs), s => s.run_outs)
-  const mostRunOut       = _tg([...allStats].filter(s => s.times_run_out > 0).sort((a,b) => b.times_run_out - a.times_run_out), s => s.times_run_out)
 
   const tabs = [
     { id: 'batting',  label: 'Batting'   },
