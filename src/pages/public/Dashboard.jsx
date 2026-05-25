@@ -75,6 +75,7 @@ export default function Dashboard() {
     if (!rm) return
     const wScore = parseInt(rm[2])
     const lScore = parseInt(rm[3])
+    if (wScore === lScore) return  // draw: don't credit either team
     const wName  = rm[1].trim()
     matchWinMap[wName] = (matchWinMap[wName] || 0) + wScore
     const loser = wName === _t0 ? _t1 : wName === _t1 ? _t0 : null

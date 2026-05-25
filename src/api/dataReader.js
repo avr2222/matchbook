@@ -154,6 +154,15 @@ export async function fetchMatchPerformances({ playerId, tournamentId } = {}) {
   return { schema_version: 1, performances: data ?? [] }
 }
 
+export async function fetchBallDeliveries(tournamentId) {
+  const { data, error } = await supabase
+    .from('ball_deliveries')
+    .select('bowler_id,batsman_id,bowler_name,batsman_name,runs,extra_type,extra_runs,is_wicket,is_boundary,is_dot_ball,commentary,innings,batting_team,over_num,week_id,cricheroes_match_id')
+    .eq('tournament_id', tournamentId)
+  if (error) throw new Error(`fetchBallDeliveries: ${error.message}`)
+  return data ?? []
+}
+
 // Users are now managed by Supabase Auth — no separate users.json table.
 // Return a stub so any remaining useUsers() calls don't crash.
 export async function fetchUsers() {

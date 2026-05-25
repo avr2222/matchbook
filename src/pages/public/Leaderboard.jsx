@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { usePlayers, useConfig, useLeaderboard, useWeeks, useTournaments } from '../../hooks/useData'
+import { usePlayers, useConfig, useLeaderboard, useWeeks, useTournaments, useBallDeliveries } from '../../hooks/useData'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { IconTrophy, IconMedal, IconStar, IconTarget, IconBolt, IconBallBowling, IconCricket, IconSearch } from '@tabler/icons-react'
 
@@ -77,6 +77,7 @@ export default function Leaderboard() {
   const { data: tData } = useTournaments()
   const tournamentId = selectedTId ?? cfg?.active_tournament_id
   const { data: perfData, isLoading: perfLoading } = useLeaderboard(tournamentId)
+  const { data: ballData, isLoading: ballLoading } = useBallDeliveries(tournamentId)
   const totalSessions = (wData?.weeks ?? [])
     .filter(w => w.tournament_id === tournamentId && w.status === 'completed').length
 
@@ -107,7 +108,7 @@ export default function Leaderboard() {
         runs: 0, balls_faced: 0, fours: 0, sixes: 0, high_score: 0,
         wickets: 0, runs_given: 0, balls_bowled: 0, maidens: 0, catches: 0,
         run_outs: 0, stumpings: 0, wides: 0, no_balls: 0, potm_count: 0, ducks: 0,
-        bba_count: 0, bbo_count: 0,
+        bba_count: 0, bbo_count: 0, times_run_out: 0, won_match: 0,
       }
     }
     const s = statsMap[perf.player_id]
@@ -134,9 +135,11 @@ export default function Leaderboard() {
     s.wides       += perf.wides       || 0
     s.no_balls    += perf.no_balls    || 0
     s.potm_count  += perf.potm_count  || 0
-    s.ducks       += perf.ducks       || 0
-    s.bba_count   += perf.bba_count   || 0
-    s.bbo_count   += perf.bbo_count   || 0
+    s.ducks        += perf.ducks        || 0
+    s.bba_count    += perf.bba_count    || 0
+    s.bbo_count    += perf.bbo_count    || 0
+    s.times_run_out+= perf.times_run_out|| 0
+    s.won_match    += perf.won_match    || 0
   }
 
   const allStats = Object.values(statsMap)
@@ -227,6 +230,48 @@ export default function Leaderboard() {
   const wicketRU = _ru(_wicketSorted, wicketWiz,                                              s => s.wickets + ' wkts')
   const potmRU   = _ru(_potmSorted,   topPotm,                                                s => s.potm_count + 'x')
 
+  // Ball-by-ball aggregations
+  const balls = ballData ?? []
+  const bowlerBallMap = {}
+  const batsmanBallMap = {}
+  const matchupMap = {}
+  const runOutEffectors = {}
+  const runOutVictims = {}
+  balls.forEach(b => {
+    if (b.bowler_id) {
+      if (!bowlerBallMap[b.bowler_id]) bowlerBallMap[b.bowler_id] = { dots: 0, wides: 0, noballs: 0, boundaries: 0, total: 0 }
+      const s = bowlerBallMap[b.bowler_id]
+      s.total++
+      if (b.is_dot_ball) s.dots++
+      if (b.extra_type === 'WD') s.wides++
+      if (b.extra_type === 'NB') s.noballs++
+      if (b.is_boundary) s.boundaries++
+    }
+    if (b.batsman_id && b.bowler_id) {
+      const key = `${b.batsman_id}|${b.bowler_id}`
+      if (!matchupMap[key]) matchupMap[key] = { batsman_id: b.batsman_id, bowler_id: b.bowler_id, balls: 0, runs: 0, dismissals: 0 }
+      const m = matchupMap[key]
+      m.balls++; m.runs += b.runs || 0
+      if (b.is_wicket) m.dismissals++
+    }
+    if (b.is_wicket && (b.commentary ?? '').toLowerCase().includes('run out')) {
+      const m = (b.commentary ?? '').match(/throw by ([^,\n]+)/i)
+      const fielder = m ? m[1].trim() : null
+      if (fielder) runOutEffectors[fielder] = (runOutEffectors[fielder] || 0) + 1
+      if (b.batsman_name) runOutVictims[b.batsman_name] = (runOutVictims[b.batsman_name] || 0) + 1
+    }
+  })
+  const bowlerBallStats = Object.entries(bowlerBallMap)
+    .map(([pid, s]) => ({ player_id: pid, ...s, dot_pct: s.total > 0 ? s.dots / s.total * 100 : 0 }))
+    .filter(s => s.total >= 12)
+    .sort((a, b) => b.dot_pct - a.dot_pct)
+  const topMatchups = Object.values(matchupMap).filter(m => m.balls >= 6).sort((a, b) => b.balls - a.balls).slice(0, 10)
+  const runOutEffectorsList = Object.entries(runOutEffectors).sort((a, b) => b[1] - a[1])
+  const runOutVictimsList   = Object.entries(runOutVictims).sort((a, b) => b[1] - a[1])
+
+  const runOutSpecialist = _tg([...allStats].filter(s => s.run_outs > 0).sort((a,b) => b.run_outs - a.run_outs), s => s.run_outs)
+  const mostRunOut       = _tg([...allStats].filter(s => s.times_run_out > 0).sort((a,b) => b.times_run_out - a.times_run_out), s => s.times_run_out)
+
   const tabs = [
     { id: 'batting',  label: 'Batting'   },
     { id: 'bowling',  label: 'Bowling'   },
@@ -234,6 +279,7 @@ export default function Leaderboard() {
     { id: 'allround', label: 'All-round' },
     { id: 'mvp',      label: 'MVP'       },
     { id: 'awards',   label: 'Awards'    },
+    { id: 'balls',    label: 'Ball Stats'},
   ]
   const tournaments = [...(tData?.tournaments ?? [])].sort((a, b) => b.id.localeCompare(a.id))
 
@@ -693,6 +739,134 @@ export default function Leaderboard() {
         </div>
       )}
 
+      {/* Ball Stats */}
+      {tab === 'balls' && (
+        <div className="space-y-4">
+          {ballLoading && <PageSpinner />}
+          {!ballLoading && balls.length === 0 && (
+            <div className="card text-center py-12">
+              <p className="font-medium text-gray-300">No ball-by-ball data yet</p>
+              <p className="text-sm text-gray-400 mt-1">Run the CricHeroes sync to populate delivery data.</p>
+            </div>
+          )}
+
+          {/* Bowler dot ball table */}
+          {bowlerBallStats.length > 0 && (
+            <div className="card overflow-x-auto">
+              <h2 className="font-medium text-gray-100 mb-1">Bowler dot ball analysis</h2>
+              <p className="text-xs text-gray-400 mb-3">Min 2 overs · sorted by dot %</p>
+              <table className="w-full text-sm min-w-[420px]">
+                <thead>
+                  <tr className="text-[11px] text-gray-500 uppercase tracking-[0.05em] border-b border-white/[0.06]">
+                    <th className="text-left pb-2 w-6">#</th>
+                    <th className="text-left pb-2 pr-2">Bowler</th>
+                    <th className="text-right pb-2 pr-2">Balls</th>
+                    <th className="text-right pb-2 pr-2">Dots</th>
+                    <th className="text-right pb-2 pr-2">Dot%</th>
+                    <th className="text-right pb-2 pr-2">WD</th>
+                    <th className="text-right pb-2 pr-2">NB</th>
+                    <th className="text-right pb-2">Bdry</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/[0.05]">
+                  {bowlerBallStats.filter(s => matchesSearch(s.player_id)).map((s, i) => (
+                    <tr key={s.player_id}>
+                      <td className="py-2 text-gray-500 text-xs">{i + 1}</td>
+                      <td className="py-2 pr-2 max-w-[140px]">
+                        <Link to={`/player/${s.player_id}`} className="font-medium text-gray-100 hover:text-[#10b981] truncate block">
+                          {playerMap[s.player_id]?.display_name ?? s.player_id}
+                        </Link>
+                      </td>
+                      <td className="py-2 pr-2 text-right tabular-nums text-gray-400">{s.total}</td>
+                      <td className="py-2 pr-2 text-right tabular-nums text-gray-400">{s.dots}</td>
+                      <td className="py-2 pr-2 text-right tabular-nums">
+                        <span className={`rounded-sm px-1 font-medium text-sm ${s.dot_pct >= 40 ? 'bg-emerald-900/20 text-emerald-400' : s.dot_pct < 25 ? 'bg-red-900/20 text-red-400' : 'text-[#10b981]'}`}>
+                          {s.dot_pct.toFixed(1)}%
+                        </span>
+                      </td>
+                      <td className="py-2 pr-2 text-right tabular-nums text-gray-500">{s.wides}</td>
+                      <td className="py-2 pr-2 text-right tabular-nums text-gray-500">{s.noballs}</td>
+                      <td className="py-2 text-right tabular-nums text-gray-500">{s.boundaries}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Run-out details */}
+          {(runOutEffectorsList.length > 0 || runOutVictimsList.length > 0) && (
+            <div className="card">
+              <h2 className="font-medium text-gray-100 mb-3">Run-out details</h2>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-xs text-gray-400 font-medium uppercase tracking-[0.05em] mb-2">Effected by</div>
+                  <div className="space-y-1">
+                    {runOutEffectorsList.slice(0, 8).map(([name, cnt]) => (
+                      <div key={name} className="flex items-center justify-between text-sm">
+                        <span className="text-gray-200 truncate mr-2">{name}</span>
+                        <span className="font-medium tabular-nums text-[#10b981] shrink-0">{cnt}</span>
+                      </div>
+                    ))}
+                    {runOutEffectorsList.length === 0 && <div className="text-xs text-gray-500">No data</div>}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-400 font-medium uppercase tracking-[0.05em] mb-2">Victims</div>
+                  <div className="space-y-1">
+                    {runOutVictimsList.slice(0, 8).map(([name, cnt]) => (
+                      <div key={name} className="flex items-center justify-between text-sm">
+                        <span className="text-gray-200 truncate mr-2">{name}</span>
+                        <span className="font-medium tabular-nums text-red-400 shrink-0">{cnt}</span>
+                      </div>
+                    ))}
+                    {runOutVictimsList.length === 0 && <div className="text-xs text-gray-500">No data</div>}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Batsman vs Bowler matchups */}
+          {topMatchups.length > 0 && (
+            <div className="card overflow-x-auto">
+              <h2 className="font-medium text-gray-100 mb-1">Top matchups</h2>
+              <p className="text-xs text-gray-400 mb-3">Min 1 over faced · sorted by balls</p>
+              <table className="w-full text-sm min-w-[400px]">
+                <thead>
+                  <tr className="text-[11px] text-gray-500 uppercase tracking-[0.05em] border-b border-white/[0.06]">
+                    <th className="text-left pb-2 pr-2">Batsman</th>
+                    <th className="text-left pb-2 pr-2">Bowler</th>
+                    <th className="text-right pb-2 pr-2">Balls</th>
+                    <th className="text-right pb-2 pr-2">Runs</th>
+                    <th className="text-right pb-2">Dis</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/[0.05]">
+                  {topMatchups.map((m, i) => (
+                    <tr key={i}>
+                      <td className="py-2 pr-2 max-w-[130px]">
+                        <Link to={`/player/${m.batsman_id}`} className="text-gray-100 hover:text-[#10b981] truncate block">
+                          {playerMap[m.batsman_id]?.display_name ?? m.batsman_id}
+                        </Link>
+                      </td>
+                      <td className="py-2 pr-2 max-w-[130px]">
+                        <Link to={`/player/${m.bowler_id}`} className="text-gray-400 hover:text-[#10b981] truncate block">
+                          {playerMap[m.bowler_id]?.display_name ?? m.bowler_id}
+                        </Link>
+                      </td>
+                      <td className="py-2 pr-2 text-right tabular-nums text-gray-400">{m.balls}</td>
+                      <td className="py-2 pr-2 text-right tabular-nums text-[#10b981] font-medium">{m.runs}</td>
+                      <td className="py-2 text-right tabular-nums text-gray-500">{m.dismissals}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Awards */}
       {!perfLoading && !isEmpty && tab === 'awards' && (() => {
         function ACard({ Icon, title, group = [], stat, unit, sub, variant = 'default' }) {
@@ -780,8 +954,9 @@ export default function Leaderboard() {
                 <ACard Icon={IconBolt}        title="Lightning bat"  group={lightningBat}  stat={lightningBat[0] ? (lightningBat[0].runs/lightningBat[0].balls_faced*100).toFixed(1) : null} unit={`SR · min ${MIN_BAT} balls`} />
                 <ACard Icon={IconTarget}      title="Economy king"   group={economyKing}   stat={economyKing[0] ? economy(economyKing[0].runs_given, economyKing[0].balls_bowled) : null}    unit={`econ · min ${MIN_BOWL} balls`} />
                 <ACard Icon={IconMedal}       title="Maiden master"  group={maidenMaster}  stat={maidenMaster[0]?.maidens}                                                                   unit="maidens" />
-                <ACard Icon={IconStar}        title="Catch king"     group={catchKing}     stat={catchKing[0] ? catchKing[0].catches + catchKing[0].run_outs + catchKing[0].stumpings : null} unit="dismissals" />
-                <ACard Icon={IconBallBowling} title="Workhorse"      group={workhorse}     stat={workhorse[0] ? overs(workhorse[0].balls_bowled) : null}                                     unit="overs" />
+                <ACard Icon={IconStar}        title="Catch king"        group={catchKing}        stat={catchKing[0] ? catchKing[0].catches + catchKing[0].run_outs + catchKing[0].stumpings : null} unit="dismissals" />
+                <ACard Icon={IconBallBowling} title="Workhorse"         group={workhorse}        stat={workhorse[0] ? overs(workhorse[0].balls_bowled) : null}                                     unit="overs" />
+                <ACard Icon={IconTarget}      title="Run-out specialist" group={runOutSpecialist} stat={runOutSpecialist[0]?.run_outs}                                                             unit="run-outs" />
               </div>
             </div>
 
@@ -797,6 +972,7 @@ export default function Leaderboard() {
                 <ACard title="Wide man"      group={wideMan}      stat={wideMan[0]?.wides ?? '—'}        unit="wides"                     variant="spoon" />
                 <ACard title="No-ball king"  group={noBallKing}   stat={noBallKing[0]?.no_balls ?? '—'}  unit="no balls"                  variant="spoon" />
                 <ACard title="Costly bowler" group={costlyBowler} stat={costlyBowler[0] ? economy(costlyBowler[0].runs_given, costlyBowler[0].balls_bowled) : null} unit={`econ · min ${MIN_BOWL} balls`} variant="spoon" />
+                <ACard title="Run-out victim" group={mostRunOut}  stat={mostRunOut[0]?.times_run_out}                                                                 unit="times run out"             variant="spoon" />
               </div>
             </div>
           </div>

@@ -126,6 +126,75 @@ def api_get(path, retries=3):
     raise RuntimeError(f"Failed to fetch API {url} after {retries} attempts")
 
 
+def fetch_commentary(match_id, team_id, inning_num):
+    """Fetch ball-by-ball commentary for one innings from CricHeroes."""
+    path = f"scorecard/v2/get-commentary/{match_id}?inning={inning_num}&teamId={team_id}"
+    try:
+        data = api_get(path)
+        return data.get("data", {}).get("commentary", [])
+    except Exception as e:
+        print(f"  Commentary fetch failed for match {match_id} inning {inning_num}: {e}")
+        return []
+
+
+def build_sc_name_to_ch_id(scorecard_data):
+    """Build name→CricHeroes-player-id lookup from a scorecard."""
+    lookup = {}
+    for tk in ("team_a", "team_b"):
+        for inn in scorecard_data.get(tk, {}).get("scorecard", []):
+            for entry in inn.get("batting", []) + inn.get("bowling", []):
+                pid  = str(entry.get("player_id", ""))
+                name = re.sub(r"\s*\(c\s*&\s*wk\)|\s*\(wk\)|\s*\(c\)", "",
+                               entry.get("name", ""), flags=re.I).strip()
+                if pid and name:
+                    lookup[name.lower()] = pid
+    return lookup
+
+
+def parse_ball_deliveries(commentary_list, match_id, week_id, tournament_id,
+                           innings, batting_team, ch_to_internal, sc_name_to_ch_id):
+    """Convert a CricHeroes commentary list into ball_deliveries rows."""
+    rows = []
+    for item in commentary_list:
+        ob  = str(item.get("ball", "") or "")
+        txt = str(item.get("commentary", "") or "")
+        parts   = ob.split(".")
+        over_n  = int(parts[0]) if parts and parts[0].isdigit() else 0
+        ball_n  = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 0
+        bowler_name  = str(item.get("bowler_name", "") or "").strip()
+        batsman_name = str(item.get("batsman_name", "") or "").strip()
+        bowler_ch  = sc_name_to_ch_id.get(bowler_name.lower(), "")
+        batsman_ch = sc_name_to_ch_id.get(batsman_name.lower(), "")
+        bowler_id  = ch_to_internal.get(bowler_ch) or None
+        batsman_id = ch_to_internal.get(batsman_ch) or None
+        extra      = str(item.get("extra_type_code", "") or "").upper()
+        run_val    = int(item.get("run", 0) or 0)
+        extra_val  = int(item.get("extra_run", 0) or 0)
+        rows.append({
+            "id":                  f"BALL_{match_id}_{innings}_{over_n}_{ball_n}",
+            "cricheroes_match_id": str(match_id),
+            "week_id":             week_id,
+            "tournament_id":       tournament_id,
+            "innings":             innings,
+            "batting_team":        batting_team,
+            "over_ball":           ob,
+            "over_num":            over_n,
+            "ball_num":            ball_n,
+            "bowler_name":         bowler_name,
+            "bowler_id":           bowler_id,
+            "batsman_name":        batsman_name,
+            "batsman_id":          batsman_id,
+            "runs":                run_val,
+            "extra_type":          extra,
+            "extra_runs":          extra_val,
+            "is_wicket":           int(bool(item.get("is_out", 0))),
+            "is_boundary":         int(bool(item.get("is_boundry", 0))),
+            "is_dot_ball":         1 if run_val == 0 and extra_val == 0 and not extra else 0,
+            "commentary":          txt,
+        })
+    return rows
+
+
 def _clean_name(n):
     return n.strip().strip('\xa0').strip()
 
@@ -359,15 +428,19 @@ def _empty_perf():
         "dismissal": "", "batting_pos": None,
         "wickets": 0, "runs_given": 0, "balls_bowled": 0, "maidens": 0,
         "catches": 0, "run_outs": 0, "stumpings": 0,
-        "match_count": 1, "wides": 0, "no_balls": 0, "potm_count": 0, "ducks": 0,
-        "bba_count": 0, "bbo_count": 0,
+        "match_count": 1, "wides": 0, "no_balls": 0, "potm_count": 0,
+        "ducks": 0, "bba_count": 0, "bbo_count": 0,
+        "won_match": 0, "times_run_out": 0,
     }
 
 
-def extract_performances_from_scorecard(scorecard_data, ch_to_internal):
+def extract_performances_from_scorecard(scorecard_data, ch_to_internal, winning_team=""):
     """Extract per-player batting/bowling stats from one match scorecard.
     Returns {internal_player_id: stats_dict}. Unmapped CricHeroes players are skipped.
+    winning_team: name of the winning team (used to set won_match=1 for that team's players).
     """
+    NOT_OUT_TYPES = ("not out", "dnb", "did not bat", "absent", "retired hurt",
+                     "absent hurt", "retired not out")
     perfs = {}
     for team_key in ("team_a", "team_b"):
         team = scorecard_data.get(team_key, {})
@@ -389,11 +462,12 @@ def extract_performances_from_scorecard(scorecard_data, ch_to_internal):
                 wkt = str(batter.get("how_to_out", batter.get("wicket_type", batter.get("dismissal", ""))) or "").strip()
                 if not p["dismissal"]:
                     p["dismissal"] = wkt
-                # Count duck: scored 0 AND was dismissed (not a not-out, retired, or DNB)
-                NOT_OUT_TYPES = ("not out", "dnb", "did not bat", "absent", "retired hurt",
-                                 "absent hurt", "retired not out")
+                # Count duck: scored 0 AND was dismissed
                 if innings_runs == 0 and wkt and wkt.lower() not in NOT_OUT_TYPES:
                     p["ducks"] += 1
+                # Times run-out from the batsman's perspective
+                if "run out" in wkt.lower():
+                    p["times_run_out"] += 1
                 if p["batting_pos"] is None:
                     pos = batter.get("batting_position", batter.get("batting_pos", i))
                     p["batting_pos"] = int(pos) if pos is not None else i
@@ -416,16 +490,8 @@ def extract_performances_from_scorecard(scorecard_data, ch_to_internal):
                 p["wides"]        += int(bowler.get("wides",    bowler.get("wide",    0)) or 0)
                 p["no_balls"]     += int(bowler.get("no_balls", bowler.get("noball", bowler.get("no_ball", 0))) or 0)
 
-    # Build name→ch_id lookup from the full scorecard for fielder resolution
-    sc_name_to_ch_id = {}
-    for tk in ("team_a", "team_b"):
-        for inn in scorecard_data.get(tk, {}).get("scorecard", []):
-            for entry in inn.get("batting", []) + inn.get("bowling", []):
-                _pid  = str(entry.get("player_id", ""))
-                _name = re.sub(r"\s*\(c\s*&\s*wk\)|\s*\(wk\)|\s*\(c\)", "",
-                               entry.get("name", ""), flags=re.I).strip()
-                if _pid and _name:
-                    sc_name_to_ch_id[_name.lower()] = _pid
+    # Build name→ch_id lookup (shared helper reused for ball deliveries)
+    sc_name_to_ch_id = build_sc_name_to_ch_id(scorecard_data)
 
     # Extract fielding (catches, stumpings, run_outs) from batting dismissal strings
     for tk in ("team_a", "team_b"):
@@ -458,7 +524,20 @@ def extract_performances_from_scorecard(scorecard_data, ch_to_internal):
                 elif kind == 'run_out':
                     perfs[fielder_internal]["run_outs"] += 1
 
-    return perfs
+    # Tag won_match=1 for all players on the winning team
+    if winning_team:
+        team_a_name = (scorecard_data.get("team_a") or {}).get("name", "")
+        team_b_name = (scorecard_data.get("team_b") or {}).get("name", "")
+        winner_key = ("team_a" if winning_team == team_a_name
+                      else "team_b" if winning_team == team_b_name else None)
+        if winner_key:
+            for inn in scorecard_data.get(winner_key, {}).get("scorecard", []):
+                for entry in inn.get("batting", []) + inn.get("bowling", []):
+                    iid = ch_to_internal.get(str(entry.get("player_id", "")))
+                    if iid and iid in perfs:
+                        perfs[iid]["won_match"] = 1
+
+    return perfs, sc_name_to_ch_id
 
 
 # ── Main sync logic ───────────────────────────────────────────────────────────
@@ -598,6 +677,7 @@ def sync():
     new_weeks        = []
     new_attendance   = []
     new_performances = []
+    new_balls        = []
     changed          = False
 
     for match_date, session_matches in sorted(sessions.items()):
@@ -827,10 +907,18 @@ def sync():
 
         # Extract per-game batting/bowling stats (one row per player per game)
         if need_performances and existing_perf_week_ids is not None:
+            # Load existing ball_deliveries match IDs to avoid re-fetching
+            existing_ball_match_ids = {
+                b["cricheroes_match_id"]
+                for b in sb_get_all('ball_deliveries', select='cricheroes_match_id')
+            }
+
             for game_idx, sd_tuple in enumerate(all_scorecard_data):
                 sd, potm_id, bba_id, bbo_id = sd_tuple if len(sd_tuple) == 4 else (*sd_tuple, None, None)
                 ch_match_id = all_match_ids[game_idx]
-                game_perfs = extract_performances_from_scorecard(sd, ch_to_internal)
+                match_winner = str(all_matches[game_idx].get("winning_team", "") or "")
+                game_perfs, sc_name_map = extract_performances_from_scorecard(
+                    sd, ch_to_internal, winning_team=match_winner)
                 for award_id, award_key in ((potm_id, "potm_count"), (bba_id, "bba_count"), (bbo_id, "bbo_count")):
                     if award_id:
                         if award_id not in game_perfs:
@@ -845,8 +933,27 @@ def sync():
                         "cricheroes_match_id": ch_match_id,
                         **stats,
                     })
+
+                # Fetch ball-by-ball commentary for each innings (skip if already stored)
+                if str(ch_match_id) not in existing_ball_match_ids:
+                    team_a_id = str((sd.get("team_a") or {}).get("team_id", "") or "")
+                    team_b_id = str((sd.get("team_b") or {}).get("team_id", "") or "")
+                    for inn_num, team_key, team_id in ((1, "team_a", team_a_id), (2, "team_b", team_b_id)):
+                        batting_team_name = str((sd.get(team_key) or {}).get("name", "") or "")
+                        if not team_id:
+                            continue
+                        commentary = fetch_commentary(ch_match_id, team_id, inn_num)
+                        if commentary:
+                            new_balls.extend(parse_ball_deliveries(
+                                commentary, ch_match_id, actual_wid,
+                                active_tournament_id, inn_num,
+                                batting_team_name, ch_to_internal, sc_name_map))
+
             if new_performances:
                 print(f"  Extracted {len(new_performances)} per-game performance row(s)")
+                changed = True
+            if new_balls:
+                print(f"  Fetched {len(new_balls)} ball delivery record(s)")
                 changed = True
 
     if not changed:
@@ -968,6 +1075,10 @@ def sync():
     if new_performances:
         sb_upsert('match_performances', new_performances)
         print(f"  Saved {len(new_performances)} performance record(s)")
+
+    if new_balls:
+        sb_upsert('ball_deliveries', new_balls)
+        print(f"  Saved {len(new_balls)} ball delivery record(s)")
 
     # Always update mapping so last_sync timestamp is current
     updated_mapping = {

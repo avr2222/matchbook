@@ -3,7 +3,7 @@ import {
   fetchPlayers, fetchWeeks, fetchAttendance, fetchTransactions,
   fetchExpenses, fetchGuestVisits, fetchTournaments, fetchUsers,
   fetchAuditLog, fetchCricHeroesMapping, fetchConfig, fetchAnnouncements,
-  fetchPaymentRequests, fetchMatchPerformances,
+  fetchPaymentRequests, fetchMatchPerformances, fetchBallDeliveries,
 } from '../api/dataReader'
 
 const STALE = 30_000 // 30s
@@ -27,3 +27,6 @@ export const useMatchPerformances = (playerId) =>
 
 export const useLeaderboard = (tournamentId) =>
   useQuery({ queryKey: ['leaderboard', tournamentId], queryFn: () => fetchMatchPerformances({ tournamentId }), staleTime: STALE, enabled: !!tournamentId })
+
+export const useBallDeliveries = (tournamentId) =>
+  useQuery({ queryKey: ['ball_deliveries', tournamentId], queryFn: () => fetchBallDeliveries(tournamentId), staleTime: 5 * 60_000, enabled: !!tournamentId })
