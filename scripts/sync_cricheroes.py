@@ -642,9 +642,18 @@ def sync():
 
     all_matches = get_tournament_matches(tournament_id)
 
+    # Load existing ball_deliveries match IDs once (used for skip-check and inner fetch)
+    try:
+        _ball_rows = sb_get_all('ball_deliveries', select='cricheroes_match_id')
+        all_existing_ball_match_ids = {b["cricheroes_match_id"] for b in _ball_rows}
+        print(f"  Existing ball delivery matches: {len(all_existing_ball_match_ids)}")
+    except Exception as e:
+        print(f"  ball_deliveries table not found — ball sync disabled ({e})")
+        all_existing_ball_match_ids = None
+
     # Group by session date.
     # Include a session if: (a) it's new, OR (b) covered but missing performances,
-    # OR (c) covered but recent (last 7 days) — so new guests/mappings are resolved.
+    # OR (c) covered but missing ball deliveries, OR (d) covered but recent (last 7 days).
     from datetime import date as _dt_date
     _today = _dt_date.today()
 
@@ -663,7 +672,9 @@ def sync():
         covered = date_already_covered(match_date)
         actual_wid = resolve_week_id(match_date)
         needs_perfs = existing_perf_week_ids is not None and actual_wid not in existing_perf_week_ids
-        if covered and not needs_perfs and not _is_recent(match_date):
+        needs_balls = (all_existing_ball_match_ids is not None and
+                       str(match.get("match_id", "")) not in all_existing_ball_match_ids)
+        if covered and not needs_perfs and not needs_balls and not _is_recent(match_date):
             if match_date not in skipped_dates:
                 print(f"  Skipping {match_date} (already synced)")
                 skipped_dates.add(match_date)
@@ -907,17 +918,11 @@ def sync():
 
         # Extract per-game batting/bowling stats (one row per player per game)
         if need_performances and existing_perf_week_ids is not None:
-            # Load existing ball_deliveries match IDs to avoid re-fetching
-            existing_ball_match_ids = {
-                b["cricheroes_match_id"]
-                for b in sb_get_all('ball_deliveries', select='cricheroes_match_id')
-            }
-
             for game_idx, sd_tuple in enumerate(all_scorecard_data):
                 sd, potm_id, bba_id, bbo_id = sd_tuple if len(sd_tuple) == 4 else (*sd_tuple, None, None)
                 ch_match_id = all_match_ids[game_idx]
                 match_winner = str(all_matches[game_idx].get("winning_team", "") or "")
-                game_perfs, sc_name_map = extract_performances_from_scorecard(
+                game_perfs, _sc_name_map = extract_performances_from_scorecard(
                     sd, ch_to_internal, winning_team=match_winner)
                 for award_id, award_key in ((potm_id, "potm_count"), (bba_id, "bba_count"), (bbo_id, "bbo_count")):
                     if award_id:
@@ -934,24 +939,31 @@ def sync():
                         **stats,
                     })
 
-                # Fetch ball-by-ball commentary for each innings (skip if already stored)
-                if str(ch_match_id) not in existing_ball_match_ids:
-                    team_a_id = str((sd.get("team_a") or {}).get("team_id", "") or "")
-                    team_b_id = str((sd.get("team_b") or {}).get("team_id", "") or "")
-                    for inn_num, team_key, team_id in ((1, "team_a", team_a_id), (2, "team_b", team_b_id)):
-                        batting_team_name = str((sd.get(team_key) or {}).get("name", "") or "")
-                        if not team_id:
-                            continue
-                        commentary = fetch_commentary(ch_match_id, team_id, inn_num)
-                        if commentary:
-                            new_balls.extend(parse_ball_deliveries(
-                                commentary, ch_match_id, actual_wid,
-                                active_tournament_id, inn_num,
-                                batting_team_name, ch_to_internal, sc_name_map))
-
             if new_performances:
                 print(f"  Extracted {len(new_performances)} per-game performance row(s)")
                 changed = True
+
+        # Fetch ball-by-ball commentary (runs independently of need_performances so that
+        # sessions with existing match_performances still get their delivery data populated)
+        if all_existing_ball_match_ids is not None and all_scorecard_data:
+            for game_idx, sd_tuple in enumerate(all_scorecard_data):
+                sd, _potm_id, _bba_id, _bbo_id = sd_tuple if len(sd_tuple) == 4 else (*sd_tuple, None, None)
+                ch_match_id = all_match_ids[game_idx]
+                if str(ch_match_id) in all_existing_ball_match_ids:
+                    continue
+                sc_name_map = build_sc_name_to_ch_id(sd)
+                team_a_id = str((sd.get("team_a") or {}).get("team_id", "") or "")
+                team_b_id = str((sd.get("team_b") or {}).get("team_id", "") or "")
+                for inn_num, team_key, team_id in ((1, "team_a", team_a_id), (2, "team_b", team_b_id)):
+                    batting_team_name = str((sd.get(team_key) or {}).get("name", "") or "")
+                    if not team_id:
+                        continue
+                    commentary = fetch_commentary(ch_match_id, team_id, inn_num)
+                    if commentary:
+                        new_balls.extend(parse_ball_deliveries(
+                            commentary, ch_match_id, actual_wid,
+                            active_tournament_id, inn_num,
+                            batting_team_name, ch_to_internal, sc_name_map))
             if new_balls:
                 print(f"  Fetched {len(new_balls)} ball delivery record(s)")
                 changed = True

@@ -75,10 +75,14 @@ export default function Dashboard() {
     if (!rm) return
     const wScore = parseInt(rm[2])
     const lScore = parseInt(rm[3])
-    if (wScore === lScore) return  // draw: don't credit either team
     const wName  = rm[1].trim()
+    const loser  = wName === _t0 ? _t1 : wName === _t1 ? _t0 : null
+    if (wScore === lScore) {
+      // Draw: the "winner" name team gets 0; the other team keeps their lScore wins
+      if (loser) matchWinMap[loser] = (matchWinMap[loser] || 0) + lScore
+      return
+    }
     matchWinMap[wName] = (matchWinMap[wName] || 0) + wScore
-    const loser = wName === _t0 ? _t1 : wName === _t1 ? _t0 : null
     if (loser) matchWinMap[loser] = (matchWinMap[loser] || 0) + lScore
   })
   const seriesDraws   = completed.filter(w => !(_parseWinner(w.result) || w.winning_team)).length
