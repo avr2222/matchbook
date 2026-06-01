@@ -154,6 +154,47 @@ export async function writePaymentRequests(requests, summary) {
   if (rows.length > 0) await batchUpsert('payment_requests', rows)
 }
 
+// ── Season Draft ───────────────────────────────────────────────────────────
+
+export async function writePlayerRoles(playerRoleMap) {
+  // playerRoleMap: { [player_id]: role_string }
+  const updates = Object.entries(playerRoleMap).map(([id, player_role]) => ({ id, player_role }))
+  if (updates.length === 0) return
+  await batchUpsert('players', updates)
+  await appendAudit('update_player_roles', 'player', null, `Updated roles for ${updates.length} player(s)`, null, null)
+}
+
+export async function writeSeasonSquads(rows, summary) {
+  if (rows.length === 0) return
+  await batchUpsert('season_squads', rows)
+  await appendAudit('update_season_squads', 'season_squad', null, summary ?? `Saved ${rows.length} squad row(s)`, null, null)
+}
+
+export async function revealSquadRow(id) {
+  const { error } = await supabase
+    .from('season_squads')
+    .update({ revealed: true })
+    .eq('id', id)
+  if (error) throw new Error(`revealSquadRow: ${error.message}`)
+}
+
+export async function resetSquadReveal(tournamentId) {
+  const { error } = await supabase
+    .from('season_squads')
+    .update({ revealed: false })
+    .eq('tournament_id', tournamentId)
+  if (error) throw new Error(`resetSquadReveal: ${error.message}`)
+}
+
+export async function deleteSeasonSquads(tournamentId) {
+  const { error } = await supabase
+    .from('season_squads')
+    .delete()
+    .eq('tournament_id', tournamentId)
+  if (error) throw new Error(`deleteSeasonSquads: ${error.message}`)
+  await appendAudit('delete_season_squads', 'season_squad', tournamentId, 'Cleared squad for tournament', null, null)
+}
+
 // triggerCricHeroesSync no longer needed — sync is triggered via GitHub Actions workflow_dispatch
 // Kept as a no-op stub to avoid import errors in any code that still references it
 export async function triggerCricHeroesSync() {

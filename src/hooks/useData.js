@@ -4,6 +4,7 @@ import {
   fetchExpenses, fetchGuestVisits, fetchTournaments, fetchUsers,
   fetchAuditLog, fetchCricHeroesMapping, fetchConfig, fetchAnnouncements,
   fetchPaymentRequests, fetchMatchPerformances, fetchBallDeliveries,
+  fetchSeasonSquads,
 } from '../api/dataReader'
 
 const STALE = 30_000 // 30s
@@ -30,3 +31,6 @@ export const useLeaderboard = (tournamentId) =>
 
 export const useBallDeliveries = (tournamentId) =>
   useQuery({ queryKey: ['ball_deliveries', tournamentId], queryFn: () => fetchBallDeliveries(tournamentId), staleTime: 5 * 60_000, enabled: !!tournamentId })
+
+export const useSeasonSquads = (tournamentId) =>
+  useQuery({ queryKey: ['season_squads', tournamentId], queryFn: () => fetchSeasonSquads(tournamentId), staleTime: 5_000, enabled: !!tournamentId })

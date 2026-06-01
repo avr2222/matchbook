@@ -6,7 +6,7 @@ import { supabase } from '../../lib/supabase'
 import {
   IconLayoutDashboard, IconUsers, IconCalendar, IconCreditCard,
   IconReceipt, IconUser, IconBell, IconClipboard, IconLink,
-  IconPencil, IconCurrencyRupee, IconSettings,
+  IconPencil, IconCurrencyRupee, IconSettings, IconCards,
 } from '@tabler/icons-react'
 
 function usePendingCounts() {
@@ -39,6 +39,7 @@ const ICON_MAP = {
   signups:       IconPencil,
   payrequests:   IconCurrencyRupee,
   settings:      IconSettings,
+  draft:         IconCards,
 }
 
 function useAdminLinks() {
@@ -61,6 +62,7 @@ function useAdminLinks() {
     { to: '/admin/mapping',       label: 'CricHeroes',    key: 'cricheroes',    badge: cricHeroesBadge, adminOnly: true },
     { to: '/admin/signups',       label: 'Signups',       key: 'signups',       badge: counts?.signups, adminOnly: true },
     { to: '/admin/payments',      label: 'Pay requests',  key: 'payrequests',   badge: counts?.payments, adminOnly: true },
+    { to: '/admin/draft',         label: 'Season Draft',  key: 'draft',         adminOnly: true },
     { to: '/admin/settings',      label: 'Settings',      key: 'settings',      adminOnly: true },
   ]
   return isAdmin ? links : links.filter(l => !l.adminOnly)

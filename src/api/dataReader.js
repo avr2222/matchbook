@@ -163,6 +163,16 @@ export async function fetchBallDeliveries(tournamentId) {
   return data ?? []
 }
 
+export async function fetchSeasonSquads(tournamentId) {
+  const { data, error } = await supabase
+    .from('season_squads')
+    .select('*')
+    .eq('tournament_id', tournamentId)
+    .order('draft_order', { ascending: true, nullsFirst: false })
+  if (error) throw new Error(`fetchSeasonSquads: ${error.message}`)
+  return data ?? []
+}
+
 // Users are now managed by Supabase Auth — no separate users.json table.
 // Return a stub so any remaining useUsers() calls don't crash.
 export async function fetchUsers() {

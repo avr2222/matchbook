@@ -36,6 +36,8 @@ const AdminGuests       = lazy(() => import('./pages/admin/AdminGuests'))
 const AdminAnnouncements = lazy(() => import('./pages/admin/AdminAnnouncements'))
 const AdminSignups      = lazy(() => import('./pages/admin/AdminSignups'))
 const AdminPayments     = lazy(() => import('./pages/admin/AdminPayments'))
+const AdminDraft        = lazy(() => import('./pages/admin/AdminDraft'))
+const TeamReveal        = lazy(() => import('./pages/public/TeamReveal'))
 
 function PayRedirect() {
   const { playerId } = useParams()
@@ -87,6 +89,7 @@ export default function App() {
               <Route path="/leaderboard"  element={<Leaderboard />} />
               <Route path="/compare"      element={<Compare />} />
               <Route path="/timeline"     element={<Timeline />} />
+              <Route path="/teams"        element={<TeamReveal />} />
               <Route path="/login"         element={<DeviceFlowLogin />} />
               <Route path="/signup"          element={<Signup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -118,6 +121,7 @@ export default function App() {
               <Route path="/admin/announcements" element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminAnnouncements /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/signups"       element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminSignups /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/payments"      element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminPayments /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/draft"        element={<ProtectedRoute requiredRole="admin"><AdminLayout><AdminDraft /></AdminLayout></ProtectedRoute>} />
 
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
