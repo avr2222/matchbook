@@ -18,6 +18,7 @@ const TYPES = [
   { value: 'expense_deduction', label: 'Expense Deduction',   dir: 'debit'  },
   { value: 'refund',            label: 'Refund',              dir: 'credit' },
   { value: 'adjustment',        label: 'Manual Adjustment',   dir: 'credit' },
+  { value: 'corpus_withdrawal', label: 'Corpus Withdrawal',   dir: 'debit'  },
 ]
 
 const EMPTY_FORM = {

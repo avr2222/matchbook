@@ -4,6 +4,7 @@
 -- 1. Permanent cricket role per player (set once by admin, reused across seasons)
 ALTER TABLE players ADD COLUMN IF NOT EXISTS player_role TEXT DEFAULT NULL;
 -- Valid values: 'batsman' | 'batting_ar' | 'bat_wk' | 'bowling_ar'
+-- Captain & Umpire interest are tracked per-season in season_squads (captain_interest / umpire_interest)
 
 -- 2. Per-season team assignment
 CREATE TABLE IF NOT EXISTS season_squads (

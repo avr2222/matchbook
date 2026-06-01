@@ -228,25 +228,65 @@ export default function AdminPlayers() {
     }
   }
 
-  function remove(player) {
-    setConfirmData({
-      message: `Remove ${player.display_name}? This will mark them inactive.`,
-      confirmLabel: 'Remove',
-      danger: true,
-      onConfirm: async () => {
-        setSaving(true)
-        try {
-          const updated = players.map(p => p.id === player.id ? { ...p, status: 'inactive' } : p)
-          await writePlayers(updated, 'remove_player', player.id, `Deactivated ${player.display_name}`, player, { ...player, status: 'inactive' })
-          qc.invalidateQueries({ queryKey: ['players'] })
-          showToast(`${player.display_name} deactivated`)
-        } catch (e) {
-          showToast(e.message, 'error')
-        } finally {
-          setSaving(false)
+  async function deactivatePlayer(player, withWithdrawal) {
+    setSaving(true)
+    try {
+      if (withWithdrawal) {
+        const balance = player.corpus_balance ?? 0
+        if (balance > 0) {
+          const txnId = `TXN_WITHDRAW_${player.id}_${Date.now()}`
+          await writeTransactions(
+            [{
+              id: txnId,
+              player_id: player.id,
+              tournament_id: cfg?.active_tournament_id ?? null,
+              type: 'corpus_withdrawal',
+              direction: 'debit',
+              amount: balance,
+              date: new Date().toISOString().slice(0, 10),
+              description: `Corpus returned on deactivation`,
+              recorded_by: 'admin',
+              receipt_ref: '',
+            }],
+            'corpus_withdrawal', player.id,
+            `Corpus withdrawal ₹${balance} for ${player.display_name} on deactivation`,
+            null, null,
+          )
         }
-      },
-    })
+      }
+      const updated = players.map(p => p.id === player.id ? { ...p, status: 'inactive' } : p)
+      await writePlayers(updated, 'remove_player', player.id, `Deactivated ${player.display_name}`, player, { ...player, status: 'inactive' })
+      qc.invalidateQueries({ queryKey: ['players'] })
+      qc.invalidateQueries({ queryKey: ['transactions'] })
+      showToast(`${player.display_name} deactivated${withWithdrawal ? ' & balance returned' : ''}`)
+    } catch (e) {
+      showToast(e.message, 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function remove(player) {
+    const balance = player.corpus_balance ?? 0
+    const hasBalance = (player.type === 'corpus' || player.type === 'new') && balance > 0
+
+    if (hasBalance) {
+      setConfirmData({
+        message: `${player.display_name} has a corpus balance of ₹${balance.toLocaleString('en-IN')}.\n\nReturn this balance (record a withdrawal) before deactivating?`,
+        confirmLabel: 'Return Balance & Deactivate',
+        cancelLabel: 'Deactivate Without Returning',
+        danger: true,
+        onConfirm: () => deactivatePlayer(player, true),
+        onCancel: () => deactivatePlayer(player, false),
+      })
+    } else {
+      setConfirmData({
+        message: `Remove ${player.display_name}? This will mark them inactive.`,
+        confirmLabel: 'Remove',
+        danger: true,
+        onConfirm: () => deactivatePlayer(player, false),
+      })
+    }
   }
 
   function bulkDeactivate() {
