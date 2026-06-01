@@ -77,6 +77,14 @@
            transition-colors;
     background: rgba(255, 255, 255, 0.03);
   }
+  /* Select dropdowns: use an opaque dark bg so the native options popup is readable */
+  select.input {
+    background-color: #0f1f19;
+  }
+  select.input option {
+    background-color: #0f1f19;
+    color: #e5e7eb;
+  }
   .label { @apply block text-sm font-medium text-gray-300 mb-1.5; }
 
   /* Utilities */
