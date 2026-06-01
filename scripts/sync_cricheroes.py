@@ -358,8 +358,9 @@ def _build_result(session_matches):
             wins[wt] = wins.get(wt, 0) + 1
     if wins:
         winner = max(wins, key=wins.get)
-        wcount  = wins[winner]
-        lcount  = len(session_matches) - wcount
+        wcount = wins[winner]
+        loser_teams = [t for t in wins if t != winner]
+        lcount = wins[loser_teams[0]] if loser_teams else 0
         return f"{winner} {wcount}-{lcount}"
     return ""
 
