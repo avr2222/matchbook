@@ -78,7 +78,7 @@ export default function Dashboard() {
     const wName  = rm[1].trim()
     const loser  = wName === _t0 ? _t1 : wName === _t1 ? _t0 : null
     if (wScore === lScore) {
-      // Draw: the "winner" name team gets 0; the other team keeps their lScore wins
+      matchWinMap[wName] = (matchWinMap[wName] || 0) + wScore
       if (loser) matchWinMap[loser] = (matchWinMap[loser] || 0) + lScore
       return
     }
