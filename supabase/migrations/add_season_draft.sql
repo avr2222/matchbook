@@ -26,6 +26,9 @@ CREATE TABLE IF NOT EXISTS season_squads (
 
 ALTER TABLE season_squads ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS squad_public_read ON season_squads;
+DROP POLICY IF EXISTS squad_admin_write ON season_squads;
+
 CREATE POLICY squad_public_read ON season_squads
   FOR SELECT USING (true);
 
@@ -39,6 +42,5 @@ GRANT ALL ON public.season_squads TO service_role;
 CREATE INDEX IF NOT EXISTS idx_squads_tournament ON season_squads(tournament_id);
 CREATE INDEX IF NOT EXISTS idx_squads_player     ON season_squads(player_id);
 
--- 3. Enable Realtime on season_squads so the /teams live reveal works.
---    Run this separately if the table isn't already in the publication:
---    ALTER PUBLICATION supabase_realtime ADD TABLE season_squads;
+-- 3. Enable Realtime so the /teams live reveal page works for all viewers.
+ALTER PUBLICATION supabase_realtime ADD TABLE season_squads;
