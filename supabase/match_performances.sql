@@ -23,9 +23,9 @@ CREATE TABLE IF NOT EXISTS match_performances (
   match_count   INTEGER DEFAULT 1,
   wides         INTEGER DEFAULT 0,
   no_balls      INTEGER DEFAULT 0,
-  potm_count    INTEGER DEFAULT 0,
-  created_at    TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(player_id, week_id)
+  potm_count          INTEGER DEFAULT 0,
+  cricheroes_match_id TEXT,
+  created_at          TIMESTAMPTZ DEFAULT NOW()
 );
 
 ALTER TABLE match_performances ENABLE ROW LEVEL SECURITY;
