@@ -434,7 +434,12 @@ export default function AdminTransactions() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <select className="input text-sm" value={filterPlayer} onChange={e => setFilterPlayer(e.target.value)}>
             <option value="">All players</option>
-            {players.filter(p => p.status === 'active').map(p => <option key={p.id} value={p.id}>{p.display_name}</option>)}
+            {players.filter(p => p.status === 'active').map(p => (
+              <option key={p.id} value={p.id}>{p.display_name}</option>
+            ))}
+            {players.filter(p => p.status === 'inactive' && allTxns.some(t => t.player_id === p.id)).map(p => (
+              <option key={p.id} value={p.id}>{p.display_name} (inactive)</option>
+            ))}
           </select>
           <select className="input text-sm" value={filterType} onChange={e => setFilterType(e.target.value)}>
             <option value="">All types</option>
