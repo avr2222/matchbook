@@ -202,10 +202,13 @@ export default function AdminDraft() {
   }
 
   function distribute(interestField, isField, label) {
-    const interested = shuffled(squadList.filter(r => r[interestField]))
-    if (!interested.length) { showToast(`No ${label} volunteers marked`, 'error'); return }
+    const aPool = shuffled(squadList.filter(r => r[interestField] && r.team === 'A'))
+    const bPool = shuffled(squadList.filter(r => r[interestField] && r.team === 'B'))
 
-    const half = Math.ceil(interested.length / 2)
+    if (!aPool.length && !bPool.length) { showToast(`No ${label} volunteers marked`, 'error'); return }
+    if (!aPool.length) showToast(`No Team A ${label} volunteer — Team B only`, 'error')
+    if (!bPool.length) showToast(`No Team B ${label} volunteer — Team A only`, 'error')
+
     setSquad(prev => {
       const next = { ...prev }
 
@@ -215,14 +218,15 @@ export default function AdminDraft() {
         next[r.player_id] = { ...cleared, reveal_group: calcRevealGroup(cleared) }
       }
 
-      // Distribute volunteers: ceil(n/2) to Team A, floor(n/2) to Team B
-      interested.forEach((r, i) => {
-        const updated = { ...next[r.player_id], team: i < half ? 'A' : 'B', [isField]: true }
+      // Pick 1 randomly from each team's own volunteer pool — never change team assignment
+      for (const r of [aPool[0], bPool[0]]) {
+        if (!r) continue
+        const updated = { ...next[r.player_id], [isField]: true }
         next[r.player_id] = { ...updated, reveal_group: calcRevealGroup(updated) }
-      })
+      }
       return next
     })
-    showToast(`${label}: ${half} → Team A, ${interested.length - half} → Team B`)
+    showToast(`${label}: ${aPool.length ? 1 : 0} → Team A, ${bPool.length ? 1 : 0} → Team B`)
   }
 
   // ── Step 4: Build ordered rows + publish/reveal ────────────────────────
@@ -550,7 +554,7 @@ export default function AdminDraft() {
               <div>
                 <h2 className="font-medium text-white">👑 Captains</h2>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  Tick players who want to captain. "Distribute" splits them equally across teams (e.g. 4 players → 2 per team).
+                  Tick volunteers per team. "Distribute" randomly picks 1 captain from each team's own volunteers.
                 </p>
               </div>
               <button
@@ -602,7 +606,7 @@ export default function AdminDraft() {
               <div>
                 <h2 className="font-medium text-white">🕵️ Umpires</h2>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  Tick players willing to umpire. "Distribute" splits them equally. A Batsman can also be an Umpire.
+                  Tick volunteers per team. "Distribute" randomly picks 1 umpire from each team's own volunteers. A Batsman can also be an Umpire.
                 </p>
               </div>
               <button
