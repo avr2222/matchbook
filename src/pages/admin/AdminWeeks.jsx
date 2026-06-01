@@ -430,6 +430,11 @@ export default function AdminWeeks() {
                           Attendance
                         </button>
                       )}
+                      {isAdmin && w.status === 'completed' && (
+                        <button onClick={() => openResultEditor(w)} className="text-emerald-400 hover:underline text-xs font-medium">
+                          Result
+                        </button>
+                      )}
                       {isAdmin && w.status === 'scheduled' && (
                         <button onClick={() => deleteWeek(w)} className="text-red-500 hover:underline text-xs font-medium">
                           Delete
