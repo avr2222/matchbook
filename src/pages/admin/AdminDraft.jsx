@@ -202,12 +202,15 @@ export default function AdminDraft() {
   }
 
   function distribute(interestField, isField, label) {
-    const aPool = shuffled(squadList.filter(r => r[interestField] && r.team === 'A'))
-    const bPool = shuffled(squadList.filter(r => r[interestField] && r.team === 'B'))
+    const volunteers = shuffled(squadList.filter(r => r[interestField]))
+    if (!volunteers.length) { showToast(`No ${label} volunteers marked`, 'error'); return }
 
-    if (!aPool.length && !bPool.length) { showToast(`No ${label} volunteers marked`, 'error'); return }
-    if (!aPool.length) showToast(`No Team A ${label} volunteer — Team B only`, 'error')
-    if (!bPool.length) showToast(`No Team B ${label} volunteer — Team A only`, 'error')
+    const n = volunteers.length
+    // For odd n, randomly decide which team gets the extra rather than always Team A
+    const teamACount = n % 2 === 0
+      ? n / 2
+      : (Math.random() < 0.5 ? Math.ceil(n / 2) : Math.floor(n / 2))
+    const teamBCount = n - teamACount
 
     setSquad(prev => {
       const next = { ...prev }
@@ -218,15 +221,14 @@ export default function AdminDraft() {
         next[r.player_id] = { ...cleared, reveal_group: calcRevealGroup(cleared) }
       }
 
-      // Pick 1 randomly from each team's own volunteer pool — never change team assignment
-      for (const r of [aPool[0], bPool[0]]) {
-        if (!r) continue
-        const updated = { ...next[r.player_id], [isField]: true }
+      // First teamACount → Team A, rest → Team B
+      volunteers.forEach((r, i) => {
+        const updated = { ...next[r.player_id], team: i < teamACount ? 'A' : 'B', [isField]: true }
         next[r.player_id] = { ...updated, reveal_group: calcRevealGroup(updated) }
-      }
+      })
       return next
     })
-    showToast(`${label}: ${aPool.length ? 1 : 0} → Team A, ${bPool.length ? 1 : 0} → Team B`)
+    showToast(`${label}: ${teamACount} → Team A, ${teamBCount} → Team B`)
   }
 
   // ── Step 4: Build ordered rows + publish/reveal ────────────────────────
@@ -554,7 +556,7 @@ export default function AdminDraft() {
               <div>
                 <h2 className="font-medium text-white">👑 Captains</h2>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  Tick volunteers per team. "Distribute" randomly picks 1 captain from each team's own volunteers.
+                  Tick volunteers. "Distribute" shuffles and splits equally (random side for odd count).
                 </p>
               </div>
               <button
@@ -606,7 +608,7 @@ export default function AdminDraft() {
               <div>
                 <h2 className="font-medium text-white">🕵️ Umpires</h2>
                 <p className="text-xs text-gray-400 mt-0.5">
-                  Tick volunteers per team. "Distribute" randomly picks 1 umpire from each team's own volunteers. A Batsman can also be an Umpire.
+                  Tick volunteers. "Distribute" shuffles and splits equally (random side for odd count). A Batsman can also be an Umpire.
                 </p>
               </div>
               <button
