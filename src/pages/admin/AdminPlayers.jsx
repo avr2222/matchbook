@@ -266,6 +266,27 @@ export default function AdminPlayers() {
     }
   }
 
+  function reactivate(player) {
+    setConfirmData({
+      message: `Reactivate ${player.display_name}? They will appear in attendance, match fees, and all active lists again. Their balance remains at ₹0 — record a new corpus payment if needed.`,
+      confirmLabel: 'Reactivate',
+      danger: false,
+      onConfirm: async () => {
+        setSaving(true)
+        try {
+          const updated = players.map(p => p.id === player.id ? { ...p, status: 'active' } : p)
+          await writePlayers(updated, 'reactivate_player', player.id, `Reactivated ${player.display_name}`, player, { ...player, status: 'active' })
+          qc.invalidateQueries({ queryKey: ['players'] })
+          showToast(`${player.display_name} reactivated`)
+        } catch (e) {
+          showToast(e.message, 'error')
+        } finally {
+          setSaving(false)
+        }
+      },
+    })
+  }
+
   function remove(player) {
     const balance = player.corpus_balance ?? 0
     const hasBalance = (player.type === 'corpus' || player.type === 'new') && balance > 0
@@ -509,6 +530,9 @@ export default function AdminPlayers() {
                       <button onClick={() => openEdit(p)} className="text-gray-500 hover:text-[#10b981] hover:underline text-xs mr-3">Edit</button>
                       {p.status === 'active' && (
                         <button onClick={() => remove(p)} className="text-red-500 hover:underline text-xs">Remove</button>
+                      )}
+                      {p.status === 'inactive' && (
+                        <button onClick={() => reactivate(p)} className="text-emerald-400 hover:underline text-xs font-medium">Reactivate</button>
                       )}
                     </>
                   ) : (

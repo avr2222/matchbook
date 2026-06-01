@@ -157,11 +157,13 @@ export async function writePaymentRequests(requests, summary) {
 // ── Season Draft ───────────────────────────────────────────────────────────
 
 export async function writePlayerRoles(playerRoleMap) {
-  // playerRoleMap: { [player_id]: role_string }
-  const updates = Object.entries(playerRoleMap).map(([id, player_role]) => ({ id, player_role }))
-  if (updates.length === 0) return
-  await batchUpsert('players', updates)
-  await appendAudit('update_player_roles', 'player', null, `Updated roles for ${updates.length} player(s)`, null, null)
+  const entries = Object.entries(playerRoleMap)
+  if (entries.length === 0) return
+  for (const [id, player_role] of entries) {
+    const { error } = await supabase.from('players').update({ player_role }).eq('id', id)
+    if (error) throw new Error(`writePlayerRoles: ${error.message}`)
+  }
+  await appendAudit('update_player_roles', 'player', null, `Updated roles for ${entries.length} player(s)`, null, null)
 }
 
 export async function writeSeasonSquads(rows, summary) {
