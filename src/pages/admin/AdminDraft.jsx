@@ -79,7 +79,7 @@ export default function AdminDraft() {
     for (const row of (attendRows ?? [])) {
       if (!map[row.player_id]) map[row.player_id] = { attended: 0, total: 0 }
       map[row.player_id].total++
-      if (row.status?.toLowerCase() === 'present') map[row.player_id].attended++
+      if (row.status?.toLowerCase() === 'played') map[row.player_id].attended++
     }
     return map
   }, [attendRows])
@@ -249,29 +249,67 @@ export default function AdminDraft() {
     if (!volunteers.length) { showToast(`No ${label} volunteers marked`, 'error'); return }
 
     const n = volunteers.length
-    // For odd n, randomly decide which team gets the extra rather than always Team A
     const teamACount = n % 2 === 0
       ? n / 2
       : (Math.random() < 0.5 ? Math.ceil(n / 2) : Math.floor(n / 2))
     const teamBCount = n - teamACount
+    const volunteerIds = new Set(volunteers.map(r => r.player_id))
+    const roleByValue  = Object.fromEntries(ROLES.map(r => [r.value, r]))
+    const scoreOf      = r => playerScore(r.player_id, roleByValue[getRole(r.player_id)])
 
     setSquad(prev => {
       const next = { ...prev }
 
-      // Clear previous designations for this role, then recalculate reveal_group
+      // 1. Clear previous designations
       for (const r of Object.values(next)) {
         const cleared = { ...r, [isField]: false }
         next[r.player_id] = { ...cleared, reveal_group: calcRevealGroup(cleared) }
       }
 
-      // First teamACount → Team A, rest → Team B
+      // 2. Assign volunteers to teams
       volunteers.forEach((r, i) => {
         const updated = { ...next[r.player_id], team: i < teamACount ? 'A' : 'B', [isField]: true }
         next[r.player_id] = { ...updated, reveal_group: calcRevealGroup(updated) }
       })
+
+      // 3. Fix opposite-pair violations: move the non-volunteer player to the other team
+      for (const pair of oppositePairs) {
+        const rA = next[pair.a], rB = next[pair.b]
+        if (rA && rB && rA.team === rB.team) {
+          // Prefer to move the player who is NOT a freshly assigned volunteer
+          const flipId = volunteerIds.has(pair.b) && !volunteerIds.has(pair.a) ? pair.a
+                       : volunteerIds.has(pair.a) && !volunteerIds.has(pair.b) ? pair.b
+                       : pair.b  // both or neither volunteer — move b
+          const r = next[flipId]
+          if (r) next[flipId] = { ...r, team: r.team === 'A' ? 'B' : 'A' }
+        }
+      }
+
+      // 4. Equalize to 17-17 — move lowest-score non-volunteer players from the bigger team
+      const all    = Object.values(next)
+      const total  = all.length
+      const target = Math.floor(total / 2)
+      const aList  = all.filter(r => r.team === 'A')
+      const bList  = all.filter(r => r.team === 'B')
+
+      const movable = (list) =>
+        list.filter(r => !r[isField] && !r.is_captain && !r.is_umpire)
+            .sort((a, b) => scoreOf(a) - scoreOf(b))
+
+      if (aList.length > target) {
+        const pool = movable(aList)
+        for (let i = 0; i < aList.length - target && i < pool.length; i++)
+          next[pool[i].player_id] = { ...pool[i], team: 'B' }
+      } else if (bList.length > total - target) {
+        const pool = movable(bList)
+        for (let i = 0; i < bList.length - (total - target) && i < pool.length; i++)
+          next[pool[i].player_id] = { ...pool[i], team: 'A' }
+      }
+
       return next
     })
-    showToast(`${label}: ${teamACount} → Team A, ${teamBCount} → Team B`)
+
+    showToast(`${label}: ${teamACount} → Team A, ${teamBCount} → Team B · balance enforced`)
   }
 
   // ── Step 4: Build ordered rows + publish/reveal ────────────────────────

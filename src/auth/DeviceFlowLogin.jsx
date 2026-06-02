@@ -51,7 +51,7 @@ export default function Login() {
       </div>
 
       {/* Form panel */}
-      <div className="flex-1 flex items-center justify-center bg-slate-50 px-6 py-12">
+      <div className="flex-1 flex items-center justify-center bg-[#0a1612] px-6 py-12">
         <div className="w-full max-w-sm">
           <h2 className="text-2xl font-black text-white mb-1">Welcome back</h2>
           <p className="text-sm text-gray-400 mb-8">Sign in to continue to your team</p>
