@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { usePlayers, useConfig, useTournaments, useLeaderboard, useSeasonSquads, useAttendanceSummary } from '../../hooks/useData'
 import { writePlayerRoles, writeSeasonSquads, revealSquadRow, resetSquadReveal, deleteSeasonSquads } from '../../api/dataWriter'
@@ -53,7 +53,10 @@ export default function AdminDraft() {
 
   const [step, setStep]       = useState(1)
   const [saving, setSaving]   = useState(false)
-  const [revealing, setRevealing] = useState(false)
+  const [revealing, setRevealing]         = useState(false)
+  const [revealDone, setRevealDone]       = useState(false)
+  const [revealProgress, setRevealProgress] = useState({ current: 0, total: 0 })
+  const cancelRevealRef = useRef(false)
 
   const [roleEdits, setRoleEdits] = useState({})        // { player_id: role }
   const [squad, setSquad]         = useState({})         // { player_id: squadRow }
@@ -353,21 +356,42 @@ export default function AdminDraft() {
   async function startReveal() {
     const rows = (existingSquads ?? []).filter(r => r.published).sort((a, b) => (a.draft_order ?? 0) - (b.draft_order ?? 0))
     if (!rows.length) { showToast('Publish first', 'error'); return }
+    if (revealDone && !window.confirm('This will reset all cards for everyone watching /teams. Replay from the start?')) return
+    cancelRevealRef.current = false
     setRevealing(true)
+    setRevealDone(false)
+    setRevealProgress({ current: 0, total: rows.length })
     try {
       await resetSquadReveal(activeTournamentId)
       await qc.invalidateQueries({ queryKey: ['season_squads'] })
       let prevGroup = null
       for (const row of rows) {
+        if (cancelRevealRef.current) break
         if (row.reveal_group !== prevGroup) {
           await new Promise(r => setTimeout(r, row.reveal_group === 'captain' ? 2200 : 1200))
           prevGroup = row.reveal_group
         }
+        if (cancelRevealRef.current) break
         await revealSquadRow(row.id)
+        setRevealProgress(p => ({ ...p, current: p.current + 1 }))
         await new Promise(r => setTimeout(r, row.reveal_group === 'captain' ? 1800 : 800))
       }
-      showToast('Reveal complete!')
-    } catch (e) { showToast(e.message, 'error') } finally { setRevealing(false) }
+      if (!cancelRevealRef.current) {
+        setRevealDone(true)
+        showToast('Reveal complete! 🎉')
+      }
+    } catch (e) { showToast(e.message, 'error') }
+    finally {
+      setRevealing(false)
+      setRevealProgress({ current: 0, total: 0 })
+    }
+  }
+
+  function stopReveal() {
+    cancelRevealRef.current = true
+    setRevealing(false)
+    setRevealProgress({ current: 0, total: 0 })
+    showToast('Reveal stopped')
   }
 
   async function clearDraft() {
@@ -867,13 +891,33 @@ export default function AdminDraft() {
               </button>
             </div>
             {isPublished && (
-              <div className="border-t border-white/[0.06] pt-3 space-y-2">
+              <div className="border-t border-white/[0.06] pt-3 space-y-3">
                 <p className="text-xs text-gray-400">Share <code className="text-emerald-400">#/teams</code> — everyone watching sees the live reveal.</p>
-                <button onClick={startReveal} disabled={revealing}
-                  className="w-full py-3 rounded-xl font-semibold text-sm bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-400 hover:to-emerald-400 text-white disabled:opacity-50 transition-all"
-                >
-                  {revealing ? '🎬 Revealing…' : '▶ Start Live Reveal'}
-                </button>
+
+                {/* Progress bar + Stop — visible while reveal is running */}
+                {revealing && (
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-400">🎬 Revealing… {revealProgress.current} / {revealProgress.total}</span>
+                      <button onClick={stopReveal} className="text-red-400 hover:text-red-300 font-semibold">■ Stop</button>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-amber-500 to-emerald-500 transition-all duration-500"
+                        style={{ width: revealProgress.total > 0 ? `${(revealProgress.current / revealProgress.total) * 100}%` : '0%' }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Start / Replay button — hidden while reveal is running */}
+                {!revealing && (
+                  <button onClick={startReveal}
+                    className="w-full py-3 rounded-xl font-semibold text-sm bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-400 hover:to-emerald-400 text-white transition-all"
+                  >
+                    {revealDone ? '↺ Replay Reveal' : '▶ Start Live Reveal'}
+                  </button>
+                )}
               </div>
             )}
           </div>
