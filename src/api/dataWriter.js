@@ -168,7 +168,9 @@ export async function writePlayerRoles(playerRoleMap) {
 
 export async function writeSeasonSquads(rows, summary) {
   if (rows.length === 0) return
-  await batchUpsert('season_squads', rows)
+  // Strip the nested `players` join object added by fetchSeasonSquads — not a DB column
+  const clean = rows.map(({ players: _p, ...r }) => r)
+  await batchUpsert('season_squads', clean)
   await appendAudit('update_season_squads', 'season_squad', null, summary ?? `Saved ${rows.length} squad row(s)`, null, null)
 }
 
