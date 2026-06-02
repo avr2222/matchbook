@@ -163,6 +163,15 @@ export async function fetchBallDeliveries(tournamentId) {
   return data ?? []
 }
 
+export async function fetchAttendanceSummary(tournamentId) {
+  const { data, error } = await supabase
+    .from('attendance')
+    .select('player_id, status')
+    .eq('tournament_id', tournamentId)
+  if (error) throw new Error(`fetchAttendanceSummary: ${error.message}`)
+  return data ?? []
+}
+
 export async function fetchSeasonSquads(tournamentId) {
   const { data, error } = await supabase
     .from('season_squads')

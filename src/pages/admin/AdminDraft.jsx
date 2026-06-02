@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { usePlayers, useConfig, useTournaments, useLeaderboard, useSeasonSquads } from '../../hooks/useData'
+import { usePlayers, useConfig, useTournaments, useLeaderboard, useSeasonSquads, useAttendanceSummary, useWeeks } from '../../hooks/useData'
 import { writePlayerRoles, writeSeasonSquads, revealSquadRow, resetSquadReveal, deleteSeasonSquads } from '../../api/dataWriter'
 import { useIsAdmin } from '../../hooks/useIsAdmin'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { showToast } from '../../components/ui/Toast'
 
 // ── Constants ──────────────────────────────────────────────────────────────
+
+const ATTEND_WEIGHT = 50  // max bonus score for 100% attendance
 
 const ROLES = [
   { value: 'batsman',    label: 'Batsman',       icon: '🏏', stat: 'runs'    },
@@ -45,8 +47,10 @@ export default function AdminDraft() {
   const { data: tData } = useTournaments()
   const activeTournamentId = cfg?.active_tournament_id
 
-  const { data: perfData }      = useLeaderboard(activeTournamentId)
+  const { data: perfData }       = useLeaderboard(activeTournamentId)
   const { data: existingSquads } = useSeasonSquads(activeTournamentId)
+  const { data: attendRows }     = useAttendanceSummary(activeTournamentId)
+  const { data: weeksData }      = useWeeks()
 
   const [step, setStep]       = useState(1)
   const [saving, setSaving]   = useState(false)
@@ -68,6 +72,29 @@ export default function AdminDraft() {
     if (!perfMap[p.player_id]) perfMap[p.player_id] = { runs: 0, wickets: 0 }
     perfMap[p.player_id].runs    += p.runs    || 0
     perfMap[p.player_id].wickets += p.wickets || 0
+  }
+
+  // Attendance map: { player_id: { attended, total } }
+  const attendMap = useMemo(() => {
+    const tournWeeks = (weeksData?.weeks ?? []).filter(w => w.tournament_id === activeTournamentId).length
+    const map = {}
+    for (const row of (attendRows ?? [])) {
+      if (!map[row.player_id]) map[row.player_id] = { attended: 0, total: tournWeeks }
+      if (row.status === 'present') map[row.player_id].attended++
+    }
+    return map
+  }, [attendRows, weeksData, activeTournamentId])
+
+  const getAttendRate = pid => {
+    const a = attendMap[pid]
+    return a && a.total > 0 ? a.attended / a.total : 0
+  }
+
+  // Composite score: performance stat + attendance bonus
+  const playerScore = (pid, role) => {
+    const perf = perfMap[pid] ?? {}
+    const stat = role?.stat === 'wickets' ? (perf.wickets ?? 0) * 10 : (perf.runs ?? 0)
+    return stat + getAttendRate(pid) * ATTEND_WEIGHT
   }
 
   // Persist opposite pairs per tournament
@@ -149,12 +176,7 @@ export default function AdminDraft() {
     const next = {}
     for (const role of ROLES) {
       const group = players.filter(p => getRole(p.id) === role.value)
-      const sorted = [...group].sort((a, b) => {
-        const pa = perfMap[a.id] ?? {}, pb = perfMap[b.id] ?? {}
-        const va = role.stat === 'wickets' ? (pa.wickets ?? 0) : (pa.runs ?? 0)
-        const vb = role.stat === 'wickets' ? (pb.wickets ?? 0) : (pb.runs ?? 0)
-        return vb - va
-      })
+      const sorted = [...group].sort((a, b) => playerScore(b.id, role) - playerScore(a.id, role))
       sorted.forEach((p, i) =>
         (next[p.id] = newRow(p.id, i % 2 === 0 ? 'A' : 'B'))
       )
@@ -372,13 +394,21 @@ export default function AdminDraft() {
                   <th className="pb-2 pr-4">Player</th>
                   <th className="pb-2 pr-4">Role</th>
                   <th className="pb-2 pr-4">Runs</th>
-                  <th className="pb-2">Wickets</th>
+                  <th className="pb-2 pr-4">Wickets</th>
+                  <th className="pb-2 pr-4">Attended</th>
+                  <th className="pb-2">Joined</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.04]">
                 {players.map(p => {
                   const perf = perfMap[p.id] ?? {}
                   const dirty = roleEdits[p.id] !== undefined
+                  const att = attendMap[p.id]
+                  const rate = getAttendRate(p.id)
+                  const attColor = att ? (rate >= 0.8 ? 'text-emerald-400' : rate < 0.5 ? 'text-amber-400' : 'text-gray-300') : 'text-gray-600'
+                  const joined = p.joined_date
+                    ? new Date(p.joined_date).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })
+                    : '—'
                   return (
                     <tr key={p.id} className={dirty ? 'bg-emerald-900/10' : ''}>
                       <td className="py-2.5 pr-4 text-gray-100 font-medium">{p.display_name}</td>
@@ -392,7 +422,11 @@ export default function AdminDraft() {
                         </select>
                       </td>
                       <td className="py-2.5 pr-4 text-amber-300 tabular-nums">{perf.runs ?? 0}</td>
-                      <td className="py-2.5 text-cyan-300 tabular-nums">{perf.wickets ?? 0}</td>
+                      <td className="py-2.5 pr-4 text-cyan-300 tabular-nums">{perf.wickets ?? 0}</td>
+                      <td className={`py-2.5 pr-4 tabular-nums text-xs ${attColor}`}>
+                        {att ? `${att.attended}/${att.total} (${Math.round(rate * 100)}%)` : '—'}
+                      </td>
+                      <td className="py-2.5 text-xs text-gray-500">{joined}</td>
                     </tr>
                   )
                 })}
@@ -441,6 +475,8 @@ export default function AdminDraft() {
                       const sq = getRow(p.id)
                       const perf = perfMap[p.id] ?? {}
                       const inViolation = violations.some(v => v.a === p.id || v.b === p.id)
+                      const rate2 = getAttendRate(p.id)
+                      const attColor2 = rate2 >= 0.8 ? 'text-emerald-400' : rate2 < 0.5 ? 'text-amber-400' : 'text-gray-400'
                       return (
                         <div key={p.id} className={`flex items-center gap-3 py-1.5 rounded-lg px-1 ${inViolation ? 'bg-red-900/10' : ''}`}>
                           <span className="text-sm text-gray-100 flex-1 truncate">
@@ -448,6 +484,9 @@ export default function AdminDraft() {
                             {p.display_name}
                             {sq?.is_captain && <span className="ml-1 text-[10px] text-amber-400">👑</span>}
                             {sq?.is_umpire  && <span className="ml-1 text-[10px] text-gray-400">🕵️</span>}
+                          </span>
+                          <span className={`text-[10px] tabular-nums shrink-0 ${attColor2}`}>
+                            {Math.round(rate2 * 100)}%
                           </span>
                           <span className="text-xs text-gray-500 tabular-nums w-12 text-right shrink-0">
                             {role.stat === 'wickets' ? `${perf.wickets ?? 0}w` : `${perf.runs ?? 0}r`}
@@ -690,6 +729,54 @@ export default function AdminDraft() {
               </div>
             ))}
           </div>
+
+          {/* MVP Score Panel */}
+          {squadList.length > 0 && (() => {
+            const roleByValue = Object.fromEntries(ROLES.map(r => [r.value, r]))
+            const teamScore = team => squadList
+              .filter(r => r.team === team)
+              .reduce((sum, r) => {
+                const role = roleByValue[getRole(r.player_id)]
+                return sum + playerScore(r.player_id, role)
+              }, 0)
+            const scoreA = Math.round(teamScore('A'))
+            const scoreB = Math.round(teamScore('B'))
+            const total  = scoreA + scoreB || 1
+            const widthA = Math.round((scoreA / total) * 100)
+            const delta  = Math.abs(scoreA - scoreB)
+            const imbalanced = total > 0 && delta / total > 0.1
+            return (
+              <div className="card space-y-3">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-medium text-white">Team MVP Score</h2>
+                  {imbalanced && (
+                    <span className="text-xs text-amber-400 bg-amber-900/20 border border-amber-700/30 px-2 py-1 rounded-full">
+                      ⚠ Unbalanced — try Auto-Balance
+                    </span>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-amber-900/10 border border-amber-700/20 rounded-xl px-4 py-3 text-center">
+                    <p className="text-xs text-amber-400 font-semibold uppercase tracking-wider mb-1">Team A</p>
+                    <p className="text-2xl font-bold text-amber-300 tabular-nums">{scoreA.toLocaleString()}</p>
+                    {scoreA > scoreB && <p className="text-[10px] text-amber-500 mt-0.5">+{(scoreA - scoreB).toLocaleString()} advantage</p>}
+                  </div>
+                  <div className="bg-blue-900/10 border border-blue-700/20 rounded-xl px-4 py-3 text-center">
+                    <p className="text-xs text-blue-400 font-semibold uppercase tracking-wider mb-1">Team B</p>
+                    <p className="text-2xl font-bold text-blue-300 tabular-nums">{scoreB.toLocaleString()}</p>
+                    {scoreB > scoreA && <p className="text-[10px] text-blue-500 mt-0.5">+{(scoreB - scoreA).toLocaleString()} advantage</p>}
+                  </div>
+                </div>
+                <div className="h-2 rounded-full overflow-hidden bg-blue-900/40 flex">
+                  <div className="bg-amber-500 transition-all duration-500" style={{ width: `${widthA}%` }} />
+                  <div className="bg-blue-500 flex-1" />
+                </div>
+                <p className="text-[10px] text-gray-500 text-center">
+                  Score = runs + wickets×10 + attendance% × {ATTEND_WEIGHT} per player
+                </p>
+              </div>
+            )
+          })()}
 
           {/* Controls */}
           <div className="card space-y-3">

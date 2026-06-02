@@ -44,3 +44,17 @@ CREATE INDEX IF NOT EXISTS idx_squads_player     ON season_squads(player_id);
 
 -- 3. Enable Realtime so the /teams live reveal page works for all viewers.
 ALTER PUBLICATION supabase_realtime ADD TABLE season_squads;
+
+-- 4. Recreate player_balances view so player_role column is included.
+--    Must DROP first — CREATE OR REPLACE fails if column order changed
+--    (e.g. auth_user_id was added to players after the view was created).
+DROP VIEW IF EXISTS player_balances;
+CREATE VIEW player_balances AS
+SELECT
+  p.*,
+  COALESCE(SUM(CASE WHEN t.direction = 'credit' THEN t.amount ELSE 0        END), 0) AS total_paid,
+  COALESCE(SUM(CASE WHEN t.direction = 'debit'  THEN t.amount ELSE 0        END), 0) AS total_deducted,
+  COALESCE(SUM(CASE WHEN t.direction = 'credit' THEN t.amount ELSE -t.amount END), 0) AS corpus_balance
+FROM players p
+LEFT JOIN transactions t ON t.player_id = p.id
+GROUP BY p.id;
