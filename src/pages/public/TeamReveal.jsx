@@ -8,6 +8,13 @@ import { PageSpinner } from '../../components/ui/Spinner'
 
 const REVEAL_GROUP_ORDER = ['bat_wk', 'batsman', 'batting_ar', 'bowling_ar', 'umpire', 'captain']
 
+const CRICKET_ROLES = [
+  { value: 'bat_wk',     label: 'Wicket Keepers',      icon: '🧤' },
+  { value: 'batsman',    label: 'Batsmen',              icon: '🏏' },
+  { value: 'batting_ar', label: 'Batting All Rounders', icon: '🔄' },
+  { value: 'bowling_ar', label: 'Bowling All Rounders', icon: '🎳' },
+]
+
 const REVEAL_GROUP_LABELS = {
   bat_wk:     { label: 'Wicket Keepers',       icon: '🧤' },
   batsman:    { label: 'Batsmen',               icon: '🏏' },
@@ -16,6 +23,9 @@ const REVEAL_GROUP_LABELS = {
   umpire:     { label: 'Umpires',               icon: '🕵️' },
   captain:    { label: 'Captains',              icon: '👑' },
 }
+
+// Cricket role from the joined players record (null-safe)
+const getCricketRole = row => row.players?.player_role ?? null
 
 // ── Card Component ─────────────────────────────────────────────────────────────
 
@@ -210,13 +220,16 @@ export default function TeamReveal() {
   const allRevealed = squads.length > 0 && squads.every(r => revealed[r.player_id])
   const anyRevealed = squads.some(r => revealed[r.player_id])
 
-  // Group squads for the final roster view
-  const teamAByGroup = {}
-  const teamBByGroup = {}
-  for (const g of REVEAL_GROUP_ORDER) {
-    teamAByGroup[g] = squads.filter(r => r.team === 'A' && r.reveal_group === g && revealed[r.player_id])
-    teamBByGroup[g] = squads.filter(r => r.team === 'B' && r.reveal_group === g && revealed[r.player_id])
+  // Group squads for the final roster view — by cricket role (not reveal_group)
+  const revealedSquads = squads.filter(r => revealed[r.player_id])
+  const teamAByRole = {}
+  const teamBByRole = {}
+  for (const role of CRICKET_ROLES) {
+    teamAByRole[role.value] = revealedSquads.filter(r => r.team === 'A' && getCricketRole(r) === role.value)
+    teamBByRole[role.value] = revealedSquads.filter(r => r.team === 'B' && getCricketRole(r) === role.value)
   }
+  const teamANoRole = revealedSquads.filter(r => r.team === 'A' && !getCricketRole(r))
+  const teamBNoRole = revealedSquads.filter(r => r.team === 'B' && !getCricketRole(r))
 
   // ── Loading / pre-publish screens ────────────────────────────────────────
 
@@ -291,27 +304,38 @@ export default function TeamReveal() {
               </p>
             </div>
             <div className="px-5 py-4 space-y-3">
-              {REVEAL_GROUP_ORDER.map(g => {
-                const rows = teamAByGroup[g]
+              {CRICKET_ROLES.map(role => {
+                const rows = teamAByRole[role.value]
                 if (!rows || rows.length === 0) return null
-                const info = REVEAL_GROUP_LABELS[g]
                 return (
-                  <div key={g}>
+                  <div key={role.value}>
                     <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                      {info?.icon} {info?.label}
+                      {role.icon} {role.label}
                     </p>
                     {rows.map(row => (
                       <div key={row.player_id} className="flex items-center gap-2 py-1">
-                        {row.is_captain && <span className="text-sm">👑</span>}
-                        {row.is_umpire && !row.is_captain && <span className="text-sm">🕵️</span>}
                         <span className="text-sm text-amber-100">
                           {playerMap[row.player_id] ?? row.player_id}
                         </span>
+                        {row.is_captain && <span className="text-xs text-amber-400">👑</span>}
+                        {row.is_umpire  && <span className="text-xs text-gray-400">🕵️</span>}
                       </div>
                     ))}
                   </div>
                 )
               })}
+              {teamANoRole.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-wider mb-1">Others</p>
+                  {teamANoRole.map(row => (
+                    <div key={row.player_id} className="flex items-center gap-2 py-1">
+                      <span className="text-sm text-amber-100">{playerMap[row.player_id] ?? row.player_id}</span>
+                      {row.is_captain && <span className="text-xs text-amber-400">👑</span>}
+                      {row.is_umpire  && <span className="text-xs text-gray-400">🕵️</span>}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -325,27 +349,38 @@ export default function TeamReveal() {
               </p>
             </div>
             <div className="px-5 py-4 space-y-3">
-              {REVEAL_GROUP_ORDER.map(g => {
-                const rows = teamBByGroup[g]
+              {CRICKET_ROLES.map(role => {
+                const rows = teamBByRole[role.value]
                 if (!rows || rows.length === 0) return null
-                const info = REVEAL_GROUP_LABELS[g]
                 return (
-                  <div key={g}>
+                  <div key={role.value}>
                     <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                      {info?.icon} {info?.label}
+                      {role.icon} {role.label}
                     </p>
                     {rows.map(row => (
                       <div key={row.player_id} className="flex items-center gap-2 py-1">
-                        {row.is_captain && <span className="text-sm">👑</span>}
-                        {row.is_umpire && !row.is_captain && <span className="text-sm">🕵️</span>}
                         <span className="text-sm text-blue-100">
                           {playerMap[row.player_id] ?? row.player_id}
                         </span>
+                        {row.is_captain && <span className="text-xs text-amber-400">👑</span>}
+                        {row.is_umpire  && <span className="text-xs text-gray-400">🕵️</span>}
                       </div>
                     ))}
                   </div>
                 )
               })}
+              {teamBNoRole.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-wider mb-1">Others</p>
+                  {teamBNoRole.map(row => (
+                    <div key={row.player_id} className="flex items-center gap-2 py-1">
+                      <span className="text-sm text-blue-100">{playerMap[row.player_id] ?? row.player_id}</span>
+                      {row.is_captain && <span className="text-xs text-amber-400">👑</span>}
+                      {row.is_umpire  && <span className="text-xs text-gray-400">🕵️</span>}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { usePlayers, useConfig, useTournaments, useLeaderboard, useSeasonSquads, useAttendanceSummary, useWeeks } from '../../hooks/useData'
+import { usePlayers, useConfig, useTournaments, useLeaderboard, useSeasonSquads, useAttendanceSummary } from '../../hooks/useData'
 import { writePlayerRoles, writeSeasonSquads, revealSquadRow, resetSquadReveal, deleteSeasonSquads } from '../../api/dataWriter'
 import { useIsAdmin } from '../../hooks/useIsAdmin'
 import { PageSpinner } from '../../components/ui/Spinner'
@@ -49,8 +49,7 @@ export default function AdminDraft() {
 
   const { data: perfData }       = useLeaderboard(activeTournamentId)
   const { data: existingSquads } = useSeasonSquads(activeTournamentId)
-  const { data: attendRows }     = useAttendanceSummary(activeTournamentId)
-  const { data: weeksData }      = useWeeks()
+  const { data: attendRows }     = useAttendanceSummary()
 
   const [step, setStep]       = useState(1)
   const [saving, setSaving]   = useState(false)
@@ -76,14 +75,14 @@ export default function AdminDraft() {
 
   // Attendance map: { player_id: { attended, total } }
   const attendMap = useMemo(() => {
-    const tournWeeks = (weeksData?.weeks ?? []).filter(w => w.tournament_id === activeTournamentId).length
     const map = {}
     for (const row of (attendRows ?? [])) {
-      if (!map[row.player_id]) map[row.player_id] = { attended: 0, total: tournWeeks }
-      if (row.status === 'present') map[row.player_id].attended++
+      if (!map[row.player_id]) map[row.player_id] = { attended: 0, total: 0 }
+      map[row.player_id].total++
+      if (row.status?.toLowerCase() === 'present') map[row.player_id].attended++
     }
     return map
-  }, [attendRows, weeksData, activeTournamentId])
+  }, [attendRows])
 
   const getAttendRate = pid => {
     const a = attendMap[pid]
@@ -173,30 +172,52 @@ export default function AdminDraft() {
   }
 
   function autoBalance() {
+    const roleByValue = Object.fromEntries(ROLES.map(r => [r.value, r]))
     const next = {}
+
+    // Distribute players with roles (serpentine by composite score)
     for (const role of ROLES) {
       const group = players.filter(p => getRole(p.id) === role.value)
       const sorted = [...group].sort((a, b) => playerScore(b.id, role) - playerScore(a.id, role))
-      sorted.forEach((p, i) =>
-        (next[p.id] = newRow(p.id, i % 2 === 0 ? 'A' : 'B'))
-      )
+      sorted.forEach((p, i) => (next[p.id] = newRow(p.id, i % 2 === 0 ? 'A' : 'B')))
     }
+
+    // Distribute players WITHOUT roles (also serpentine)
+    const unassigned = players.filter(p => !getRole(p.id))
+    const sortedU = [...unassigned].sort((a, b) => playerScore(b.id, null) - playerScore(a.id, null))
+    sortedU.forEach((p, i) => (next[p.id] = newRow(p.id, i % 2 === 0 ? 'A' : 'B')))
+
     // Enforce opposite pairs
     for (const pair of oppositePairs) {
       const rA = next[pair.a], rB = next[pair.b]
       if (rA && rB && rA.team === rB.team)
         next[pair.b] = { ...rB, team: rB.team === 'A' ? 'B' : 'A' }
     }
-    // Preserve existing rows for unassigned-role players
-    for (const p of players)
-      if (!next[p.id] && getRow(p.id)) next[p.id] = getRow(p.id)
+
+    // Equalize — guarantee exactly ⌊n/2⌋ vs ⌈n/2⌉
+    const all = Object.values(next)
+    const target = Math.floor(all.length / 2)
+    const aList = all.filter(r => r.team === 'A')
+    const bList = all.filter(r => r.team === 'B')
+    const scoreOf = r => playerScore(r.player_id, roleByValue[getRole(r.player_id)])
+    if (aList.length > target) {
+      aList.sort((a, b) => scoreOf(a) - scoreOf(b))
+      for (let i = 0; i < aList.length - target; i++)
+        next[aList[i].player_id] = { ...aList[i], team: 'B' }
+    } else if (bList.length > all.length - target) {
+      bList.sort((a, b) => scoreOf(a) - scoreOf(b))
+      for (let i = 0; i < bList.length - (all.length - target); i++)
+        next[bList[i].player_id] = { ...bList[i], team: 'A' }
+    }
 
     setSquad(next)
+    const finalA = Object.values(next).filter(r => r.team === 'A').length
+    const finalB = Object.values(next).filter(r => r.team === 'B').length
     const fixed = oppositePairs.filter(p => {
       const rA = next[p.a], rB = next[p.b]
       return rA && rB && rA.team !== rB.team
     }).length
-    showToast(`Teams balanced${fixed ? ` · ${fixed} pair(s) enforced` : ''}`)
+    showToast(`Teams balanced: ${finalA} vs ${finalB}${fixed ? ` · ${fixed} pair(s) enforced` : ''}`)
   }
 
   function addPair() {
@@ -396,7 +417,7 @@ export default function AdminDraft() {
                   <th className="pb-2 pr-4">Runs</th>
                   <th className="pb-2 pr-4">Wickets</th>
                   <th className="pb-2 pr-4">Attended</th>
-                  <th className="pb-2">Joined</th>
+                  <th className="pb-2">Games</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.04]">
@@ -406,9 +427,6 @@ export default function AdminDraft() {
                   const att = attendMap[p.id]
                   const rate = getAttendRate(p.id)
                   const attColor = att ? (rate >= 0.8 ? 'text-emerald-400' : rate < 0.5 ? 'text-amber-400' : 'text-gray-300') : 'text-gray-600'
-                  const joined = p.joined_date
-                    ? new Date(p.joined_date).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })
-                    : '—'
                   return (
                     <tr key={p.id} className={dirty ? 'bg-emerald-900/10' : ''}>
                       <td className="py-2.5 pr-4 text-gray-100 font-medium">{p.display_name}</td>
@@ -426,7 +444,7 @@ export default function AdminDraft() {
                       <td className={`py-2.5 pr-4 tabular-nums text-xs ${attColor}`}>
                         {att ? `${att.attended}/${att.total} (${Math.round(rate * 100)}%)` : '—'}
                       </td>
-                      <td className="py-2.5 text-xs text-gray-500">{joined}</td>
+                      <td className="py-2.5 text-xs text-gray-400 tabular-nums">{att?.attended ?? 0}</td>
                     </tr>
                   )
                 })}
@@ -711,21 +729,39 @@ export default function AdminDraft() {
                   <h3 className={`font-semibold ${team === 'A' ? 'text-amber-300' : 'text-blue-300'}`}>Team {team}</h3>
                   <span className="text-xs text-gray-400">{squadList.filter(r => r.team === team).length} players</span>
                 </div>
-                {REVEAL_GROUP_ORDER.map(g => {
-                  const rows = squadList.filter(r => r.team === team && r.reveal_group === g)
+                {ROLES.map(role => {
+                  const rows = squadList.filter(r => r.team === team && getRole(r.player_id) === role.value)
                   if (!rows.length) return null
-                  const info = REVEAL_GROUP_LABELS[g]
+                  const info = REVEAL_GROUP_LABELS[role.value]
                   return (
-                    <div key={g}>
+                    <div key={role.value}>
                       <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-1.5 mb-0.5">{info.icon} {info.label}</p>
                       {rows.map(r => (
                         <p key={r.player_id} className="text-sm text-gray-200 py-0.5 pl-1">
-                          {r.is_captain && '👑 '}{r.is_umpire && '🕵️ '}{pMap[r.player_id]?.display_name ?? r.player_id}
+                          {pMap[r.player_id]?.display_name ?? r.player_id}
+                          {r.is_captain && <span className="ml-1 text-xs text-amber-400">👑</span>}
+                          {r.is_umpire  && <span className="ml-1 text-xs text-gray-400">🕵️</span>}
                         </p>
                       ))}
                     </div>
                   )
                 })}
+                {(() => {
+                  const rows = squadList.filter(r => r.team === team && !getRole(r.player_id))
+                  if (!rows.length) return null
+                  return (
+                    <div>
+                      <p className="text-[10px] text-gray-500 uppercase tracking-wider mt-1.5 mb-0.5">⚠️ No Role</p>
+                      {rows.map(r => (
+                        <p key={r.player_id} className="text-sm text-gray-400 py-0.5 pl-1">
+                          {pMap[r.player_id]?.display_name ?? r.player_id}
+                          {r.is_captain && <span className="ml-1 text-xs text-amber-400">👑</span>}
+                          {r.is_umpire  && <span className="ml-1 text-xs text-gray-400">🕵️</span>}
+                        </p>
+                      ))}
+                    </div>
+                  )
+                })()}
               </div>
             ))}
           </div>

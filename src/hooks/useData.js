@@ -36,5 +36,5 @@ export const useBallDeliveries = (tournamentId) =>
 export const useSeasonSquads = (tournamentId) =>
   useQuery({ queryKey: ['season_squads', tournamentId], queryFn: () => fetchSeasonSquads(tournamentId), staleTime: 5_000, enabled: !!tournamentId })
 
-export const useAttendanceSummary = (tournamentId) =>
-  useQuery({ queryKey: ['attendance_summary', tournamentId], queryFn: () => fetchAttendanceSummary(tournamentId), staleTime: STALE, enabled: !!tournamentId })
+export const useAttendanceSummary = () =>
+  useQuery({ queryKey: ['attendance_summary'], queryFn: fetchAttendanceSummary, staleTime: STALE })

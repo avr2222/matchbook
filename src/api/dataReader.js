@@ -163,11 +163,10 @@ export async function fetchBallDeliveries(tournamentId) {
   return data ?? []
 }
 
-export async function fetchAttendanceSummary(tournamentId) {
+export async function fetchAttendanceSummary() {
   const { data, error } = await supabase
     .from('attendance')
-    .select('player_id, status')
-    .eq('tournament_id', tournamentId)
+    .select('player_id, status, week_id')
   if (error) throw new Error(`fetchAttendanceSummary: ${error.message}`)
   return data ?? []
 }
@@ -175,7 +174,7 @@ export async function fetchAttendanceSummary(tournamentId) {
 export async function fetchSeasonSquads(tournamentId) {
   const { data, error } = await supabase
     .from('season_squads')
-    .select('*')
+    .select('*, players!player_id(player_role)')
     .eq('tournament_id', tournamentId)
     .order('draft_order', { ascending: true, nullsFirst: false })
   if (error) throw new Error(`fetchSeasonSquads: ${error.message}`)
