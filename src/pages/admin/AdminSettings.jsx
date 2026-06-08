@@ -95,7 +95,10 @@ export default function AdminSettings() {
         .concat(newTournament)
 
       await writeTournaments(updatedTournaments, 'start_tournament', `Closed ${activeTournament?.name}, started ${newTournamentName}`)
-      await updateConfig({ active_tournament_id: newId }, `Active tournament changed to ${newTournamentName}`)
+      await updateConfig({
+        active_tournament_id: newId,
+        ...(newTournamentUrl.trim() && { cricheroes_tournament_url: newTournamentUrl.trim() }),
+      }, `Active tournament changed to ${newTournamentName}`)
       qc.invalidateQueries({ queryKey: ['tournaments'] })
       qc.invalidateQueries({ queryKey: ['config'] })
       setShowMigrate(false)
