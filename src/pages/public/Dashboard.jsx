@@ -61,13 +61,20 @@ export default function Dashboard() {
     if (!m) return ''
     return parseInt(m[2]) !== parseInt(m[3]) ? m[1].trim() : ''
   }
+  // Seed both team names from week records so the losing team is always known
+  const allTeamNamesSet = new Set()
+  completed.forEach(w => {
+    if (w.team_a) allTeamNamesSet.add(w.team_a)
+    if (w.team_b) allTeamNamesSet.add(w.team_b)
+  })
   const seriesWins = {}
+  allTeamNamesSet.forEach(name => { seriesWins[name] = 0 })
   completed.forEach(w => {
     const winner = _parseWinner(w.result) || w.winning_team
-    if (winner) seriesWins[winner] = (seriesWins[winner] || 0) + 1
+    if (winner) seriesWins[winner] = (seriesWins[winner] ?? 0) + 1
   })
   const seriesTeams  = Object.entries(seriesWins).sort((a, b) => b[1] - a[1])
-  const seriesLeader = seriesTeams[0]
+  const seriesLeader = seriesTeams[0]?.[1] > 0 ? seriesTeams[0] : null
   const _t0 = seriesTeams[0]?.[0], _t1 = seriesTeams[1]?.[0]
   const matchWinMap  = {}
   completed.forEach(w => {
@@ -76,7 +83,9 @@ export default function Dashboard() {
     const wScore = parseInt(rm[2])
     const lScore = parseInt(rm[3])
     const wName  = rm[1].trim()
-    const loser  = wName === _t0 ? _t1 : wName === _t1 ? _t0 : null
+    const loser  = w.team_a === wName ? w.team_b
+      : w.team_b === wName ? w.team_a
+      : wName === _t0 ? _t1 : wName === _t1 ? _t0 : null
     if (wScore === lScore) {
       matchWinMap[wName] = (matchWinMap[wName] || 0) + wScore
       if (loser) matchWinMap[loser] = (matchWinMap[loser] || 0) + lScore

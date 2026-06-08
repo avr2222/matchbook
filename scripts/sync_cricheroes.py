@@ -780,6 +780,7 @@ def sync():
                 updated = dict(existing_week)
                 updated.update({
                     "status":               "completed",
+                    "tournament_id":        active_tournament_id,
                     "cricheroes_match_id":  all_match_ids[0],
                     "cricheroes_match_ids": all_match_ids,
                     "team_a":               team_a or existing_week.get("team_a", ""),
