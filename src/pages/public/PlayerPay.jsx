@@ -9,7 +9,7 @@ import { IconCircleCheck, IconMapPin, IconFlame, IconCricket, IconMedal, IconSta
 
 function UpiPaySection({ player, config }) {
   const [amount, setAmount]             = useState(null)
-  const [customAmt, setCustomAmt]       = useState('')
+
   const [pendingReqId, setPendingReqId] = useState(null)
   const [upiRef, setUpiRef]             = useState('')
   const [refSaved, setRefSaved]         = useState(false)
@@ -91,7 +91,7 @@ function UpiPaySection({ player, config }) {
         {[suggested, suggested + 500, suggested + 1000].map(a => (
           <button
             key={a}
-            onClick={() => { setAmount(a); setCustomAmt('') }}
+            onClick={() => setAmount(a)}
             className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
               chosen === a && !customAmt
                 ? 'bg-[#10b981] text-white border-[#10b981]'
@@ -101,24 +101,6 @@ function UpiPaySection({ player, config }) {
             ₹{a.toLocaleString('en-IN')}
           </button>
         ))}
-      </div>
-
-      <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium pointer-events-none">₹</span>
-        <input
-          type="text"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          placeholder="Or enter custom amount"
-          className="input pl-7 text-sm"
-          value={customAmt}
-          onChange={e => {
-            const raw = e.target.value.replace(/[^0-9]/g, '')
-            setCustomAmt(raw)
-            const v = parseInt(raw, 10)
-            setAmount(!isNaN(v) && v >= 100 ? v : null)
-          }}
-        />
       </div>
 
       {isMobile ? (
