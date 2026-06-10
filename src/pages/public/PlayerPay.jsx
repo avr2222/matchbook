@@ -30,7 +30,7 @@ function UpiPaySection({ player, config }) {
   const isMobile  = /Android|iPhone|iPad/i.test(navigator.userAgent)
   const teamName  = config?.team_name ?? 'Cricket Team'
   const note      = `Corpus Topup - ${player.display_name}`
-  const upiHref   = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(teamName)}&am=${chosen}&cu=INR&tn=${encodeURIComponent(note)}`
+  const upiHref   = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(teamName)}&cu=INR&tn=${encodeURIComponent(note)}`
 
   async function handlePayNow() {
     setSaving(true)
