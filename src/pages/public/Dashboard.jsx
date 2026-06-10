@@ -29,7 +29,7 @@ const EXPENSE_LABELS = {
 export default function Dashboard() {
   const [detail, setDetail]           = useState(null)
   const [payPlayer, setPayPlayer]     = useState('')
-  const [payAmt, setPayAmt]           = useState('')
+
   const [copied, setCopied]           = useState(false)
   const [accordionOpen, setAccordionOpen] = useState(false)
 
@@ -138,11 +138,10 @@ export default function Dashboard() {
   const selectedP   = payPlayer ? corpusPlayers.find(p => p.id === payPlayer) : null
   const payNeeded   = selectedP ? Math.max(threshold - (selectedP.corpus_balance ?? 0), 500) : 500
   const paySuggested = selectedP ? Math.ceil(payNeeded / 500) * 500 : 500
-  const payFinal    = payAmt && parseInt(payAmt, 10) >= 100 ? parseInt(payAmt, 10) : paySuggested
   const isMobile    = /Android|iPhone|iPad/i.test(navigator.userAgent)
   const payName     = encodeURIComponent(cfg?.team_name ?? 'Cricket Team')
   const payNote     = selectedP ? encodeURIComponent(`Corpus Topup - ${selectedP.display_name}`) : ''
-  const upiHref     = selectedP ? `upi://pay?pa=${upiId}&pn=${payName}&am=${payFinal}&cu=INR&tn=${payNote}` : ''
+  const upiHref     = selectedP ? `upi://pay?pa=${upiId}&pn=${payName}&cu=INR&tn=${payNote}` : ''
 
   /* ── Stat / KPI cards ── */
   const kpiCards = [
@@ -420,7 +419,7 @@ export default function Dashboard() {
                 color: payPlayer ? '#f3f4f6' : '#6b7280',
               }}
               value={payPlayer}
-              onChange={e => { setPayPlayer(e.target.value); setCopied(false); setPayAmt('') }}
+              onChange={e => { setPayPlayer(e.target.value); setCopied(false) }}
             >
               <option value="" disabled style={{ background: '#0b1512' }}>Select your name…</option>
               {sortedCorpus.map(p => (
@@ -433,18 +432,6 @@ export default function Dashboard() {
             {selectedP && (
               <>
                 <div className="flex gap-2 items-center">
-                  <div className="relative flex-1">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium pointer-events-none">₹</span>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      placeholder={`Suggested: ₹${paySuggested.toLocaleString('en-IN')}`}
-                      className="input pl-7"
-                      value={payAmt}
-                      onChange={e => setPayAmt(e.target.value.replace(/[^0-9]/g, ''))}
-                    />
-                  </div>
                   {isMobile ? (
                     <a href={upiHref}
                       className="shrink-0 font-semibold text-sm px-4 py-2.5 rounded-xl transition-all"
