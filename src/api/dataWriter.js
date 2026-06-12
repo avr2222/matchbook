@@ -281,16 +281,25 @@ export async function updateSignupPlayer(signupId, playerId) {
 // ── Payment request confirmation ────────────────────────────────────────────
 
 export async function confirmPayment(requestId) {
-  const [reqRes, cfgRes] = await Promise.all([
-    supabase.from('payment_requests').select('*').eq('id', requestId).single(),
-    supabase.from('config').select('active_tournament_id').eq('id', 1).single(),
-  ])
-  if (reqRes.error) throw new Error(`Fetch payment request: ${reqRes.error.message}`)
-  const req = reqRes.data
-  const activeTournamentId = cfgRes.data?.active_tournament_id ?? null
+  const { data: cfg } = await supabase
+    .from('config').select('active_tournament_id').eq('id', 1).single()
+  const activeTournamentId = cfg?.active_tournament_id ?? null
 
-  // Insert corpus_payment transaction (tournament_id included for per-tournament reports)
-  const txnId = `TXN_PAY_${req.player_id}_${Date.now()}`
+  // Claim the request first: only one caller can flip pending → confirmed,
+  // so a double-click or concurrent confirm cannot credit twice.
+  const { data: claimed, error: claimErr } = await supabase
+    .from('payment_requests')
+    .update({ status: 'confirmed', paid_at: new Date().toISOString() })
+    .eq('id', requestId)
+    .eq('status', 'pending')
+    .select()
+  if (claimErr) throw new Error(`Confirm payment request: ${claimErr.message}`)
+  if (!claimed?.length) throw new Error('Payment already processed')
+  const req = claimed[0]
+
+  // Insert corpus_payment transaction (tournament_id included for per-tournament reports).
+  // Deterministic ID: even if the claim guard is ever bypassed, the PK blocks a duplicate credit.
+  const txnId = `TXN_PAY_${requestId}`
   const { error: txnErr } = await supabase.from('transactions').insert({
     id: txnId,
     player_id: req.player_id,
@@ -303,14 +312,13 @@ export async function confirmPayment(requestId) {
     recorded_by: 'admin',
     receipt_ref: req.upi_ref || '',
   })
-  if (txnErr) throw new Error(`Insert transaction: ${txnErr.message}`)
-
-  // Mark request confirmed
-  const { error: updErr } = await supabase
-    .from('payment_requests')
-    .update({ status: 'confirmed', paid_at: new Date().toISOString() })
-    .eq('id', requestId)
-  if (updErr) throw new Error(`Confirm payment request: ${updErr.message}`)
+  if (txnErr) {
+    // Release the claim so the admin can retry
+    await supabase.from('payment_requests')
+      .update({ status: 'pending', paid_at: null })
+      .eq('id', requestId)
+    throw new Error(`Insert transaction: ${txnErr.message}`)
+  }
 
   await appendAudit('confirm_payment', 'payment_request', requestId,
     `Confirmed ₹${req.amount} payment for ${req.player_id}`, null, null)

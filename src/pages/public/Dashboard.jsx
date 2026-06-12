@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { usePlayers, useWeeks, useAttendance, useTournaments, useConfig, useAnnouncements, useExpenses, useTransactions, useLeaderboard } from '../../hooks/useData'
 import { PageSpinner } from '../../components/ui/Spinner'
@@ -26,6 +26,20 @@ const EXPENSE_LABELS = {
   kit: 'Kit / uniform', other: 'Other',
 }
 
+const _parseWinner = result => {
+  const m = (result ?? '').match(/^(.+?)\s+(\d+)-(\d+)$/)
+  if (!m) return ''
+  return parseInt(m[2]) !== parseInt(m[3]) ? m[1].trim() : ''
+}
+
+const _abbr = name => {
+  if (!name) return '?'
+  const paren = name.match(/\(([A-Z0-9]+)\)/)
+  if (paren) return paren[1]
+  const initials = name.split(/\s+/).filter(Boolean).map(w => w[0]).join('').toUpperCase()
+  return initials.slice(0, 4) || name.slice(0, 3).toUpperCase()
+}
+
 export default function Dashboard() {
   const [detail, setDetail]           = useState(null)
   const [payPlayer, setPayPlayer]     = useState('')
@@ -43,80 +57,203 @@ export default function Dashboard() {
   const { data: txnData } = useTransactions()
   const { data: perfData } = useLeaderboard(cfg?.active_tournament_id)
 
+  /* ── Derived data (memoized so re-renders don't redo heavy aggregation) ── */
+  const activeTournamentId = tData?.active_tournament_id ?? cfg?.active_tournament_id
+  const weeks = useMemo(
+    () => (wData?.weeks ?? []).filter(w => w.tournament_id === activeTournamentId),
+    [wData, activeTournamentId]
+  )
+  const completed = useMemo(() => weeks.filter(w => w.status === 'completed'), [weeks])
+  const perfs = useMemo(() => perfData?.performances ?? [], [perfData])
+  const perfPlayerMap = useMemo(
+    () => Object.fromEntries((pData?.players ?? []).map(p => [p.id, p])),
+    [pData]
+  )
+
+  /* ── Series / standings ── */
+  const series = useMemo(() => {
+    // Seed both team names from week records so the losing team is always known
+    const allTeamNamesSet = new Set()
+    completed.forEach(w => {
+      if (w.team_a) allTeamNamesSet.add(w.team_a)
+      if (w.team_b) allTeamNamesSet.add(w.team_b)
+    })
+    const seriesWins = {}
+    allTeamNamesSet.forEach(name => { seriesWins[name] = 0 })
+    completed.forEach(w => {
+      const winner = _parseWinner(w.result) || w.winning_team
+      if (winner) seriesWins[winner] = (seriesWins[winner] ?? 0) + 1
+    })
+    const seriesTeams  = Object.entries(seriesWins).sort((a, b) => b[1] - a[1])
+    const seriesLeader = seriesTeams[0]?.[1] > 0 ? seriesTeams[0] : null
+    const t0 = seriesTeams[0]?.[0], t1 = seriesTeams[1]?.[0]
+    const matchWinMap  = {}
+    completed.forEach(w => {
+      const rm = (w.result ?? '').match(/^(.+?)\s+(\d+)-(\d+)$/)
+      if (!rm) return
+      const wScore = parseInt(rm[2])
+      const lScore = parseInt(rm[3])
+      const wName  = rm[1].trim()
+      const loser  = w.team_a === wName ? w.team_b
+        : w.team_b === wName ? w.team_a
+        : wName === t0 ? t1 : wName === t1 ? t0 : null
+      if (wScore === lScore) {
+        matchWinMap[wName] = (matchWinMap[wName] || 0) + wScore
+        if (loser) matchWinMap[loser] = (matchWinMap[loser] || 0) + lScore
+        return
+      }
+      matchWinMap[wName] = (matchWinMap[wName] || 0) + wScore
+      if (loser) matchWinMap[loser] = (matchWinMap[loser] || 0) + lScore
+    })
+    const seriesDraws   = completed.filter(w => !(_parseWinner(w.result) || w.winning_team)).length
+    const sortedCompleted = [...completed].sort((a, b) => b.match_date.localeCompare(a.match_date))
+    let winStreak = 0
+    if (seriesLeader) {
+      for (const w of sortedCompleted) {
+        if ((_parseWinner(w.result) || w.winning_team) === seriesLeader[0]) winStreak++
+        else break
+      }
+    }
+    const matchLeaderName = Object.entries(matchWinMap).sort((a, b) => b[1] - a[1])[0]?.[0]
+    const chronoWeeks = [...completed].sort((a, b) => a.match_date.localeCompare(b.match_date))
+    // Assign a stable color per team
+    const teamColors = {
+      ...t0 ? { [t0]: { pill: 'bg-amber-500/20 border border-amber-500/40 text-amber-300',    card: 'bg-amber-500/10 border border-amber-500/20' } } : {},
+      ...t1 ? { [t1]: { pill: 'bg-blue-500/20 border border-blue-500/40 text-blue-300',       card: 'bg-blue-500/10 border border-blue-500/20'  } } : {},
+    }
+    return { seriesWins, seriesLeader, t0, t1, matchWinMap, seriesDraws, winStreak, matchLeaderName, chronoWeeks, teamColors }
+  }, [completed])
+  const {
+    seriesWins, seriesLeader, t0: _t0, t1: _t1, matchWinMap,
+    seriesDraws, winStreak, matchLeaderName, chronoWeeks: _chronoWeeks, teamColors,
+  } = series
+
+  /* ── Season leaders ── */
+  const leaders = useMemo(() => {
+    const sMap = {}
+    for (const perf of perfs) {
+      if (!sMap[perf.player_id]) sMap[perf.player_id] = {
+        player_id: perf.player_id, runs: 0, wickets: 0, balls_faced: 0, balls_bowled: 0,
+        runs_given: 0, catches: 0, maidens: 0, run_outs: 0, stumpings: 0,
+        match_count: 0, potm_count: 0, bba_count: 0, bbo_count: 0,
+      }
+      const s = sMap[perf.player_id]
+      s.runs         += perf.runs         || 0
+      s.wickets      += perf.wickets      || 0
+      s.balls_faced  += perf.balls_faced  || 0
+      s.balls_bowled += perf.balls_bowled || 0
+      s.runs_given   += perf.runs_given   || 0
+      s.catches      += perf.catches      || 0
+      s.maidens      += perf.maidens      || 0
+      s.run_outs     += perf.run_outs     || 0
+      s.stumpings    += perf.stumpings    || 0
+      s.match_count  += perf.match_count  || 1
+      s.potm_count   += perf.potm_count   || 0
+      s.bba_count    += perf.bba_count    || 0
+      s.bbo_count    += perf.bbo_count    || 0
+    }
+    const allS = Object.values(sMap)
+    const topGroup = (arr, fn) => { const top = fn(arr[0]); return arr.filter(s => fn(s) === top) }
+    const WKT_PTS = 1.2
+    const mvpSorted = allS
+      .filter(s => s.match_count >= 5)
+      .map(s => ({
+        ...s,
+        score: parseFloat((
+          (s.runs / 10) * 1.08 + s.wickets * WKT_PTS
+          + Math.floor(s.maidens / 2) * WKT_PTS
+          + (s.catches + s.stumpings) * (WKT_PTS * 0.2)
+          + s.run_outs * WKT_PTS
+        ).toFixed(1)),
+      }))
+      .filter(s => s.score > 0).sort((a, b) => b.score - a.score)
+
+    const topBatterArr = allS.filter(s => s.runs > 0).sort((a, b) => b.runs - a.runs)
+    const topBowlerArr = allS.filter(s => s.wickets > 0).sort((a, b) => b.wickets - a.wickets)
+    const topPotmArr   = allS.filter(s => s.potm_count > 0).sort((a, b) => b.potm_count - a.potm_count)
+    const topBbaArr    = allS.filter(s => s.bba_count > 0).sort((a, b) => b.bba_count - a.bba_count)
+    const topBboArr    = allS.filter(s => s.bbo_count > 0).sort((a, b) => b.bbo_count - a.bbo_count)
+
+    const topMvp    = mvpSorted.length ? topGroup(mvpSorted, s => s.score) : []
+    const topBatter = topBatterArr.length ? topGroup(topBatterArr, s => s.runs) : []
+    const topBowler = topBowlerArr.length ? topGroup(topBowlerArr, s => s.wickets) : []
+    const topPotm   = topPotmArr.length   ? topGroup(topPotmArr, s => s.potm_count) : []
+    const topBba    = topBbaArr.length    ? topGroup(topBbaArr, s => s.bba_count) : []
+    const topBbo    = topBboArr.length    ? topGroup(topBboArr, s => s.bbo_count) : []
+
+    const leaderRows = [
+      { def: LEADER_DEFS[0], ss: topMvp,    val: topMvp[0]?.score,       pid: topMvp[0]?.player_id    },
+      { def: LEADER_DEFS[1], ss: topPotm,   val: topPotm[0]?.potm_count, pid: topPotm[0]?.player_id   },
+      { def: LEADER_DEFS[2], ss: topBatter, val: topBatter[0]?.runs,      pid: topBatter[0]?.player_id },
+      { def: LEADER_DEFS[3], ss: topBowler, val: topBowler[0]?.wickets,   pid: topBowler[0]?.player_id },
+      { def: LEADER_DEFS[4], ss: topBba,    val: topBba[0]?.bba_count,    pid: topBba[0]?.player_id    },
+      { def: LEADER_DEFS[5], ss: topBbo,    val: topBbo[0]?.bbo_count,    pid: topBbo[0]?.player_id    },
+    ].filter(r => r.ss.length > 0)
+
+    return { sMap, leaderRows }
+  }, [perfs])
+  const { sMap: _sMap, leaderRows } = leaders
+
+  /* ── Who's hot ── */
+  const hotData = useMemo(() => {
+    const recentWeeks  = [...completed].sort((a, b) => b.match_date.localeCompare(a.match_date)).slice(0, 5)
+    const recentWeekIds = new Set(recentWeeks.slice(0, 3).map(w => w.week_id))
+    const recentPerfs   = perfs.filter(p => recentWeekIds.has(p.week_id))
+    const recentMap     = {}
+    recentPerfs.forEach(p => {
+      if (!recentMap[p.player_id]) recentMap[p.player_id] = { runs: 0, wickets: 0, matches: 0 }
+      recentMap[p.player_id].runs    += p.runs    || 0
+      recentMap[p.player_id].wickets += p.wickets || 0
+      recentMap[p.player_id].matches += 1
+    })
+    const hotPlayers = Object.entries(recentMap)
+      .map(([pid, recent]) => {
+        const season = _sMap[pid]
+        if (!season || season.match_count < 3 || recent.matches < 2) return null
+        const perfScore = recent.runs + recent.wickets * 8
+        return perfScore > 0 ? { pid, perfScore, recentRuns: recent.runs, recentWkts: recent.wickets, matches: recent.matches } : null
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.perfScore - a.perfScore)
+      .slice(0, 3)
+    return { recentWeeks, hotPlayers }
+  }, [completed, perfs, _sMap])
+  const { recentWeeks, hotPlayers } = hotData
+
+  /* ── Recent financial activity ── */
+  const activity = useMemo(() => {
+    const allExpenses = eData?.expenses ?? []
+    const totalExpenses = allExpenses.reduce((s, e) => s + (e.amount ?? 0), 0)
+    const allWeeks = wData?.weeks ?? []
+    const deductionByWeek = {}
+    ;(txnData?.transactions ?? [])
+      .filter(t => t.type === 'match_deduction')
+      .forEach(t => {
+        if (!deductionByWeek[t.week_id]) {
+          const week = allWeeks.find(w => w.week_id === t.week_id)
+          deductionByWeek[t.week_id] = { date: t.date, label: week?.label ?? t.week_id, total: 0, count: 0 }
+        }
+        deductionByWeek[t.week_id].total += t.amount ?? 0
+        deductionByWeek[t.week_id].count += 1
+      })
+    const deductionEntries = Object.entries(deductionByWeek).map(([weekId, d]) => ({
+      id: `deduct_${weekId}`, _type: 'deduction',
+      description: `Match fees — ${d.label}`, date: d.date, amount: d.total, count: d.count,
+    }))
+    const recentActivity = [...allExpenses.map(e => ({ ...e, _type: 'expense' })), ...deductionEntries]
+      .sort((a, b) => b.date.localeCompare(a.date)).slice(0, 7)
+    return { allExpenses, totalExpenses, recentActivity }
+  }, [eData, txnData, wData])
+  const { allExpenses, totalExpenses, recentActivity } = activity
+
   if (pLoad) return <PageSpinner />
 
-  /* ── Derived data ── */
-  const activeTournamentId = tData?.active_tournament_id ?? cfg?.active_tournament_id
+  /* ── Cheap derived data ── */
   const allActive     = (pData?.players ?? []).filter(p => p.status === 'active')
   const corpusPlayers = allActive.filter(p => p.type === 'corpus' || p.type === 'new')
-  const weeks         = (wData?.weeks ?? []).filter(w => w.tournament_id === activeTournamentId)
-  const completed     = weeks.filter(w => w.status === 'completed')
   const records       = aData?.records ?? []
   const seasonName    = tData?.tournaments?.find(t => t.id === activeTournamentId)?.short_name ?? cfg?.team_name ?? 'Season'
   const todayStr      = new Date().toISOString().slice(0, 10)
-
-  /* ── Series / standings ── */
-  const _parseWinner = result => {
-    const m = (result ?? '').match(/^(.+?)\s+(\d+)-(\d+)$/)
-    if (!m) return ''
-    return parseInt(m[2]) !== parseInt(m[3]) ? m[1].trim() : ''
-  }
-  // Seed both team names from week records so the losing team is always known
-  const allTeamNamesSet = new Set()
-  completed.forEach(w => {
-    if (w.team_a) allTeamNamesSet.add(w.team_a)
-    if (w.team_b) allTeamNamesSet.add(w.team_b)
-  })
-  const seriesWins = {}
-  allTeamNamesSet.forEach(name => { seriesWins[name] = 0 })
-  completed.forEach(w => {
-    const winner = _parseWinner(w.result) || w.winning_team
-    if (winner) seriesWins[winner] = (seriesWins[winner] ?? 0) + 1
-  })
-  const seriesTeams  = Object.entries(seriesWins).sort((a, b) => b[1] - a[1])
-  const seriesLeader = seriesTeams[0]?.[1] > 0 ? seriesTeams[0] : null
-  const _t0 = seriesTeams[0]?.[0], _t1 = seriesTeams[1]?.[0]
-  const matchWinMap  = {}
-  completed.forEach(w => {
-    const rm = (w.result ?? '').match(/^(.+?)\s+(\d+)-(\d+)$/)
-    if (!rm) return
-    const wScore = parseInt(rm[2])
-    const lScore = parseInt(rm[3])
-    const wName  = rm[1].trim()
-    const loser  = w.team_a === wName ? w.team_b
-      : w.team_b === wName ? w.team_a
-      : wName === _t0 ? _t1 : wName === _t1 ? _t0 : null
-    if (wScore === lScore) {
-      matchWinMap[wName] = (matchWinMap[wName] || 0) + wScore
-      if (loser) matchWinMap[loser] = (matchWinMap[loser] || 0) + lScore
-      return
-    }
-    matchWinMap[wName] = (matchWinMap[wName] || 0) + wScore
-    if (loser) matchWinMap[loser] = (matchWinMap[loser] || 0) + lScore
-  })
-  const seriesDraws   = completed.filter(w => !(_parseWinner(w.result) || w.winning_team)).length
-  const sortedCompleted = [...completed].sort((a, b) => b.match_date.localeCompare(a.match_date))
-  let winStreak = 0
-  if (seriesLeader) {
-    for (const w of sortedCompleted) {
-      if ((_parseWinner(w.result) || w.winning_team) === seriesLeader[0]) winStreak++
-      else break
-    }
-  }
-  const matchLeaderName = Object.entries(matchWinMap).sort((a, b) => b[1] - a[1])[0]?.[0]
-  const _abbr = name => {
-    if (!name) return '?'
-    const paren = name.match(/\(([A-Z0-9]+)\)/)
-    if (paren) return paren[1]
-    const initials = name.split(/\s+/).filter(Boolean).map(w => w[0]).join('').toUpperCase()
-    return initials.slice(0, 4) || name.slice(0, 3).toUpperCase()
-  }
-  const _chronoWeeks = [...completed].sort((a, b) => a.match_date.localeCompare(b.match_date))
-  // Assign a stable color per team
-  const teamColors = {
-    ..._t0 ? { [_t0]: { pill: 'bg-amber-500/20 border border-amber-500/40 text-amber-300',    card: 'bg-amber-500/10 border border-amber-500/20' } } : {},
-    ..._t1 ? { [_t1]: { pill: 'bg-blue-500/20 border border-blue-500/40 text-blue-300',       card: 'bg-blue-500/10 border border-blue-500/20'  } } : {},
-  }
 
   /* ── Corpus health ── */
   const statusBar = [
@@ -138,10 +275,6 @@ export default function Dashboard() {
   const selectedP   = payPlayer ? corpusPlayers.find(p => p.id === payPlayer) : null
   const payNeeded   = selectedP ? Math.max(threshold - (selectedP.corpus_balance ?? 0), 500) : 500
   const paySuggested = selectedP ? Math.ceil(payNeeded / 500) * 500 : 500
-  const isMobile    = /Android|iPhone|iPad/i.test(navigator.userAgent)
-  const payName     = encodeURIComponent(cfg?.team_name ?? 'Cricket Team')
-  const payNote     = selectedP ? encodeURIComponent(`Corpus Topup - ${selectedP.display_name}`) : ''
-  const upiHref     = selectedP ? `upi://pay?pa=${upiId}&pn=${payName}&cu=INR&tn=${payNote}` : ''
 
   /* ── Stat / KPI cards ── */
   const kpiCards = [
@@ -150,114 +283,6 @@ export default function Dashboard() {
     { label: 'Corpus Balance',  value: `₹${Math.round(remainingPool).toLocaleString('en-IN')}`,   to: '/admin/transactions' },
     { label: 'Active Season',   value: seasonName,                                                to: '/admin'              },
   ]
-
-  /* ── Season leaders ── */
-  const perfs = perfData?.performances ?? []
-  const _sMap = {}
-  for (const perf of perfs) {
-    if (!_sMap[perf.player_id]) _sMap[perf.player_id] = {
-      player_id: perf.player_id, runs: 0, wickets: 0, balls_faced: 0, balls_bowled: 0,
-      runs_given: 0, catches: 0, maidens: 0, run_outs: 0, stumpings: 0,
-      match_count: 0, potm_count: 0, bba_count: 0, bbo_count: 0,
-    }
-    const s = _sMap[perf.player_id]
-    s.runs         += perf.runs         || 0
-    s.wickets      += perf.wickets      || 0
-    s.balls_faced  += perf.balls_faced  || 0
-    s.balls_bowled += perf.balls_bowled || 0
-    s.runs_given   += perf.runs_given   || 0
-    s.catches      += perf.catches      || 0
-    s.maidens      += perf.maidens      || 0
-    s.run_outs     += perf.run_outs     || 0
-    s.stumpings    += perf.stumpings    || 0
-    s.match_count  += perf.match_count  || 1
-    s.potm_count   += perf.potm_count   || 0
-    s.bba_count    += perf.bba_count    || 0
-    s.bbo_count    += perf.bbo_count    || 0
-  }
-  const _allS = Object.values(_sMap)
-  const _topGroup = (arr, fn) => { const top = fn(arr[0]); return arr.filter(s => fn(s) === top) }
-  const WKT_PTS = 1.2
-  const _mvpSorted = _allS
-    .filter(s => s.match_count >= 5)
-    .map(s => ({
-      ...s,
-      score: parseFloat((
-        (s.runs / 10) * 1.08 + s.wickets * WKT_PTS
-        + Math.floor(s.maidens / 2) * WKT_PTS
-        + (s.catches + s.stumpings) * (WKT_PTS * 0.2)
-        + s.run_outs * WKT_PTS
-      ).toFixed(1)),
-    }))
-    .filter(s => s.score > 0).sort((a, b) => b.score - a.score)
-
-  const topBatterArr = _allS.filter(s => s.runs > 0).sort((a, b) => b.runs - a.runs)
-  const topBowlerArr = _allS.filter(s => s.wickets > 0).sort((a, b) => b.wickets - a.wickets)
-  const topPotmArr   = _allS.filter(s => s.potm_count > 0).sort((a, b) => b.potm_count - a.potm_count)
-  const topBbaArr    = _allS.filter(s => s.bba_count > 0).sort((a, b) => b.bba_count - a.bba_count)
-  const topBboArr    = _allS.filter(s => s.bbo_count > 0).sort((a, b) => b.bbo_count - a.bbo_count)
-
-  const topMvp    = _mvpSorted.length ? _topGroup(_mvpSorted, s => s.score) : []
-  const topBatter = topBatterArr.length ? _topGroup(topBatterArr, s => s.runs) : []
-  const topBowler = topBowlerArr.length ? _topGroup(topBowlerArr, s => s.wickets) : []
-  const topPotm   = topPotmArr.length   ? _topGroup(topPotmArr, s => s.potm_count) : []
-  const topBba    = topBbaArr.length    ? _topGroup(topBbaArr, s => s.bba_count) : []
-  const topBbo    = topBboArr.length    ? _topGroup(topBboArr, s => s.bbo_count) : []
-
-  const perfPlayerMap = Object.fromEntries((pData?.players ?? []).map(p => [p.id, p]))
-
-  const leaderRows = [
-    { def: LEADER_DEFS[0], ss: topMvp,    val: topMvp[0]?.score,       pid: topMvp[0]?.player_id    },
-    { def: LEADER_DEFS[1], ss: topPotm,   val: topPotm[0]?.potm_count, pid: topPotm[0]?.player_id   },
-    { def: LEADER_DEFS[2], ss: topBatter, val: topBatter[0]?.runs,      pid: topBatter[0]?.player_id },
-    { def: LEADER_DEFS[3], ss: topBowler, val: topBowler[0]?.wickets,   pid: topBowler[0]?.player_id },
-    { def: LEADER_DEFS[4], ss: topBba,    val: topBba[0]?.bba_count,    pid: topBba[0]?.player_id    },
-    { def: LEADER_DEFS[5], ss: topBbo,    val: topBbo[0]?.bbo_count,    pid: topBbo[0]?.player_id    },
-  ].filter(r => r.ss.length > 0)
-
-  /* ── Who's hot ── */
-  const recentWeeks  = [...completed].sort((a, b) => b.match_date.localeCompare(a.match_date)).slice(0, 5)
-  const recentWeekIds = new Set(recentWeeks.slice(0, 3).map(w => w.week_id))
-  const recentPerfs   = perfs.filter(p => recentWeekIds.has(p.week_id))
-  const recentMap     = {}
-  recentPerfs.forEach(p => {
-    if (!recentMap[p.player_id]) recentMap[p.player_id] = { runs: 0, wickets: 0, matches: 0 }
-    recentMap[p.player_id].runs    += p.runs    || 0
-    recentMap[p.player_id].wickets += p.wickets || 0
-    recentMap[p.player_id].matches += 1
-  })
-  const hotPlayers = Object.entries(recentMap)
-    .map(([pid, recent]) => {
-      const season = _sMap[pid]
-      if (!season || season.match_count < 3 || recent.matches < 2) return null
-      const perfScore = recent.runs + recent.wickets * 8
-      return perfScore > 0 ? { pid, perfScore, recentRuns: recent.runs, recentWkts: recent.wickets, matches: recent.matches } : null
-    })
-    .filter(Boolean)
-    .sort((a, b) => b.perfScore - a.perfScore)
-    .slice(0, 3)
-
-  /* ── Recent financial activity ── */
-  const allExpenses = eData?.expenses ?? []
-  const totalExpenses = allExpenses.reduce((s, e) => s + (e.amount ?? 0), 0)
-  const allWeeks = wData?.weeks ?? []
-  const deductionByWeek = {}
-  ;(txnData?.transactions ?? [])
-    .filter(t => t.type === 'match_deduction')
-    .forEach(t => {
-      if (!deductionByWeek[t.week_id]) {
-        const week = allWeeks.find(w => w.week_id === t.week_id)
-        deductionByWeek[t.week_id] = { date: t.date, label: week?.label ?? t.week_id, total: 0, count: 0 }
-      }
-      deductionByWeek[t.week_id].total += t.amount ?? 0
-      deductionByWeek[t.week_id].count += 1
-    })
-  const deductionEntries = Object.entries(deductionByWeek).map(([weekId, d]) => ({
-    id: `deduct_${weekId}`, _type: 'deduction',
-    description: `Match fees — ${d.label}`, date: d.date, amount: d.total, count: d.count,
-  }))
-  const recentActivity = [...allExpenses.map(e => ({ ...e, _type: 'expense' })), ...deductionEntries]
-    .sort((a, b) => b.date.localeCompare(a.date)).slice(0, 7)
 
   /* ── Announcements ── */
   const activeAnnouncements = (annData?.announcements ?? [])
@@ -432,30 +457,20 @@ export default function Dashboard() {
             {selectedP && (
               <>
                 <div className="flex gap-2 items-center">
-                  {isMobile ? (
-                    <a href={upiHref}
-                      className="shrink-0 font-semibold text-sm px-4 py-2.5 rounded-xl transition-all"
-                      style={{ background: 'linear-gradient(135deg,#0f766e,#10b981)', color: '#fff', boxShadow: '0 4px 14px rgba(16,185,129,0.25)' }}
-                    >
-                      Pay →
-                    </a>
-                  ) : (
-                    <button
-                      onClick={() => { navigator.clipboard.writeText(upiId); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
-                      className="shrink-0 font-semibold text-sm px-4 py-2.5 rounded-xl transition-all"
-                      style={{
-                        background: copied ? 'linear-gradient(135deg,#0f766e,#10b981)' : 'rgba(255,255,255,0.05)',
-                        color: copied ? '#fff' : '#10b981',
-                        border: copied ? 'none' : '1px solid rgba(16,185,129,0.3)',
-                      }}
-                    >
-                      {copied ? '✓ Copied' : 'Copy UPI'}
-                    </button>
-                  )}
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(upiId); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
+                    className="shrink-0 font-semibold text-sm px-4 py-2.5 rounded-xl transition-all"
+                    style={{
+                      background: copied ? 'linear-gradient(135deg,#0f766e,#10b981)' : 'rgba(255,255,255,0.05)',
+                      color: copied ? '#fff' : '#10b981',
+                      border: copied ? 'none' : '1px solid rgba(16,185,129,0.3)',
+                    }}
+                  >
+                    {copied ? '✓ Copied' : 'Copy UPI'}
+                  </button>
                 </div>
                 <p className="text-xs text-gray-300 mt-2">
-                  Balance: ₹{(selectedP.corpus_balance ?? 0).toLocaleString('en-IN')} · Suggested: ₹{paySuggested.toLocaleString('en-IN')}
-                  {!isMobile && <span className="ml-1">· {upiId}</span>}
+                  Balance: ₹{(selectedP.corpus_balance ?? 0).toLocaleString('en-IN')} · Suggested: ₹{paySuggested.toLocaleString('en-IN')} · {upiId}
                 </p>
               </>
             )}

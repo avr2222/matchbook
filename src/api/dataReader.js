@@ -146,21 +146,42 @@ export async function fetchPaymentRequests() {
 }
 
 export async function fetchMatchPerformances({ playerId, tournamentId } = {}) {
-  let query = supabase.from('match_performances').select('*')
-  if (playerId)     query = query.eq('player_id', playerId)
-  if (tournamentId) query = query.eq('tournament_id', tournamentId)
-  const { data, error } = await query
-  if (error) throw new Error(`fetchMatchPerformances: ${error.message}`)
-  return { schema_version: 1, performances: data ?? [] }
+  // Paginated: a full season of performances exceeds PostgREST's 1000-row cap.
+  const PAGE = 1000
+  const all = []
+  let from = 0
+  while (true) {
+    let query = supabase.from('match_performances').select('*')
+    if (playerId)     query = query.eq('player_id', playerId)
+    if (tournamentId) query = query.eq('tournament_id', tournamentId)
+    // order by PK so pages are stable across requests
+    const { data, error } = await query.order('id').range(from, from + PAGE - 1)
+    if (error) throw new Error(`fetchMatchPerformances: ${error.message}`)
+    all.push(...(data ?? []))
+    if (!data || data.length < PAGE) break
+    from += PAGE
+  }
+  return { schema_version: 1, performances: all }
 }
 
 export async function fetchBallDeliveries(tournamentId) {
-  const { data, error } = await supabase
-    .from('ball_deliveries')
-    .select('bowler_id,batsman_id,bowler_name,batsman_name,runs,extra_type,extra_runs,is_wicket,is_boundary,is_dot_ball,commentary,innings,batting_team,over_num,week_id,cricheroes_match_id')
-    .eq('tournament_id', tournamentId)
-  if (error) throw new Error(`fetchBallDeliveries: ${error.message}`)
-  return data ?? []
+  // Paginated: one tournament easily exceeds 1000 deliveries (120+ balls/match).
+  const PAGE = 1000
+  const all = []
+  let from = 0
+  while (true) {
+    const { data, error } = await supabase
+      .from('ball_deliveries')
+      .select('bowler_id,batsman_id,bowler_name,batsman_name,runs,extra_type,extra_runs,is_wicket,is_boundary,is_dot_ball,commentary,innings,batting_team,over_num,week_id,cricheroes_match_id')
+      .eq('tournament_id', tournamentId)
+      .order('id')
+      .range(from, from + PAGE - 1)
+    if (error) throw new Error(`fetchBallDeliveries: ${error.message}`)
+    all.push(...(data ?? []))
+    if (!data || data.length < PAGE) break
+    from += PAGE
+  }
+  return all
 }
 
 export async function fetchAttendanceSummary() {

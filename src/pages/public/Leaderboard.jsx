@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { usePlayers, useConfig, useLeaderboard, useWeeks, useTournaments, useBallDeliveries } from '../../hooks/useData'
 import { PageSpinner } from '../../components/ui/Spinner'
@@ -21,6 +21,19 @@ function economy(runs, balls) {
 function strikeRate(runs, balls) {
   if (!balls) return '—'
   return ((runs / balls) * 100).toFixed(1)
+}
+
+const WKT_PTS = 1.2
+const MIN_BAT = 40, MIN_BOWL = 30
+const _tg = (sorted, fn) => {
+  if (!sorted.length) return []
+  const best = fn(sorted[0])
+  return sorted.filter(s => fn(s) === best)
+}
+const _tgf = (sorted, fn) => {
+  if (!sorted.length) return []
+  const best = Math.round(fn(sorted[0]) * 10)
+  return sorted.filter(s => Math.round(fn(s) * 10) === best)
 }
 
 function Sparkline({ vals }) {
@@ -81,197 +94,214 @@ export default function Leaderboard() {
   const totalSessions = (wData?.weeks ?? [])
     .filter(w => w.tournament_id === tournamentId && w.status === 'completed').length
 
-  if (cfgLoading || playersLoading) return <PageSpinner />
-
-  const playerMap   = Object.fromEntries((pData?.players ?? []).map(p => [p.id, p]))
-  const perfs       = perfData?.performances ?? []
+  const playerMap = useMemo(
+    () => Object.fromEntries((pData?.players ?? []).map(p => [p.id, p])),
+    [pData]
+  )
+  const perfs = useMemo(() => perfData?.performances ?? [], [perfData])
 
   // Pre-compute last 5 perfs per player sorted oldest→newest
-  const last5Map = {}
-  for (const perf of [...perfs].sort((a, b) => a.week_id.localeCompare(b.week_id))) {
-    if (!last5Map[perf.player_id]) last5Map[perf.player_id] = []
-    last5Map[perf.player_id].push(perf)
-  }
-  Object.keys(last5Map).forEach(pid => { last5Map[pid] = last5Map[pid].slice(-5) })
+  const last5Map = useMemo(() => {
+    const map = {}
+    for (const perf of [...perfs].sort((a, b) => a.week_id.localeCompare(b.week_id))) {
+      if (!map[perf.player_id]) map[perf.player_id] = []
+      map[perf.player_id].push(perf)
+    }
+    Object.keys(map).forEach(pid => { map[pid] = map[pid].slice(-5) })
+    return map
+  }, [perfs])
+
+  /* ── Season aggregates: stats table, leaderboards, awards (memoized) ── */
+  const core = useMemo(() => {
+    const seenWeekPlayer = new Set()
+    const statsMap = {}
+    for (const perf of perfs) {
+      if (!statsMap[perf.player_id]) {
+        statsMap[perf.player_id] = {
+          player_id: perf.player_id,
+          weeks_attended: 0,
+          matches: 0, innings: 0, dismissals: 0,
+          runs: 0, balls_faced: 0, fours: 0, sixes: 0, high_score: 0,
+          wickets: 0, runs_given: 0, balls_bowled: 0, maidens: 0, catches: 0,
+          run_outs: 0, stumpings: 0, wides: 0, no_balls: 0, potm_count: 0, ducks: 0,
+          bba_count: 0, bbo_count: 0, times_run_out: 0, won_match: 0,
+        }
+      }
+      const s = statsMap[perf.player_id]
+      const wpKey = `${perf.player_id}:${perf.week_id}`
+      if (!seenWeekPlayer.has(wpKey)) {
+        s.weeks_attended += 1
+        seenWeekPlayer.add(wpKey)
+      }
+      s.matches    += 1
+      if (isInnings(perf))   s.innings    += 1
+      if (isDismissed(perf)) s.dismissals += 1
+      s.runs        += perf.runs        || 0
+      s.balls_faced += perf.balls_faced || 0
+      s.fours       += perf.fours       || 0
+      s.sixes       += perf.sixes       || 0
+      s.high_score   = Math.max(s.high_score, perf.runs || 0)
+      s.wickets     += perf.wickets     || 0
+      s.runs_given  += perf.runs_given  || 0
+      s.balls_bowled+= perf.balls_bowled|| 0
+      s.maidens     += perf.maidens     || 0
+      s.catches     += perf.catches     || 0
+      s.run_outs    += perf.run_outs    || 0
+      s.stumpings   += perf.stumpings   || 0
+      s.wides       += perf.wides       || 0
+      s.no_balls    += perf.no_balls    || 0
+      s.potm_count  += perf.potm_count  || 0
+      s.ducks        += perf.ducks        || 0
+      s.bba_count    += perf.bba_count    || 0
+      s.bbo_count    += perf.bbo_count    || 0
+      s.times_run_out+= perf.times_run_out|| 0
+      s.won_match    += perf.won_match    || 0
+    }
+
+    const allStats = Object.values(statsMap)
+    const isEmpty  = allStats.length === 0
+
+    const batters = [...allStats]
+      .filter(s => s.runs > 0 || s.balls_faced > 0)
+      .sort((a, b) => b.runs - a.runs)
+
+    const bowlers = [...allStats]
+      .filter(s => s.wickets > 0 || s.balls_bowled > 0)
+      .sort((a, b) => {
+        if (b.wickets !== a.wickets) return b.wickets - a.wickets
+        const eA = a.balls_bowled ? a.runs_given / a.balls_bowled : Infinity
+        const eB = b.balls_bowled ? b.runs_given / b.balls_bowled : Infinity
+        return eA - eB
+      })
+
+    const mvps = [...allStats]
+      .filter(s => s.matches >= 5)
+      .map(s => {
+        const batting  = (s.runs / 10) * 1.08
+        const bowling  = s.wickets * WKT_PTS + Math.floor(s.maidens / 2) * WKT_PTS
+        const fielding = (s.catches + s.stumpings) * (WKT_PTS * 0.2) + s.run_outs * WKT_PTS
+        return { ...s, mvp_score: parseFloat((batting + bowling + fielding).toFixed(1)) }
+      })
+      .filter(s => s.mvp_score > 0)
+      .sort((a, b) => b.mvp_score - a.mvp_score)
+
+    const fielders = [...allStats]
+      .filter(s => (s.catches + s.run_outs + s.stumpings) > 0)
+      .sort((a, b) => (b.catches + b.run_outs + b.stumpings) - (a.catches + a.run_outs + a.stumpings))
+
+    const allrounders = [...allStats]
+      .filter(s => s.matches >= 2)
+      .map(s => {
+        const bat = (s.runs / 10) * 1.08
+        const bowl = s.wickets * WKT_PTS + Math.floor(s.maidens / 2) * WKT_PTS
+        const fld  = (s.catches + s.stumpings) * (WKT_PTS * 0.2) + s.run_outs * WKT_PTS
+        return { ...s, ar_score: parseFloat((bat + bowl + fld).toFixed(1)) }
+      })
+      .filter(s => s.ar_score > 0)
+      .sort((a, b) => b.ar_score - a.ar_score)
+
+    const topPotm      = _tg([...allStats].filter(s => s.potm_count > 0).sort((a,b) => b.potm_count - a.potm_count), s => s.potm_count)
+    const topBba       = _tg([...allStats].filter(s => s.bba_count > 0).sort((a,b) => b.bba_count - a.bba_count), s => s.bba_count)
+    const topBbo       = _tg([...allStats].filter(s => s.bbo_count > 0).sort((a,b) => b.bbo_count - a.bbo_count), s => s.bbo_count)
+    const sixMachine   = _tg([...allStats].filter(s => s.sixes > 0).sort((a,b) => b.sixes - a.sixes), s => s.sixes)
+    const wicketWiz    = _tg([...allStats].filter(s => s.wickets > 0).sort((a,b) => b.wickets - a.wickets), s => s.wickets)
+    const lightningBat = _tgf([...allStats].filter(s => s.balls_faced >= MIN_BAT).sort((a,b) => (b.runs/b.balls_faced)-(a.runs/a.balls_faced)), s => s.runs/s.balls_faced)
+    const economyKing  = _tgf([...allStats].filter(s => s.balls_bowled >= MIN_BOWL).sort((a,b) => (a.runs_given/a.balls_bowled)-(b.runs_given/b.balls_bowled)), s => s.runs_given/s.balls_bowled)
+    const maidenMaster = _tg([...allStats].filter(s => s.maidens > 0).sort((a,b) => b.maidens - a.maidens), s => s.maidens)
+    const catchKing    = _tg([...allStats].filter(s => (s.catches+s.run_outs+s.stumpings) > 0).sort((a,b) => (b.catches+b.run_outs+b.stumpings)-(a.catches+a.run_outs+a.stumpings)), s => s.catches+s.run_outs+s.stumpings)
+    const workhorse    = _tg([...allStats].filter(s => s.balls_bowled > 0).sort((a,b) => b.balls_bowled - a.balls_bowled), s => s.balls_bowled)
+    const duckKing     = _tg([...allStats].filter(s => s.ducks > 0).sort((a,b) => b.ducks - a.ducks), s => s.ducks)
+    const slowcoach    = _tgf([...allStats].filter(s => s.balls_faced >= MIN_BAT).sort((a,b) => (a.runs/a.balls_faced)-(b.runs/b.balls_faced)), s => s.runs/s.balls_faced)
+    const wideMan      = _tg([...allStats].filter(s => s.wides > 0).sort((a,b) => b.wides - a.wides), s => s.wides)
+    const noBallKing   = _tg([...allStats].filter(s => s.no_balls > 0).sort((a,b) => b.no_balls - a.no_balls), s => s.no_balls)
+    const costlyBowler = _tgf([...allStats].filter(s => s.balls_bowled >= MIN_BOWL).sort((a,b) => (b.runs_given/b.balls_bowled)-(a.runs_given/a.balls_bowled)), s => s.runs_given/s.balls_bowled)
+    const topAttendee  = totalSessions > 0
+      ? [...allStats].filter(s => s.weeks_attended > 0)
+          .map(s => ({ ...s, attend_pct: Math.round((s.weeks_attended / totalSessions) * 100) }))
+          .sort((a, b) => b.attend_pct - a.attend_pct)[0]
+      : null
+
+    const _ru = (sorted, winGroup, fmt) => {
+      const next = sorted.find(s => !winGroup.includes(s))
+      if (!next) return null
+      const nm = playerMap[next.player_id]?.display_name ?? '?'
+      return `2nd: ${nm} (${fmt(next)})`
+    }
+    const _potmSorted   = [...allStats].filter(s => s.potm_count > 0).sort((a,b) => b.potm_count - a.potm_count)
+    const _wicketSorted = [...allStats].filter(s => s.wickets > 0).sort((a,b) => b.wickets - a.wickets)
+    const mvpRU    = _ru(mvps,          mvps.filter(s => s.mvp_score === mvps[0]?.mvp_score),  s => s.mvp_score.toFixed(1) + ' pts')
+    const scorerRU = _ru(batters,       batters.filter(s => s.runs === batters[0]?.runs),       s => s.runs + ' runs')
+    const wicketRU = _ru(_wicketSorted, wicketWiz,                                              s => s.wickets + ' wkts')
+    const potmRU   = _ru(_potmSorted,   topPotm,                                                s => s.potm_count + 'x')
+
+    const runOutSpecialist = _tg([...allStats].filter(s => s.run_outs > 0).sort((a,b) => b.run_outs - a.run_outs), s => s.run_outs)
+
+    return {
+      allStats, isEmpty, batters, bowlers, mvps, fielders, allrounders,
+      topPotm, topBba, topBbo, sixMachine, wicketWiz, lightningBat, economyKing,
+      maidenMaster, catchKing, workhorse, duckKing, slowcoach, wideMan, noBallKing,
+      costlyBowler, topAttendee, mvpRU, scorerRU, wicketRU, potmRU, runOutSpecialist,
+    }
+  }, [perfs, totalSessions, playerMap])
+
+  /* ── Ball-by-ball aggregations (memoized) ── */
+  const ballAgg = useMemo(() => {
+    const balls = ballData ?? []
+    const bowlerBallMap = {}
+    const batsmanBallMap = {}
+    const matchupMap = {}
+    const runOutEffectors = {}
+    const runOutVictims = {}
+    balls.forEach(b => {
+      if (b.bowler_id) {
+        if (!bowlerBallMap[b.bowler_id]) bowlerBallMap[b.bowler_id] = { dots: 0, wides: 0, noballs: 0, boundaries: 0, total: 0 }
+        const s = bowlerBallMap[b.bowler_id]
+        s.total++
+        if (b.is_dot_ball) s.dots++
+        if (b.extra_type === 'WD') s.wides++
+        if (b.extra_type === 'NB') s.noballs++
+        if (b.is_boundary) s.boundaries++
+      }
+      if (b.batsman_id && b.bowler_id) {
+        const key = `${b.batsman_id}|${b.bowler_id}`
+        if (!matchupMap[key]) matchupMap[key] = { batsman_id: b.batsman_id, bowler_id: b.bowler_id, balls: 0, runs: 0, dismissals: 0 }
+        const m = matchupMap[key]
+        m.balls++; m.runs += b.runs || 0
+        if (b.is_wicket) m.dismissals++
+      }
+      if (b.is_wicket && (b.commentary ?? '').toLowerCase().includes('run out')) {
+        const m = (b.commentary ?? '').match(/throw by ([^,\n]+)/i)
+        const fielder = m ? m[1].trim() : null
+        if (fielder) runOutEffectors[fielder] = (runOutEffectors[fielder] || 0) + 1
+        if (b.batsman_name) runOutVictims[b.batsman_name] = (runOutVictims[b.batsman_name] || 0) + 1
+        if (b.batsman_id) {
+          if (!batsmanBallMap[b.batsman_id]) batsmanBallMap[b.batsman_id] = { run_out_victim: 0 }
+          batsmanBallMap[b.batsman_id].run_out_victim = (batsmanBallMap[b.batsman_id].run_out_victim || 0) + 1
+        }
+      }
+    })
+    const bowlerBallStats = Object.entries(bowlerBallMap)
+      .map(([pid, s]) => ({ player_id: pid, ...s, dot_pct: s.total > 0 ? s.dots / s.total * 100 : 0 }))
+      .filter(s => s.total >= 12)
+      .sort((a, b) => b.dot_pct - a.dot_pct)
+    const topMatchups = Object.values(matchupMap).filter(m => m.balls >= 6).sort((a, b) => b.balls - a.balls).slice(0, 10)
+    const runOutEffectorsList = Object.entries(runOutEffectors).sort((a, b) => b[1] - a[1])
+    const runOutVictimsList   = Object.entries(runOutVictims).sort((a, b) => b[1] - a[1])
+    return { bowlerBallStats, topMatchups, runOutEffectorsList, runOutVictimsList, batsmanBallMap }
+  }, [ballData])
+
+  if (cfgLoading || playersLoading) return <PageSpinner />
+
+  const {
+    allStats, isEmpty, batters, bowlers, mvps, fielders, allrounders,
+    topPotm, topBba, topBbo, sixMachine, wicketWiz, lightningBat, economyKing,
+    maidenMaster, catchKing, workhorse, duckKing, slowcoach, wideMan, noBallKing,
+    costlyBowler, topAttendee, mvpRU, scorerRU, wicketRU, potmRU, runOutSpecialist,
+  } = core
+  const { bowlerBallStats, topMatchups, runOutEffectorsList, runOutVictimsList, batsmanBallMap } = ballAgg
 
   const searchLower = search.toLowerCase()
   const matchesSearch = pid => !searchLower || (playerMap[pid]?.display_name ?? '').toLowerCase().includes(searchLower)
-
-  const seenWeekPlayer = new Set()
-  const statsMap = {}
-  for (const perf of perfs) {
-    if (!statsMap[perf.player_id]) {
-      statsMap[perf.player_id] = {
-        player_id: perf.player_id,
-        weeks_attended: 0,
-        matches: 0, innings: 0, dismissals: 0,
-        runs: 0, balls_faced: 0, fours: 0, sixes: 0, high_score: 0,
-        wickets: 0, runs_given: 0, balls_bowled: 0, maidens: 0, catches: 0,
-        run_outs: 0, stumpings: 0, wides: 0, no_balls: 0, potm_count: 0, ducks: 0,
-        bba_count: 0, bbo_count: 0, times_run_out: 0, won_match: 0,
-      }
-    }
-    const s = statsMap[perf.player_id]
-    const wpKey = `${perf.player_id}:${perf.week_id}`
-    if (!seenWeekPlayer.has(wpKey)) {
-      s.weeks_attended += 1
-      seenWeekPlayer.add(wpKey)
-    }
-    s.matches    += 1
-    if (isInnings(perf))   s.innings    += 1
-    if (isDismissed(perf)) s.dismissals += 1
-    s.runs        += perf.runs        || 0
-    s.balls_faced += perf.balls_faced || 0
-    s.fours       += perf.fours       || 0
-    s.sixes       += perf.sixes       || 0
-    s.high_score   = Math.max(s.high_score, perf.runs || 0)
-    s.wickets     += perf.wickets     || 0
-    s.runs_given  += perf.runs_given  || 0
-    s.balls_bowled+= perf.balls_bowled|| 0
-    s.maidens     += perf.maidens     || 0
-    s.catches     += perf.catches     || 0
-    s.run_outs    += perf.run_outs    || 0
-    s.stumpings   += perf.stumpings   || 0
-    s.wides       += perf.wides       || 0
-    s.no_balls    += perf.no_balls    || 0
-    s.potm_count  += perf.potm_count  || 0
-    s.ducks        += perf.ducks        || 0
-    s.bba_count    += perf.bba_count    || 0
-    s.bbo_count    += perf.bbo_count    || 0
-    s.times_run_out+= perf.times_run_out|| 0
-    s.won_match    += perf.won_match    || 0
-  }
-
-  const allStats = Object.values(statsMap)
-  const isEmpty  = allStats.length === 0
-
-  const batters = [...allStats]
-    .filter(s => s.runs > 0 || s.balls_faced > 0)
-    .sort((a, b) => b.runs - a.runs)
-
-  const bowlers = [...allStats]
-    .filter(s => s.wickets > 0 || s.balls_bowled > 0)
-    .sort((a, b) => {
-      if (b.wickets !== a.wickets) return b.wickets - a.wickets
-      const eA = a.balls_bowled ? a.runs_given / a.balls_bowled : Infinity
-      const eB = b.balls_bowled ? b.runs_given / b.balls_bowled : Infinity
-      return eA - eB
-    })
-
-  const WKT_PTS = 1.2
-  const mvps = [...allStats]
-    .filter(s => s.matches >= 5)
-    .map(s => {
-      const batting  = (s.runs / 10) * 1.08
-      const bowling  = s.wickets * WKT_PTS + Math.floor(s.maidens / 2) * WKT_PTS
-      const fielding = (s.catches + s.stumpings) * (WKT_PTS * 0.2) + s.run_outs * WKT_PTS
-      return { ...s, mvp_score: parseFloat((batting + bowling + fielding).toFixed(1)) }
-    })
-    .filter(s => s.mvp_score > 0)
-    .sort((a, b) => b.mvp_score - a.mvp_score)
-
-  const fielders = [...allStats]
-    .filter(s => (s.catches + s.run_outs + s.stumpings) > 0)
-    .sort((a, b) => (b.catches + b.run_outs + b.stumpings) - (a.catches + a.run_outs + a.stumpings))
-
-  const allrounders = [...allStats]
-    .filter(s => s.matches >= 2)
-    .map(s => {
-      const bat = (s.runs / 10) * 1.08
-      const bowl = s.wickets * WKT_PTS + Math.floor(s.maidens / 2) * WKT_PTS
-      const fld  = (s.catches + s.stumpings) * (WKT_PTS * 0.2) + s.run_outs * WKT_PTS
-      return { ...s, ar_score: parseFloat((bat + bowl + fld).toFixed(1)) }
-    })
-    .filter(s => s.ar_score > 0)
-    .sort((a, b) => b.ar_score - a.ar_score)
-
-  const MIN_BAT = 40, MIN_BOWL = 30
-  const _tg = (sorted, fn) => {
-    if (!sorted.length) return []
-    const best = fn(sorted[0])
-    return sorted.filter(s => fn(s) === best)
-  }
-  const _tgf = (sorted, fn) => {
-    if (!sorted.length) return []
-    const best = Math.round(fn(sorted[0]) * 10)
-    return sorted.filter(s => Math.round(fn(s) * 10) === best)
-  }
-  const topPotm      = _tg([...allStats].filter(s => s.potm_count > 0).sort((a,b) => b.potm_count - a.potm_count), s => s.potm_count)
-  const topBba       = _tg([...allStats].filter(s => s.bba_count > 0).sort((a,b) => b.bba_count - a.bba_count), s => s.bba_count)
-  const topBbo       = _tg([...allStats].filter(s => s.bbo_count > 0).sort((a,b) => b.bbo_count - a.bbo_count), s => s.bbo_count)
-  const sixMachine   = _tg([...allStats].filter(s => s.sixes > 0).sort((a,b) => b.sixes - a.sixes), s => s.sixes)
-  const wicketWiz    = _tg([...allStats].filter(s => s.wickets > 0).sort((a,b) => b.wickets - a.wickets), s => s.wickets)
-  const lightningBat = _tgf([...allStats].filter(s => s.balls_faced >= MIN_BAT).sort((a,b) => (b.runs/b.balls_faced)-(a.runs/a.balls_faced)), s => s.runs/s.balls_faced)
-  const economyKing  = _tgf([...allStats].filter(s => s.balls_bowled >= MIN_BOWL).sort((a,b) => (a.runs_given/a.balls_bowled)-(b.runs_given/b.balls_bowled)), s => s.runs_given/s.balls_bowled)
-  const maidenMaster = _tg([...allStats].filter(s => s.maidens > 0).sort((a,b) => b.maidens - a.maidens), s => s.maidens)
-  const catchKing    = _tg([...allStats].filter(s => (s.catches+s.run_outs+s.stumpings) > 0).sort((a,b) => (b.catches+b.run_outs+b.stumpings)-(a.catches+a.run_outs+a.stumpings)), s => s.catches+s.run_outs+s.stumpings)
-  const workhorse    = _tg([...allStats].filter(s => s.balls_bowled > 0).sort((a,b) => b.balls_bowled - a.balls_bowled), s => s.balls_bowled)
-  const duckKing     = _tg([...allStats].filter(s => s.ducks > 0).sort((a,b) => b.ducks - a.ducks), s => s.ducks)
-  const slowcoach    = _tgf([...allStats].filter(s => s.balls_faced >= MIN_BAT).sort((a,b) => (a.runs/a.balls_faced)-(b.runs/b.balls_faced)), s => s.runs/s.balls_faced)
-  const wideMan      = _tg([...allStats].filter(s => s.wides > 0).sort((a,b) => b.wides - a.wides), s => s.wides)
-  const noBallKing   = _tg([...allStats].filter(s => s.no_balls > 0).sort((a,b) => b.no_balls - a.no_balls), s => s.no_balls)
-  const costlyBowler = _tgf([...allStats].filter(s => s.balls_bowled >= MIN_BOWL).sort((a,b) => (b.runs_given/b.balls_bowled)-(a.runs_given/a.balls_bowled)), s => s.runs_given/s.balls_bowled)
-  const topAttendee  = totalSessions > 0
-    ? [...allStats].filter(s => s.weeks_attended > 0)
-        .map(s => ({ ...s, attend_pct: Math.round((s.weeks_attended / totalSessions) * 100) }))
-        .sort((a, b) => b.attend_pct - a.attend_pct)[0]
-    : null
-
-  const _ru = (sorted, winGroup, fmt) => {
-    const next = sorted.find(s => !winGroup.includes(s))
-    if (!next) return null
-    const nm = playerMap[next.player_id]?.display_name ?? '?'
-    return `2nd: ${nm} (${fmt(next)})`
-  }
-  const _potmSorted   = [...allStats].filter(s => s.potm_count > 0).sort((a,b) => b.potm_count - a.potm_count)
-  const _wicketSorted = [...allStats].filter(s => s.wickets > 0).sort((a,b) => b.wickets - a.wickets)
-  const mvpRU    = _ru(mvps,          mvps.filter(s => s.mvp_score === mvps[0]?.mvp_score),  s => s.mvp_score.toFixed(1) + ' pts')
-  const scorerRU = _ru(batters,       batters.filter(s => s.runs === batters[0]?.runs),       s => s.runs + ' runs')
-  const wicketRU = _ru(_wicketSorted, wicketWiz,                                              s => s.wickets + ' wkts')
-  const potmRU   = _ru(_potmSorted,   topPotm,                                                s => s.potm_count + 'x')
-
-  // Ball-by-ball aggregations
-  const balls = ballData ?? []
-  const bowlerBallMap = {}
-  const batsmanBallMap = {}
-  const matchupMap = {}
-  const runOutEffectors = {}
-  const runOutVictims = {}
-  balls.forEach(b => {
-    if (b.bowler_id) {
-      if (!bowlerBallMap[b.bowler_id]) bowlerBallMap[b.bowler_id] = { dots: 0, wides: 0, noballs: 0, boundaries: 0, total: 0 }
-      const s = bowlerBallMap[b.bowler_id]
-      s.total++
-      if (b.is_dot_ball) s.dots++
-      if (b.extra_type === 'WD') s.wides++
-      if (b.extra_type === 'NB') s.noballs++
-      if (b.is_boundary) s.boundaries++
-    }
-    if (b.batsman_id && b.bowler_id) {
-      const key = `${b.batsman_id}|${b.bowler_id}`
-      if (!matchupMap[key]) matchupMap[key] = { batsman_id: b.batsman_id, bowler_id: b.bowler_id, balls: 0, runs: 0, dismissals: 0 }
-      const m = matchupMap[key]
-      m.balls++; m.runs += b.runs || 0
-      if (b.is_wicket) m.dismissals++
-    }
-    if (b.is_wicket && (b.commentary ?? '').toLowerCase().includes('run out')) {
-      const m = (b.commentary ?? '').match(/throw by ([^,\n]+)/i)
-      const fielder = m ? m[1].trim() : null
-      if (fielder) runOutEffectors[fielder] = (runOutEffectors[fielder] || 0) + 1
-      if (b.batsman_name) runOutVictims[b.batsman_name] = (runOutVictims[b.batsman_name] || 0) + 1
-      if (b.batsman_id) {
-        if (!batsmanBallMap[b.batsman_id]) batsmanBallMap[b.batsman_id] = { run_out_victim: 0 }
-        batsmanBallMap[b.batsman_id].run_out_victim = (batsmanBallMap[b.batsman_id].run_out_victim || 0) + 1
-      }
-    }
-  })
-  const bowlerBallStats = Object.entries(bowlerBallMap)
-    .map(([pid, s]) => ({ player_id: pid, ...s, dot_pct: s.total > 0 ? s.dots / s.total * 100 : 0 }))
-    .filter(s => s.total >= 12)
-    .sort((a, b) => b.dot_pct - a.dot_pct)
-  const topMatchups = Object.values(matchupMap).filter(m => m.balls >= 6).sort((a, b) => b.balls - a.balls).slice(0, 10)
-  const runOutEffectorsList = Object.entries(runOutEffectors).sort((a, b) => b[1] - a[1])
-  const runOutVictimsList   = Object.entries(runOutVictims).sort((a, b) => b[1] - a[1])
 
   // Run-out victim award: prefer ball_deliveries data (has batsman_id), fall back to match_performances
   const _roVictimFromBalls = Object.entries(batsmanBallMap)
@@ -281,8 +311,6 @@ export default function Leaderboard() {
   const mostRunOut = _roVictimFromBalls.length > 0
     ? (() => { const best = _roVictimFromBalls[0].times_run_out; return _roVictimFromBalls.filter(s => s.times_run_out === best) })()
     : _tg([...allStats].filter(s => s.times_run_out > 0).sort((a,b) => b.times_run_out - a.times_run_out), s => s.times_run_out)
-
-  const runOutSpecialist = _tg([...allStats].filter(s => s.run_outs > 0).sort((a,b) => b.run_outs - a.run_outs), s => s.run_outs)
 
   const tabs = [
     { id: 'batting',  label: 'Batting'   },
@@ -755,7 +783,7 @@ export default function Leaderboard() {
       {tab === 'balls' && (
         <div className="space-y-4">
           {ballLoading && <PageSpinner />}
-          {!ballLoading && balls.length === 0 && (
+          {!ballLoading && (ballData ?? []).length === 0 && (
             <div className="card text-center py-12">
               <p className="font-medium text-gray-300">No ball-by-ball data yet</p>
               <p className="text-sm text-gray-400 mt-1">Run the CricHeroes sync to populate delivery data.</p>

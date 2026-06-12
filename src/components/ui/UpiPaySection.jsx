@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { showToast } from './Toast'
 
 export default function UpiPaySection({ player, config }) {
   const [amount, setAmount]             = useState(null)
-
   const [pendingReqId, setPendingReqId] = useState(null)
   const [upiRef, setUpiRef]             = useState('')
   const [refSaved, setRefSaved]         = useState(false)
@@ -21,13 +21,19 @@ export default function UpiPaySection({ player, config }) {
   const needed    = Math.max(threshold - balance, 500)
   const suggested = Math.ceil(needed / 500) * 500
   const chosen    = amount ?? suggested
-  const isMobile  = /Android|iPhone|iPad/i.test(navigator.userAgent)
-  const teamName  = config?.team_name ?? 'Cricket Team'
   const note      = `Corpus Topup - ${player.display_name}`
-  const upiHref   = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(teamName)}&cu=INR&tn=${encodeURIComponent(note)}`
 
-  async function handlePayNow() {
-    setSaving(true)
+  async function handleCopy() {
+    // Clipboard failure (permissions, http) must not abort the payment-request insert
+    try {
+      await navigator.clipboard?.writeText(upiId)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (e) {
+      console.error('Clipboard write failed', e)
+      showToast('Could not copy — long-press the UPI ID to copy manually', 'error')
+    }
+    if (pendingReqId) return
     try {
       const reqId = `PREQ_${Date.now()}`
       const { error } = await supabase.from('payment_requests').insert({
@@ -38,14 +44,11 @@ export default function UpiPaySection({ player, config }) {
         upi_ref: '',
         notes: `UPI Topup initiated — ${player.display_name}`,
       })
-      if (!error) setPendingReqId(reqId)
-      else console.error('Payment request insert failed:', error.message)
-      window.location.href = upiHref
+      if (error) throw new Error(error.message)
+      setPendingReqId(reqId)
     } catch (e) {
       console.error('Failed to record payment intent', e)
-      window.location.href = upiHref
-    } finally {
-      setSaving(false)
+      showToast('Could not record your payment request — check your connection and try again', 'error')
     }
   }
 
@@ -57,20 +60,14 @@ export default function UpiPaySection({ player, config }) {
         .from('payment_requests')
         .update({ upi_ref: upiRef.trim() })
         .eq('id', pendingReqId)
-      if (!error) setRefSaved(true)
-      else console.error('Failed to save UPI ref:', error.message)
+      if (error) throw new Error(error.message)
+      setRefSaved(true)
     } catch (e) {
       console.error('Failed to save UPI ref', e)
+      showToast('Could not save the UPI reference — try again', 'error')
     } finally {
       setSaving(false)
     }
-  }
-
-  function copy() {
-    navigator.clipboard?.writeText(upiId).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
   }
 
   return (
@@ -92,7 +89,7 @@ export default function UpiPaySection({ player, config }) {
             key={a}
             onClick={() => setAmount(a)}
             className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-              chosen === a && !customAmt
+              chosen === a
                 ? 'bg-[#10b981] text-white border-[#10b981]'
                 : 'border-white/[0.15] text-gray-300 hover:border-[#10b981]/40'
             }`}
@@ -102,45 +99,27 @@ export default function UpiPaySection({ player, config }) {
         ))}
       </div>
 
-      {isMobile ? (
-        <button
-          onClick={handlePayNow}
-          disabled={saving}
-          className="btn-primary w-full text-base py-3"
-        >
-          {saving ? 'Opening…' : `Pay ₹${chosen.toLocaleString('en-IN')} via UPI`}
-        </button>
-      ) : (
-        <div className="bg-[rgba(16,185,129,0.08)] border border-[#10b981]/20 rounded-xl p-4 space-y-2">
-          <p className="text-[11px] font-medium text-[#10b981] uppercase tracking-[0.05em]">Pay to UPI ID</p>
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-base font-medium text-white flex-1 break-all">{upiId}</span>
-            <button
-              onClick={copy}
-              className={`shrink-0 text-sm font-medium px-3 py-1.5 rounded-lg border transition-colors ${
-                copied
-                  ? 'bg-[#10b981] text-white border-[#10b981]'
-                  : 'text-[#10b981] border-[#10b981]/30 hover:bg-[#10b981]/10'
-              }`}
-            >
-              {copied ? '✓ Copied' : 'Copy'}
-            </button>
-          </div>
-          <p className="text-xs text-gray-500 font-medium">
-            Use note: <span className="font-mono bg-white/[0.06] px-1.5 py-0.5 rounded">{note}</span>
-          </p>
-          <p className="text-xs text-gray-400">Open any UPI app and pay, or open this page on your phone to pay in one tap.</p>
-          {!pendingReqId && (
-            <button
-              onClick={handlePayNow}
-              disabled={saving}
-              className="text-xs text-[#10b981] font-medium hover:underline"
-            >
-              {saving ? 'Recording…' : 'Record payment intent →'}
-            </button>
-          )}
+      <div className="bg-[rgba(16,185,129,0.08)] border border-[#10b981]/20 rounded-xl p-4 space-y-2">
+        <p className="text-[11px] font-medium text-[#10b981] uppercase tracking-[0.05em]">Pay to UPI ID</p>
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-base font-medium text-white flex-1 break-all">{upiId}</span>
+          <button
+            onClick={handleCopy}
+            className={`shrink-0 text-sm font-medium px-3 py-1.5 rounded-lg border transition-colors ${
+              copied
+                ? 'bg-[#10b981] text-white border-[#10b981]'
+                : 'text-[#10b981] border-[#10b981]/30 hover:bg-[#10b981]/10'
+            }`}
+          >
+            {copied ? '✓ Copied' : 'Copy'}
+          </button>
         </div>
-      )}
+        <p className="text-xs text-gray-500 font-medium">
+          Amount: <span className="font-mono bg-white/[0.06] px-1.5 py-0.5 rounded">₹{chosen.toLocaleString('en-IN')}</span>
+          &nbsp;· Note: <span className="font-mono bg-white/[0.06] px-1.5 py-0.5 rounded">{note}</span>
+        </p>
+        <p className="text-xs text-gray-400">Copy the UPI ID and pay via any UPI app.</p>
+      </div>
 
       {pendingReqId && !refSaved && (
         <div className="bg-blue-900/20 border border-blue-700/30 rounded-xl p-4 space-y-2">

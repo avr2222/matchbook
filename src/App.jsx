@@ -10,6 +10,7 @@ import { useAuthStore } from './store/authStore'
 import { useAdminNotifications } from './hooks/useAdminNotifications'
 import { usePushSubscription } from './hooks/usePushSubscription'
 import { PageSpinner } from './components/ui/Spinner'
+import ErrorBoundary from './components/ErrorBoundary'
 
 // Public pages — loaded eagerly (part of the initial bundle)
 import Dashboard      from './pages/public/Dashboard'
@@ -79,6 +80,7 @@ export default function App() {
         <div className="min-h-screen flex flex-col">
           <Navbar />
           <div className="flex-1">
+            <ErrorBoundary>
             <Suspense fallback={<PageSpinner />}>
             <Routes>
               {/* Public */}
@@ -126,6 +128,7 @@ export default function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
             </Suspense>
+            </ErrorBoundary>
           </div>
         </div>
         <ToastProvider />
