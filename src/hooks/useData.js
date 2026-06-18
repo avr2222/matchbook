@@ -6,7 +6,7 @@ import {
   fetchPaymentRequests, fetchMatchPerformances, fetchBallDeliveries,
   fetchSeasonSquads, fetchAttendanceSummary, fetchTshirtOrders,
 } from '../api/dataReader'
-import { addTshirtOrder, deleteTshirtOrder } from '../api/dataWriter'
+import { addTshirtOrder, deleteTshirtOrder, updateTshirtOrder } from '../api/dataWriter'
 
 const STALE = 30_000 // 30s
 
@@ -54,6 +54,14 @@ export const useDeleteTshirtOrder = () => {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: deleteTshirtOrder,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tshirt_orders'] }),
+  })
+}
+
+export const useUpdateTshirtOrder = () => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: updateTshirtOrder,
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tshirt_orders'] }),
   })
 }

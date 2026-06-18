@@ -216,6 +216,14 @@ export async function deleteTshirtOrder(id) {
     `Deleted T-shirt order ${id}`, null, null)
 }
 
+export async function updateTshirtOrder(order) {
+  const { id, ...fields } = order
+  const { error } = await supabase.from('tshirt_orders').update(fields).eq('id', id)
+  if (error) throw new Error(`updateTshirtOrder: ${error.message}`)
+  await appendAudit('update_tshirt_order', 'tshirt_order', id,
+    `Updated T-shirt order: ${order.jersey_name} #${order.jersey_number}`, null, order)
+}
+
 // triggerCricHeroesSync no longer needed — sync is triggered via GitHub Actions workflow_dispatch
 // Kept as a no-op stub to avoid import errors in any code that still references it
 export async function triggerCricHeroesSync() {
