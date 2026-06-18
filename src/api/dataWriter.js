@@ -199,6 +199,23 @@ export async function deleteSeasonSquads(tournamentId) {
   await appendAudit('delete_season_squads', 'season_squad', tournamentId, 'Cleared squad for tournament', null, null)
 }
 
+export async function addTshirtOrder(order) {
+  const { error } = await supabase.from('tshirt_orders').insert(order)
+  if (error) throw new Error(`addTshirtOrder: ${error.message}`)
+  await appendAudit('add_tshirt_order', 'tshirt_order', order.id,
+    `T-shirt order: ${order.jersey_name} #${order.jersey_number}`, null, order)
+}
+
+export async function deleteTshirtOrder(id) {
+  const { data, error } = await supabase
+    .from('tshirt_orders').delete().eq('id', id).select('id')
+  if (error) throw new Error(`deleteTshirtOrder: ${error.message}`)
+  if (!data || data.length === 0)
+    throw new Error('Delete blocked — admin permissions required.')
+  await appendAudit('delete_tshirt_order', 'tshirt_order', id,
+    `Deleted T-shirt order ${id}`, null, null)
+}
+
 // triggerCricHeroesSync no longer needed — sync is triggered via GitHub Actions workflow_dispatch
 // Kept as a no-op stub to avoid import errors in any code that still references it
 export async function triggerCricHeroesSync() {

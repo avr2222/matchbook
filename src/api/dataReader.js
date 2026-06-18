@@ -202,6 +202,15 @@ export async function fetchSeasonSquads(tournamentId) {
   return data ?? []
 }
 
+export async function fetchTshirtOrders() {
+  const { data, error } = await supabase
+    .from('tshirt_orders')
+    .select('*')
+    .order('created_at', { ascending: true })
+  if (error) throw new Error(`fetchTshirtOrders: ${error.message}`)
+  return { schema_version: 1, tshirt_orders: data ?? [] }
+}
+
 // Users are now managed by Supabase Auth — no separate users.json table.
 // Return a stub so any remaining useUsers() calls don't crash.
 export async function fetchUsers() {

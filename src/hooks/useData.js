@@ -1,12 +1,12 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   fetchPlayers, fetchWeeks, fetchAttendance, fetchTransactions,
   fetchExpenses, fetchGuestVisits, fetchTournaments, fetchUsers,
   fetchAuditLog, fetchCricHeroesMapping, fetchConfig, fetchAnnouncements,
   fetchPaymentRequests, fetchMatchPerformances, fetchBallDeliveries,
-  fetchSeasonSquads,
-  fetchAttendanceSummary,
+  fetchSeasonSquads, fetchAttendanceSummary, fetchTshirtOrders,
 } from '../api/dataReader'
+import { addTshirtOrder, deleteTshirtOrder } from '../api/dataWriter'
 
 const STALE = 30_000 // 30s
 
@@ -38,3 +38,22 @@ export const useSeasonSquads = (tournamentId) =>
 
 export const useAttendanceSummary = () =>
   useQuery({ queryKey: ['attendance_summary'], queryFn: fetchAttendanceSummary, staleTime: STALE })
+
+export const useTshirtOrders = () =>
+  useQuery({ queryKey: ['tshirt_orders'], queryFn: fetchTshirtOrders, staleTime: STALE })
+
+export const useAddTshirtOrder = () => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: addTshirtOrder,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tshirt_orders'] }),
+  })
+}
+
+export const useDeleteTshirtOrder = () => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: deleteTshirtOrder,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tshirt_orders'] }),
+  })
+}

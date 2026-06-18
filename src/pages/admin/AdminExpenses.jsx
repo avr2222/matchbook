@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
-import { useExpenses, useWeeks, useConfig, usePlayers, useAttendance, useTransactions } from '../../hooks/useData'
+import { useExpenses, useWeeks, useConfig, usePlayers, useAttendance, useTransactions, useTshirtOrders } from '../../hooks/useData'
 import { writeExpenses, writeTransactions, writePlayers, softDeleteTransactions } from '../../api/dataWriter'
 import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
@@ -23,16 +23,18 @@ const CATEGORIES = [
 ]
 
 const SPLIT_LABEL = {
-  all_played:   'Played',
-  all_active:   'All Active',
-  corpus_pool:  'Corpus Pool',
-  week_present: 'Played',
-  all_corpus:   'All Corpus',
+  all_played:    'Played',
+  all_active:    'All Active',
+  corpus_pool:   'Corpus Pool',
+  week_present:  'Played',
+  all_corpus:    'All Corpus',
+  tshirt_orders: 'T-Shirt Orders',
 }
 
 const SPLIT_OPTIONS = [
-  { value: 'all_played',  label: 'Split among all who played' },
-  { value: 'all_active',  label: 'Split among all active players' },
+  { value: 'all_played',    label: 'Split among all who played' },
+  { value: 'all_active',    label: 'Split among all active players' },
+  { value: 'tshirt_orders', label: 'T-Shirt orders only' },
 ]
 
 export default function AdminExpenses() {
@@ -43,6 +45,7 @@ export default function AdminExpenses() {
   const { data: pData } = usePlayers()
   const { data: aData } = useAttendance()
   const { data: tData } = useTransactions()
+  const { data: tsData } = useTshirtOrders()
   const [searchParams, setSearchParams] = useSearchParams()
   const isAdmin  = useIsAdmin()
   const canWrite = useCanWrite()
@@ -52,6 +55,7 @@ export default function AdminExpenses() {
   const [confirmData, setConfirmData] = useState(null)
   const [editExpense, setEditExpense] = useState(null)
   const [editForm, setEditForm]       = useState(null)
+  const [tshirtChecked, setTshirtChecked] = useState({})
   const [form, setForm] = useState({
     date: new Date().toISOString().slice(0, 10),
     week_id: '',
@@ -90,9 +94,25 @@ export default function AdminExpenses() {
       if (!form.week_id) return null
       const playedIds = new Set(records.filter(r => r.week_id === form.week_id && r.status === 'played').map(r => r.player_id))
       count = allPlayers.filter(p => (p.type === 'corpus' || p.type === 'new') && playedIds.has(p.id)).length
+    } else if (form.split_among === 'tshirt_orders') {
+      count = tshirtOrderPlayers().length
     }
     if (count === 0) return null
     return `₹${Math.round(amt / count).toLocaleString('en-IN')} per player (${count} players)`
+  }
+
+  // Players who ordered T-shirts AND are linked to a player account AND are checked
+  function tshirtOrderPlayers() {
+    const allPlayers = pData?.players ?? []
+    const orders = tsData?.tshirt_orders ?? []
+    const linkedPlayerIds = [...new Set(
+      orders.filter(o => o.player_id).map(o => o.player_id)
+    )]
+    // Apply checkbox state (default checked = true)
+    return allPlayers.filter(p =>
+      linkedPlayerIds.includes(p.id) &&
+      (tshirtChecked[p.id] !== false)
+    )
   }
 
   async function save() {
@@ -127,6 +147,8 @@ export default function AdminExpenses() {
         } else if (form.split_among === 'all_played' && form.week_id) {
           const playedIds = new Set(records.filter(r => r.week_id === form.week_id && r.status === 'played').map(r => r.player_id))
           deductPlayers = allPlayers.filter(p => (p.type === 'corpus' || p.type === 'new') && playedIds.has(p.id))
+        } else if (form.split_among === 'tshirt_orders') {
+          deductPlayers = tshirtOrderPlayers()
         }
         if (deductPlayers.length > 0) {
           const share = Math.round((parseFloat(form.amount) / deductPlayers.length) * 100) / 100
@@ -289,6 +311,10 @@ export default function AdminExpenses() {
         } else if (editForm.split_among === 'all_played' && editForm.week_id) {
           const playedIds = new Set(records.filter(r => r.week_id === editForm.week_id && r.status === 'played').map(r => r.player_id))
           deductPlayers = revertedPlayers.filter(p => (p.type === 'corpus' || p.type === 'new') && playedIds.has(p.id))
+        } else if (editForm.split_among === 'tshirt_orders') {
+          const orders = tsData?.tshirt_orders ?? []
+          const linkedIds = new Set(orders.filter(o => o.player_id).map(o => o.player_id))
+          deductPlayers = revertedPlayers.filter(p => linkedIds.has(p.id))
         }
         if (deductPlayers.length > 0) {
           const share = Math.round((parseFloat(editForm.amount) / deductPlayers.length) * 100) / 100
@@ -553,6 +579,44 @@ export default function AdminExpenses() {
                 {preview && (
                   <p className="text-xs text-[#10b981] mt-1">≈ {preview}</p>
                 )}
+                {form.split_among === 'tshirt_orders' && (() => {
+                  const orders = tsData?.tshirt_orders ?? []
+                  const allPlayers = pData?.players ?? []
+                  const linkedPlayerIds = [...new Set(orders.filter(o => o.player_id).map(o => o.player_id))]
+                  const linked = allPlayers.filter(p => linkedPlayerIds.includes(p.id))
+                  const unlinked = orders.filter(o => !o.player_id)
+                  return (
+                    <div className="mt-2 space-y-1.5">
+                      <p className="text-xs text-gray-400 mb-1">Select players to deduct from:</p>
+                      {linked.length === 0 && (
+                        <p className="text-xs text-amber-400">No T-shirt orders are linked to player accounts yet.</p>
+                      )}
+                      {linked.map(p => {
+                        const order = orders.find(o => o.player_id === p.id)
+                        return (
+                          <label key={p.id} className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={tshirtChecked[p.id] !== false}
+                              onChange={e => setTshirtChecked(c => ({ ...c, [p.id]: e.target.checked }))}
+                              className="w-4 h-4 accent-[#10b981]"
+                            />
+                            <span>{p.display_name}</span>
+                            {order && <span className="text-xs text-gray-500">({order.jersey_name} #{order.jersey_number})</span>}
+                          </label>
+                        )
+                      })}
+                      {unlinked.length > 0 && (
+                        <div className="mt-1 pt-1 border-t border-white/[0.06]">
+                          <p className="text-xs text-gray-500 mb-1">Not linked — no deduction possible:</p>
+                          {unlinked.map(o => (
+                            <p key={o.id} className="text-xs text-gray-600">{o.jersey_name} #{o.jersey_number}</p>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })()}
               </div>
               <div>
                 <label className="label">Description (optional)</label>

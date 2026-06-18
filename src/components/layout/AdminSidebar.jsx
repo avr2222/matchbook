@@ -6,7 +6,7 @@ import { supabase } from '../../lib/supabase'
 import {
   IconLayoutDashboard, IconUsers, IconCalendar, IconCreditCard,
   IconReceipt, IconUser, IconBell, IconClipboard, IconLink,
-  IconPencil, IconCurrencyRupee, IconSettings, IconCards,
+  IconPencil, IconCurrencyRupee, IconSettings, IconCards, IconShirt,
 } from '@tabler/icons-react'
 
 function usePendingCounts() {
@@ -40,6 +40,7 @@ const ICON_MAP = {
   payrequests:   IconCurrencyRupee,
   settings:      IconSettings,
   draft:         IconCards,
+  tshirt:        IconShirt,
 }
 
 function useAdminLinks() {
@@ -56,6 +57,7 @@ function useAdminLinks() {
     { to: '/admin/weeks',         label: 'Matches',       key: 'matches' },
     { to: '/admin/transactions',  label: 'Payments',      key: 'payments',      adminOnly: true },
     { to: '/admin/expenses',      label: 'Expenses',      key: 'expenses' },
+    { to: '/admin/tshirt',        label: 'T-Shirts',      key: 'tshirt' },
     { to: '/admin/guests',        label: 'Guests',        key: 'guests',        adminOnly: true },
     { to: '/admin/announcements', label: 'Announcements', key: 'announcements', adminOnly: true },
     { to: '/admin/audit',         label: 'Audit log',     key: 'audit',         adminOnly: true },
