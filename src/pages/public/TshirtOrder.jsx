@@ -4,7 +4,7 @@ import { usePlayers } from '../../hooks/useData'
 import { showToast } from '../../components/ui/Toast'
 import { format, parseISO } from 'date-fns'
 
-const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', 'XXXXL']
 
 const EMPTY_FORM = {
   jersey_name: '',

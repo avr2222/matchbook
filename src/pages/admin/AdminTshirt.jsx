@@ -6,7 +6,7 @@ import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
 import { format, parseISO } from 'date-fns'
 
-const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', 'XXXXL']
 
 export default function AdminTshirt() {
   const { data: ordersData, isLoading } = useTshirtOrders()
@@ -112,7 +112,7 @@ export default function AdminTshirt() {
           <div className="flex flex-wrap gap-2 no-print">
             <span className="px-3 py-1 rounded-full text-xs bg-white/[0.05] text-gray-300">Half sleeve: {halfCount}</span>
             <span className="px-3 py-1 rounded-full text-xs bg-white/[0.05] text-gray-300">Full sleeve: {fullCount}</span>
-            {['XS', 'S', 'M', 'L', 'XL', 'XXL'].filter(s => sizeCounts[s]).map(s => (
+            {['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', 'XXXXL'].filter(s => sizeCounts[s]).map(s => (
               <span key={s} className="px-3 py-1 rounded-full text-xs bg-white/[0.05] text-gray-300">{s}: {sizeCounts[s]}</span>
             ))}
           </div>
