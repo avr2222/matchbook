@@ -531,7 +531,7 @@ export default function AdminTransactions() {
           <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] w-full max-w-md">
             <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between">
               <h2 className="font-medium">Record Payment</h2>
-              <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+              <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-200">✕</button>
             </div>
             <div className="px-6 py-4 space-y-3">
               <div>
@@ -588,7 +588,7 @@ export default function AdminTransactions() {
           <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] w-full max-w-md">
             <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between">
               <h2 className="font-medium">Edit Transaction</h2>
-              <button onClick={() => setEditTxn(null)} className="text-gray-400 hover:text-gray-600">✕</button>
+              <button onClick={() => setEditTxn(null)} className="text-gray-400 hover:text-gray-200">✕</button>
             </div>
             <div className="px-6 py-4 space-y-3">
               <div>
@@ -647,7 +647,7 @@ export default function AdminTransactions() {
           <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between">
               <h2 className="font-medium">Bulk Record Payments</h2>
-              <button onClick={() => setShowBulk(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+              <button onClick={() => setShowBulk(false)} className="text-gray-400 hover:text-gray-200">✕</button>
             </div>
             <div className="px-6 py-4 space-y-3">
               <div className="grid grid-cols-2 gap-3">

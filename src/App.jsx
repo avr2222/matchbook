@@ -5,6 +5,7 @@ import Navbar from './components/layout/Navbar'
 import AdminSidebar, { AdminMobileNav } from './components/layout/AdminSidebar'
 import ProtectedRoute from './auth/ProtectedRoute'
 import { ToastProvider } from './components/ui/Toast'
+import OfflineBanner from './components/ui/OfflineBanner'
 import { useIsAdmin } from './hooks/useIsAdmin'
 import { useAuthStore } from './store/authStore'
 import { useAdminNotifications } from './hooks/useAdminNotifications'
@@ -81,6 +82,7 @@ export default function App() {
       <HashRouter>
         <div className="min-h-screen flex flex-col">
           <Navbar />
+          <OfflineBanner />
           <div className="flex-1">
             <ErrorBoundary>
             <Suspense fallback={<PageSpinner />}>

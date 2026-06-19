@@ -117,7 +117,7 @@ export default function Signup() {
         <div className="card max-w-sm w-full text-center space-y-4">
           <div className="text-5xl">🎉</div>
           <h1 className="text-xl font-bold text-white">Account Created!</h1>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-400">
             Your account is pending admin approval. You'll be able to sign in once approved.
           </p>
           <p className="text-xs text-gray-400">

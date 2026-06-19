@@ -159,7 +159,7 @@ export default function ForgotPassword() {
             <button type="submit" disabled={loading} className="btn-primary w-full">
               {loading ? 'Resetting…' : 'Reset Password'}
             </button>
-            <button type="button" onClick={() => { setStep(1); setError('') }} className="w-full text-sm text-gray-400 hover:text-gray-600">
+            <button type="button" onClick={() => { setStep(1); setError('') }} className="w-full text-sm text-gray-400 hover:text-gray-200">
               ← Back
             </button>
           </form>

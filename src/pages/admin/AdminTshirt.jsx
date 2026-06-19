@@ -146,9 +146,9 @@ export default function AdminTshirt() {
                   <td className="px-4 py-3 text-gray-300">{o.size}</td>
                   <td className="px-4 py-3 text-gray-300 capitalize">{o.sleeve_type}</td>
                   <td className="px-4 py-3 text-gray-400">
-                    {o.player_id ? (playerMap[o.player_id] ?? o.player_id) : <span className="text-gray-600">—</span>}
+                    {o.player_id ? (playerMap[o.player_id] ?? o.player_id) : <span className="text-gray-400">—</span>}
                   </td>
-                  <td className="px-4 py-3 text-gray-500 max-w-[160px] truncate">{o.notes || <span className="text-gray-600">—</span>}</td>
+                  <td className="px-4 py-3 text-gray-500 max-w-[160px] truncate">{o.notes || <span className="text-gray-400">—</span>}</td>
                   <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
                     {o.created_at ? format(parseISO(o.created_at), 'MMM d, yyyy') : '—'}
                   </td>

@@ -1,5 +1,6 @@
 import { format, parseISO } from 'date-fns'
 import { IconX, IconCricket, IconMedal, IconStar, IconBallBowling } from '@tabler/icons-react'
+import useModalA11y from '../../hooks/useModalA11y'
 
 const TYPE_LABEL = { corpus: 'Corpus', ppm: 'PPM', guest: 'Guest', new: 'New' }
 const TYPE_COLOR = {
@@ -27,6 +28,7 @@ const STAR_CONFIG = [
 ]
 
 export default function MatchPlayersModal({ week, players, records, expenses, perfRows, onClose }) {
+  const dialogRef = useModalA11y(onClose, !!week)
   if (!week) return null
 
   const played = records
@@ -52,22 +54,30 @@ export default function MatchPlayersModal({ week, players, records, expenses, pe
   const payingCount = played.length - guestsCount
 
   return (
-    <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] w-full max-w-md max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black/25 z-50 flex items-center justify-center p-4" role="presentation" onClick={onClose}>
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="match-players-modal-title"
+        tabIndex={-1}
+        className="bg-[#0c1e18] rounded-xl border border-white/[0.1] w-full max-w-md max-h-[90vh] flex flex-col"
+        onClick={e => e.stopPropagation()}
+      >
 
         {/* Header */}
         <div className="px-5 py-4 border-b border-white/[0.06] flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2">
               <IconCricket size={16} className="text-[#10b981] shrink-0" />
-              <h2 className="font-medium text-gray-100">{dateLabel}</h2>
+              <h2 id="match-players-modal-title" className="font-medium text-gray-100">{dateLabel}</h2>
             </div>
             <p className="text-xs text-gray-400 mt-0.5">
               {week.venue?.split(',')[0]}
               {week.cricheroes_match_ids?.length > 1 && ` · ${week.cricheroes_match_ids.length} games`}
             </p>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-200 mt-0.5">
+          <button onClick={onClose} aria-label="Close" className="text-gray-400 hover:text-gray-200 mt-0.5">
             <IconX size={16} />
           </button>
         </div>

@@ -68,7 +68,7 @@ function PlayerHistoryModal({ player, allTxns, attendance, weeks, expenses, onCl
               <span className="text-xs text-gray-500">{typeLabel(player.type)}</span>
             </div>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-200 text-lg leading-none">✕</button>
         </div>
 
         <div className="px-6 py-3 bg-white/[0.04] grid grid-cols-3 gap-3 border-b border-white/[0.06] shrink-0">
@@ -413,7 +413,7 @@ export default function AdminPlayers() {
       {isAdmin && selected.size > 0 && (
         <div className="flex items-center gap-3 bg-red-900/10 border border-red-700/30 rounded-xl px-4 py-2.5">
           <span className="text-sm text-red-300 font-medium flex-1">{selected.size} player{selected.size > 1 ? 's' : ''} selected</span>
-          <button onClick={() => setSelected(new Set())} className="text-xs text-gray-400 hover:text-gray-600">Clear</button>
+          <button onClick={() => setSelected(new Set())} className="text-xs text-gray-400 hover:text-gray-200">Clear</button>
           <button onClick={bulkDeactivate} className="btn-danger text-sm py-1 px-3">
             Deactivate Selected ({selected.size})
           </button>
@@ -597,7 +597,7 @@ export default function AdminPlayers() {
               <h2 className="font-medium text-white">
                 {players.find(p => p.id === editing.id) ? 'Edit player' : 'Add player'}
               </h2>
-              <button onClick={() => setEditing(null)} className="text-gray-400 hover:text-gray-600">✕</button>
+              <button onClick={() => setEditing(null)} className="text-gray-400 hover:text-gray-200">✕</button>
             </div>
             <div className="px-6 py-4 space-y-3">
               {/* Name field with duplicate warning */}

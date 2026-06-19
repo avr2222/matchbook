@@ -434,7 +434,7 @@ export default function AdminExpenses() {
                 <tr key={e.id} className="hover:bg-white/[0.03]">
                   <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{format(parseISO(e.date), 'MMM d, yyyy')}</td>
                   <td className="px-4 py-3 text-gray-200 whitespace-nowrap">{CATEGORIES.find(c => c.value === e.category)?.label ?? e.category}</td>
-                  <td className="px-4 py-3 text-gray-600">
+                  <td className="px-4 py-3 text-gray-400">
                     <div>{e.description}</div>
                     {(e.paid_by || e.paid_by_player_id) && (
                       <div className="text-xs text-gray-400 mt-0.5">
@@ -610,7 +610,7 @@ export default function AdminExpenses() {
                         <div className="mt-1 pt-1 border-t border-white/[0.06]">
                           <p className="text-xs text-gray-500 mb-1">Not linked — no deduction possible:</p>
                           {unlinked.map(o => (
-                            <p key={o.id} className="text-xs text-gray-600">{o.jersey_name} #{o.jersey_number}</p>
+                            <p key={o.id} className="text-xs text-gray-400">{o.jersey_name} #{o.jersey_number}</p>
                           ))}
                         </div>
                       )}

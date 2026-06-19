@@ -105,7 +105,7 @@ export default function Login() {
               New player?{' '}
               <Link to="/signup" className="text-green-600 font-semibold hover:underline">Sign up →</Link>
             </p>
-            <Link to="/forgot-password" className="text-gray-400 hover:text-gray-600 text-xs hover:underline block">
+            <Link to="/forgot-password" className="text-gray-400 hover:text-gray-200 text-xs hover:underline block">
               Forgot password?
             </Link>
           </div>

@@ -200,7 +200,7 @@ export default function AdminGuests() {
           <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] w-full max-w-md">
             <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between">
               <h2 className="font-medium">Add Guest Visit</h2>
-              <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+              <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-200">✕</button>
             </div>
             <div className="px-6 py-4 space-y-3">
               <div>

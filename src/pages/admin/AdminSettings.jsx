@@ -181,8 +181,8 @@ export default function AdminSettings() {
               />
             </div>
             <div className="pt-1 space-y-1 text-xs text-gray-400 bg-white/[0.04] rounded-lg p-2">
-              <div>active_tournament_id: <span className="font-mono text-gray-600">{cfg?.active_tournament_id ?? '—'}</span></div>
-              <div>default_ppm_rate: <span className="font-mono text-gray-600">₹{cfg?.default_ppm_rate ?? '—'}</span></div>
+              <div>active_tournament_id: <span className="font-mono text-gray-400">{cfg?.active_tournament_id ?? '—'}</span></div>
+              <div>default_ppm_rate: <span className="font-mono text-gray-400">₹{cfg?.default_ppm_rate ?? '—'}</span></div>
             </div>
           </div>
           <button

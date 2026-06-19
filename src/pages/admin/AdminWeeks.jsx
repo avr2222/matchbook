@@ -464,7 +464,7 @@ export default function AdminWeeks() {
           <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] w-full max-w-sm">
             <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between">
               <h2 className="font-medium">Match Result</h2>
-              <button onClick={() => setEditResult(null)} className="text-gray-400 hover:text-gray-600">✕</button>
+              <button onClick={() => setEditResult(null)} className="text-gray-400 hover:text-gray-200">✕</button>
             </div>
             <div className="px-6 py-4 space-y-3">
               <div>
@@ -510,7 +510,7 @@ export default function AdminWeeks() {
                 <h2 className="font-medium">Attendance — {format(parseISO(selectedWeek.match_date), 'MMM d, yyyy')}</h2>
                 <p className="text-xs text-gray-400 mt-0.5">{selectedWeek.label}</p>
               </div>
-              <button onClick={() => { setSelected(null); setReimbPlayer(''); setReimbAmount(''); setReimbDesc('Match/snacks expense') }} className="text-gray-400 hover:text-gray-600">✕</button>
+              <button onClick={() => { setSelected(null); setReimbPlayer(''); setReimbAmount(''); setReimbDesc('Match/snacks expense') }} className="text-gray-400 hover:text-gray-200">✕</button>
             </div>
 
             {/* Match + Snacks cost — auto-divided among paid players */}
@@ -672,7 +672,7 @@ export default function AdminWeeks() {
           <div className="bg-[#0c1e18] rounded-xl border border-white/[0.1] w-full max-w-sm">
             <div className="px-6 py-4 border-b border-white/[0.06] flex justify-between">
               <h2 className="font-medium">Add Match Week</h2>
-              <button onClick={() => setShowNew(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+              <button onClick={() => setShowNew(false)} className="text-gray-400 hover:text-gray-200">✕</button>
             </div>
             <div className="px-6 py-4 space-y-3">
               <div>

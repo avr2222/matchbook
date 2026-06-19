@@ -20,7 +20,7 @@ function AnnRow({ ann, todayStr, onEdit, onDelete, deletingId, isAdmin }) {
           {ann.pinned && <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-medium">Pinned</span>}
           <span className="font-medium text-white text-sm">{ann.title}</span>
         </div>
-        <p className="text-sm text-gray-600 mt-0.5 truncate">{ann.body}</p>
+        <p className="text-sm text-gray-400 mt-0.5 truncate">{ann.body}</p>
         <p className="text-xs text-gray-400 mt-1">
           Posted {format(parseISO(ann.posted_on), 'MMM d, yyyy')}
           {ann.expires_on && ` · Expires ${format(parseISO(ann.expires_on), 'MMM d, yyyy')}`}
@@ -154,7 +154,7 @@ export default function AdminAnnouncements() {
               <h2 className="font-medium">
                 {announcements.find(a => a.id === editing.id) ? 'Edit Announcement' : 'New Announcement'}
               </h2>
-              <button onClick={() => setEditing(null)} className="text-gray-400 hover:text-gray-600">✕</button>
+              <button onClick={() => setEditing(null)} className="text-gray-400 hover:text-gray-200">✕</button>
             </div>
             <div className="px-6 py-4 space-y-3">
               <div>

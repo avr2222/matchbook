@@ -326,7 +326,7 @@ export default function TeamReveal() {
               })}
               {teamANoRole.length > 0 && (
                 <div>
-                  <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-wider mb-1">Others</p>
+                  <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Others</p>
                   {teamANoRole.map(row => (
                     <div key={row.player_id} className="flex items-center gap-2 py-1">
                       <span className="text-sm text-amber-100">{playerMap[row.player_id] ?? row.player_id}</span>
@@ -371,7 +371,7 @@ export default function TeamReveal() {
               })}
               {teamBNoRole.length > 0 && (
                 <div>
-                  <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-wider mb-1">Others</p>
+                  <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Others</p>
                   {teamBNoRole.map(row => (
                     <div key={row.player_id} className="flex items-center gap-2 py-1">
                       <span className="text-sm text-blue-100">{playerMap[row.player_id] ?? row.player_id}</span>

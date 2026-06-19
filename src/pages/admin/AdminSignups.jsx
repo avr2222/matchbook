@@ -176,7 +176,7 @@ export default function AdminSignups() {
                             </button>
                             <button
                               onClick={() => setEditingId(null)}
-                              className="text-xs text-gray-400 hover:text-gray-600"
+                              className="text-xs text-gray-400 hover:text-gray-200"
                             >
                               Cancel
                             </button>
@@ -236,12 +236,12 @@ export default function AdminSignups() {
 
                 {/* Security questions (collapsed by default) */}
                 <details className="text-xs text-gray-400">
-                  <summary className="cursor-pointer hover:text-gray-600 select-none">Security questions</summary>
+                  <summary className="cursor-pointer hover:text-gray-200 select-none">Security questions</summary>
                   <div className="mt-2 space-y-1 bg-white/[0.04] rounded-lg p-2">
-                    <div><span className="font-medium text-gray-600">Q1:</span> {s.security_question_1}</div>
-                    <div><span className="font-medium text-gray-600">A1:</span> {s.security_answer_1 ? '••••••' : '—'}</div>
-                    <div><span className="font-medium text-gray-600">Q2:</span> {s.security_question_2}</div>
-                    <div><span className="font-medium text-gray-600">A2:</span> {s.security_answer_2 ? '••••••' : '—'}</div>
+                    <div><span className="font-medium text-gray-400">Q1:</span> {s.security_question_1}</div>
+                    <div><span className="font-medium text-gray-400">A1:</span> {s.security_answer_1 ? '••••••' : '—'}</div>
+                    <div><span className="font-medium text-gray-400">Q2:</span> {s.security_question_2}</div>
+                    <div><span className="font-medium text-gray-400">A2:</span> {s.security_answer_2 ? '••••••' : '—'}</div>
                   </div>
                 </details>
               </div>
