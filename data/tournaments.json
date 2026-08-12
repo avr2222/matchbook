@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "active_tournament_id": "TRN_001",
+  "tournaments": [
+    {
+      "id": "TRN_001",
+      "name": "Machaxi Box Cricket Season 2",
+      "short_name": "Season 2",
+      "cricheroes_tournament_id": "1874258",
+      "cricheroes_url": "https://cricheroes.com/tournament/1874258/machaxi-box-cricket-season-2",
+      "start_date": "2026-02-20",
+      "end_date": "2026-08-31",
+      "status": "active",
+      "opening_balances": {}
+    }
+  ]
+}
