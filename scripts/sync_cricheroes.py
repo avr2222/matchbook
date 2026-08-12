@@ -58,6 +58,22 @@ API_HEADERS = {
 
 # ── Supabase helpers ──────────────────────────────────────────────────────────
 
+def _check_response(r):
+    """Raise with a diagnosable message instead of a bare traceback on auth failures."""
+    if r.status_code == 401:
+        print(f"  Supabase 401 Unauthorized for {r.url}")
+        print(f"  Response body: {r.text[:300]}")
+        print(
+            "  This means SUPABASE_SERVICE_KEY was rejected outright by Supabase (not an RLS/"
+            "permission issue). Most likely the service_role key was rotated/regenerated in the "
+            "Supabase dashboard (Settings → API) and the GitHub Actions secret is now stale. "
+            "Update the SUPABASE_SERVICE_KEY repo secret with the current service_role key and "
+            "re-run the sync."
+        )
+        sys.exit(1)
+    r.raise_for_status()
+
+
 def sb_get_all(table, select='*', filters=''):
     """Fetch all rows from a table, paginating automatically."""
     rows = []
@@ -68,7 +84,7 @@ def sb_get_all(table, select='*', filters=''):
         if filters:
             url += f'&{filters}'
         r = requests.get(url, headers={**SB_HEADERS, 'Prefer': 'count=none'})
-        r.raise_for_status()
+        _check_response(r)
         batch = r.json()
         rows.extend(batch)
         if len(batch) < limit:
@@ -82,7 +98,7 @@ def sb_get_one(table, select='*', filters=''):
     if filters:
         url += f'&{filters}'
     r = requests.get(url, headers={**SB_HEADERS, 'Prefer': 'count=none'})
-    r.raise_for_status()
+    _check_response(r)
     data = r.json()
     return data[0] if data else None
 
@@ -92,6 +108,8 @@ def sb_patch(table, row_filter, data):
     r = requests.patch(url, headers={**SB_HEADERS, 'Prefer': 'return=minimal'}, json=data)
     if not r.ok:
         print(f"  ERROR patching {table}: {r.status_code} {r.text[:200]}")
+        if r.status_code == 401:
+            _check_response(r)
 
 
 def sb_upsert(table, rows, chunk=500):
@@ -106,7 +124,7 @@ def sb_upsert(table, rows, chunk=500):
         )
         if not r.ok:
             print(f"  ERROR upserting {table}: {r.status_code} {r.text[:400]}")
-            r.raise_for_status()
+            _check_response(r)
     print(f"  Saved {len(rows_list)} rows → {table}")
 
 
