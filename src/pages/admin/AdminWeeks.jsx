@@ -55,6 +55,11 @@ export default function AdminWeeks() {
   const activeTId    = cfg?.active_tournament_id ?? 'TRN_001'
   const selectedWeek = weeks.find(w => w.week_id === selected)
 
+  // Players the match + snacks cost is divided among. Guests count even when they
+  // pay directly; PPM (cash) and players marked free are excluded.
+  const sharesFee = p =>
+    attendanceMap[p.id] === 'played' && p.type !== 'ppm' && !freePlayerIds.has(p.id)
+
   function openAttendance(weekId) {
     const week = weeks.find(w => w.week_id === weekId)
     const weekRecords = records.filter(r => r.week_id === weekId)
@@ -206,7 +211,7 @@ export default function AdminWeeks() {
     try {
       const total = (matchAmount || 0) + (snacksAmount || 0)
       const played = players.filter(p => attendanceMap[p.id] === 'played')
-      const paidPlayers = played.filter(p => p.type !== 'ppm' && !freePlayerIds.has(p.id))
+      const paidPlayers = played.filter(sharesFee)
       const perPlayerFee = paidPlayers.length > 0 ? total / paidPlayers.length : 0
 
       // Store computed per-player fee in week record
@@ -617,14 +622,9 @@ export default function AdminWeeks() {
             <div className="px-6 py-4 border-t border-white/[0.06]">
               {(() => {
                 const total = (matchAmount || 0) + (snacksAmount || 0)
-                const paidCount = players.filter(p =>
-                  attendanceMap[p.id] === 'played' &&
-                  p.type !== 'ppm' &&
-                  !freePlayerIds.has(p.id) &&
-                  !(p.type === 'guest' && !deductFromMap[p.id])
-                ).length
+                const paidCount = players.filter(sharesFee).length
                 const freeCount = players.filter(p => attendanceMap[p.id] === 'played' && p.type !== 'ppm' && freePlayerIds.has(p.id)).length
-                const guestDirectCount = players.filter(p => attendanceMap[p.id] === 'played' && p.type === 'guest' && !deductFromMap[p.id] && !freePlayerIds.has(p.id)).length
+                const guestDirectCount = players.filter(p => sharesFee(p) && p.type === 'guest' && !deductFromMap[p.id]).length
                 const perPlayer = paidCount > 0 ? total / paidCount : 0
                 const alreadyDeducted = transactions.some(
                   t => t.week_id === selectedWeek?.week_id && t.type === 'match_deduction'
@@ -635,7 +635,7 @@ export default function AdminWeeks() {
                       <p className="text-xs text-gray-500 mb-3">
                         ₹{total.toFixed(0)} ÷ {paidCount} paid
                         {freeCount > 0 ? ` (${freeCount} free)` : ''}
-                        {guestDirectCount > 0 ? ` · ${guestDirectCount} guest${guestDirectCount > 1 ? 's' : ''} pay directly` : ''}
+                        {guestDirectCount > 0 ? ` · incl. ${guestDirectCount} guest${guestDirectCount > 1 ? 's' : ''} paying directly` : ''}
                         {' '}= ₹{perPlayer.toFixed(0)}/player
                       </p>
                     )}
