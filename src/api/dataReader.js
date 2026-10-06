@@ -44,24 +44,30 @@ export async function fetchWeeks() {
   return { schema_version: 1, weeks: data }
 }
 
-export async function fetchAttendance() {
-  // Supabase PostgREST hard-limits each request to 1000 rows.
-  // A 30-player team with 35+ matches already exceeds 1000 attendance records,
-  // so we paginate to ensure every row is fetched.
+// Supabase PostgREST hard-limits each request to 1000 rows.
+// A 30-player team with 35+ matches already exceeds 1000 attendance records,
+// so we paginate to ensure every row is fetched. Pages are ordered by the PK —
+// without a unique order, rows can be skipped or repeated between pages.
+async function fetchAllAttendance(columns, caller) {
   const PAGE = 1000
   const all = []
   let from = 0
   while (true) {
     const { data, error } = await supabase
       .from('attendance')
-      .select('*')
+      .select(columns)
+      .order('id')
       .range(from, from + PAGE - 1)
-    if (error) throw new Error(`fetchAttendance: ${error.message}`)
+    if (error) throw new Error(`${caller}: ${error.message}`)
     all.push(...(data ?? []))
     if (!data || data.length < PAGE) break
     from += PAGE
   }
-  return { schema_version: 1, records: all }
+  return all
+}
+
+export async function fetchAttendance() {
+  return { schema_version: 1, records: await fetchAllAttendance('*', 'fetchAttendance') }
 }
 
 export async function fetchTransactions() {
@@ -73,6 +79,7 @@ export async function fetchTransactions() {
       .from('transactions')
       .select('*')
       .order('date', { ascending: false })
+      .order('id')   // tie-breaker: many rows share a date, and pages need a stable order
       .range(from, from + PAGE - 1)
     if (error) throw new Error(`fetchTransactions: ${error.message}`)
     all.push(...(data ?? []))
@@ -185,11 +192,7 @@ export async function fetchBallDeliveries(tournamentId) {
 }
 
 export async function fetchAttendanceSummary() {
-  const { data, error } = await supabase
-    .from('attendance')
-    .select('player_id, status, week_id')
-  if (error) throw new Error(`fetchAttendanceSummary: ${error.message}`)
-  return data ?? []
+  return fetchAllAttendance('player_id, status, week_id', 'fetchAttendanceSummary')
 }
 
 export async function fetchSeasonSquads(tournamentId) {

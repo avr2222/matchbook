@@ -1052,6 +1052,10 @@ def sync():
 
     if auto_deduct and new_attendance:
         corpus_types = {'corpus', 'new'}
+        # Same split rule as the admin attendance editor (src/utils/feeSplit.js): the
+        # cost is divided among everyone who played, guests included (they pay
+        # directly); PPM players pay cash and are left out.
+        sharing_types = corpus_types | {'guest'}
         player_map = {p['id']: p for p in players}
         for p in new_players:
             player_map[p['id']] = p
@@ -1070,18 +1074,23 @@ def sync():
             week_obj  = next((w for w in weeks + new_weeks if w['week_id'] == wid), None)
             week_date = week_obj['match_date'] if week_obj else ''
 
-            played_corpus = [
+            sharers = [
                 r for r in all_att.values()
                 if r['week_id'] == wid
                 and r['status'] == 'played'
                 and not r.get('fee_deducted')   # skip players marked free
-                and player_map.get(r['player_id'], {}).get('type') in corpus_types
+                and player_map.get(r['player_id'], {}).get('type') in sharing_types
                 and player_map.get(r['player_id'], {}).get('status') == 'active'
+            ]
+            # Only corpus/new players are charged here; guests pay their share directly
+            played_corpus = [
+                r for r in sharers
+                if player_map.get(r['player_id'], {}).get('type') in corpus_types
             ]
             if not played_corpus:
                 continue
 
-            per_fee = round(match_fee / len(played_corpus), 2)
+            per_fee = round(match_fee / len(sharers), 2)
 
             for rec in played_corpus:
                 pid    = rec['player_id']

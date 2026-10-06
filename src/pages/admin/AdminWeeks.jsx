@@ -3,10 +3,11 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useWeeks, usePlayers, useAttendance, useConfig, useTransactions, useExpenses } from '../../hooks/useData'
 import { useIsAdmin } from '../../hooks/useIsAdmin'
 import { useCanWrite } from '../../hooks/useCanWrite'
-import { writeWeeks, deleteWeekById, writeAttendance, writeTransactions, writePlayers, softDeleteTransactions } from '../../api/dataWriter'
+import { writeWeeks, deleteWeekById, writeAttendance, writeTransactions, softDeleteTransactions } from '../../api/dataWriter'
 import { showToast } from '../../components/ui/Toast'
 import { PageSpinner } from '../../components/ui/Spinner'
-import { calcBalanceStatus, typeEmoji } from '../../utils/balanceCalculator'
+import { typeEmoji } from '../../utils/balanceCalculator'
+import { sharesMatchCost, rebuildWeekTotal } from '../../utils/feeSplit'
 import { format, parseISO } from 'date-fns'
 import MatchPlayersModal from '../../components/ui/MatchPlayersModal'
 import ConfirmModal from '../../components/ui/ConfirmModal'
@@ -55,10 +56,7 @@ export default function AdminWeeks() {
   const activeTId    = cfg?.active_tournament_id ?? 'TRN_001'
   const selectedWeek = weeks.find(w => w.week_id === selected)
 
-  // Players the match + snacks cost is divided among. Guests count even when they
-  // pay directly; PPM (cash) and players marked free are excluded.
-  const sharesFee = p =>
-    attendanceMap[p.id] === 'played' && p.type !== 'ppm' && !freePlayerIds.has(p.id)
+  const sharesFee = p => sharesMatchCost(attendanceMap[p.id], p.type, freePlayerIds.has(p.id))
 
   function openAttendance(weekId) {
     const week = weeks.find(w => w.week_id === weekId)
@@ -68,21 +66,17 @@ export default function AdminWeeks() {
     const deductInit = Object.fromEntries(
       weekRecords.filter(r => r.sponsor_player_id).map(r => [r.player_id, r.sponsor_player_id])
     )
-    // Pre-fill total cost from existing match_deduction transactions for this week
-    const existingDeductionTotal = transactions
-      .filter(t => t.week_id === weekId && t.type === 'match_deduction')
-      .reduce((sum, t) => sum + (t.amount ?? 0), 0)
-    const playedCount = weekRecords.filter(r => r.status === 'played').length
-    const prefillCost = existingDeductionTotal > 0
-      ? Math.round(existingDeductionTotal)
-      : (week?.match_fee && playedCount > 0 ? Math.round(week.match_fee * playedCount) : 0)
+    const weekDeductions = transactions.filter(t => t.week_id === weekId && t.type === 'match_deduction')
+
+    // Pre-fill the total (match + snacks): the total this editor last saved with the week,
+    // else rebuild it from the charges already made, else start from the configured defaults.
+    const playerById = Object.fromEntries((pData?.players ?? []).map(p => [p.id, p]))
+    const knownTotal = Number(week?.total_cost) || rebuildWeekTotal(weekRecords, weekDeductions, playerById)
 
     // Pre-fill ppmPaidIds from existing match_deduction txns for PPM players
     const ppmPlayers = new Set(players.filter(p => p.type === 'ppm').map(p => p.id))
     const ppmAlreadyPaid = new Set(
-      transactions
-        .filter(t => t.week_id === weekId && t.type === 'match_deduction' && ppmPlayers.has(t.player_id))
-        .map(t => t.player_id)
+      weekDeductions.filter(t => ppmPlayers.has(t.player_id)).map(t => t.player_id)
     )
 
     const defaultSnacks = cfg?.default_snacks_fee ?? 0
@@ -91,8 +85,8 @@ export default function AdminWeeks() {
     )
     setAttendanceMap(init)
     setDeductFromMap(deductInit)
-    setMatchAmount(prefillCost)
-    setSnacksAmount(existingDeductionTotal > 0 ? 0 : defaultSnacks)
+    setMatchAmount(knownTotal > 0 ? Math.round(knownTotal) : (cfg?.default_match_fee ?? 0))
+    setSnacksAmount(knownTotal > 0 ? 0 : defaultSnacks)
     setFreePlayerIds(existingFreeIds)
     setPpmPaidIds(ppmAlreadyPaid)
     setReapplyDeductions(false)
@@ -185,14 +179,8 @@ export default function AdminWeeks() {
         description: reimbDesc || 'Expense reimbursement',
         recorded_by: 'admin', receipt_ref: '',
       }
-      const newBal = (target?.corpus_balance ?? 0) + amt
+      // Balances are computed from transactions by the player_balances view
       await writeTransactions([txn], 'expense_reimbursement', null, txn.description, null, null)
-      await writePlayers(
-        allPlayers.map(p => p.id === reimbPlayer
-          ? { ...p, corpus_balance: Math.round(newBal * 100) / 100, balance_status: calcBalanceStatus(newBal, cfg) }
-          : p),
-        'expense_reimbursement', null, txn.description, null, null
-      )
       qc.invalidateQueries({ queryKey: ['transactions'] })
       qc.invalidateQueries({ queryKey: ['players'] })
       setReimbPlayer('')
@@ -214,12 +202,18 @@ export default function AdminWeeks() {
       const paidPlayers = played.filter(sharesFee)
       const perPlayerFee = paidPlayers.length > 0 ? total / paidPlayers.length : 0
 
-      // Store computed per-player fee in week record
-      if (perPlayerFee > 0 && Math.abs(perPlayerFee - week.match_fee) > 0.01) {
-        await writeWeeks(
-          weeks.map(w => w.week_id === week.week_id ? { ...w, match_fee: Math.round(perPlayerFee * 100) / 100 } : w),
-          'edit_week', `Updated match fee for ${week.label}`
-        )
+      // Store the total and computed per-player fee in the week record, so reopening
+      // the week pre-fills the real total (guests paying directly have no transaction)
+      const feeChanged   = perPlayerFee > 0 && Math.abs(perPlayerFee - week.match_fee) > 0.01
+      const totalChanged = total > 0 && Math.abs(total - (Number(week.total_cost) || 0)) > 0.01
+      if (feeChanged || totalChanged) {
+        const updatedWeek = {
+          ...week,
+          ...(total > 0 && { total_cost: total }),
+          ...(perPlayerFee > 0 && { match_fee: Math.round(perPlayerFee * 100) / 100 }),
+        }
+        // Write only this week — upserting the whole cached list could revert other weeks
+        await writeWeeks([updatedWeek], 'edit_week', `Updated match fee for ${week.label}`)
         qc.invalidateQueries({ queryKey: ['weeks'] })
       }
 
@@ -248,8 +242,6 @@ export default function AdminWeeks() {
       const shouldApply = cfg?.auto_deduct_on_sync && (!alreadyDeducted || reapplyDeductions)
 
       if (shouldApply) {
-        const allPlayers = pData?.players ?? []
-
         // If reapplying, delete old deduction transactions first
         if (reapplyDeductions && alreadyDeducted) {
           await softDeleteTransactions(
@@ -298,16 +290,9 @@ export default function AdminWeeks() {
 
         const newTxns = [...corpusTxns, ...ppmTxns]
 
-        const updatedPlayers = allPlayers.map(p => {
-          const deductAmount = balanceChanges[p.id]
-          if (!deductAmount) return p
-          const bal = (p.corpus_balance ?? 0) - deductAmount
-          return { ...p, corpus_balance: Math.round(bal * 100) / 100, balance_status: calcBalanceStatus(bal, cfg) }
-        })
-
-        // Upsert only the new/updated transactions (don't re-upsert entire history)
+        // Upsert only the new/updated transactions (don't re-upsert entire history).
+        // Balances are computed from transactions by the player_balances view.
         await writeTransactions(newTxns, 'mark_attendance', week.week_id, `Match deductions for ${week.label}`, null, null)
-        await writePlayers(updatedPlayers, 'bulk_attendance', week.week_id, `Balances updated for ${week.label}`, null, null)
         qc.invalidateQueries({ queryKey: ['transactions'] })
         qc.invalidateQueries({ queryKey: ['players'] })
         showToast(reapplyDeductions ? 'Deductions re-applied with updated attendance' : 'Attendance saved and deductions applied')
